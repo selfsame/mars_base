@@ -523,8 +523,16 @@
 			"file": "index.html",
 			"settings":
 			{
-				"buffer_size": 0,
+				"buffer_size": 453,
 				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/utils.js",
+			"settings":
+			{
+				"buffer_size": 1797,
+				"line_ending": "Unix"
 			}
 		}
 	],
@@ -552,6 +560,9 @@
 	},
 	"file_history":
 	[
+		"/C/Users/jplur/Desktop/mars_base/css/style.css",
+		"/C/xampp/htdocs/galaxy_dungeon/simple.html",
+		"/C/Users/jplur/Desktop/mars_base/.gitignore",
 		"/C/xampp/htdocs/pagelayer/coffee/style_editor.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/tools.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/options.coffee",
@@ -676,10 +687,7 @@
 		"/C/Users/jplur/AppData/Local/Temp/fz3-13380847762030",
 		"/C/Users/jplur/Desktop/tangiers dev/journal/search.php",
 		"/C/Users/jplur/Desktop/tangiers dev/journal/webfonts/archer.css",
-		"/C/Users/jplur/Desktop/tangiers dev/journal/index.php",
-		"/C/Users/jplur/Documents/sausage_launch/Assets/coffee/world.coffee",
-		"/C/Users/jplur/Google Drive/Alysssa.gdoc",
-		"/C/Users/jplur/Desktop/alien_coffee/coffee/components.coffee"
+		"/C/Users/jplur/Desktop/tangiers dev/journal/index.php"
 	],
 	"find":
 	{
@@ -858,7 +866,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -866,7 +874,35 @@
 					"file": "index.html",
 					"settings":
 					{
-						"buffer_size": 0,
+						"buffer_size": 453,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								413,
+								413
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "js/utils.js",
+					"settings":
+					{
+						"buffer_size": 1797,
 						"regions":
 						{
 						},
@@ -879,8 +915,9 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/HTML/HTML.tmLanguage",
-							"tab_size": 4,
+							"auto_name": "",
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
