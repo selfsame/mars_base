@@ -520,19 +520,44 @@
 	"buffers":
 	[
 		{
-			"file": "index.html",
+			"file": "coffee/utils.coffee",
 			"settings":
 			{
-				"buffer_size": 453,
+				"buffer_size": 1474,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "js/utils.js",
+			"file": "coffee/mapper.coffee",
 			"settings":
 			{
-				"buffer_size": 1797,
+				"buffer_size": 1863,
+				"line_ending": "Windows",
+				"name": "mapper"
+			}
+		},
+		{
+			"file": "js/mapper.js",
+			"settings":
+			{
+				"buffer_size": 3665,
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "css/style.css",
+			"settings":
+			{
+				"buffer_size": 74,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "map_tests.html",
+			"settings":
+			{
+				"buffer_size": 507,
+				"line_ending": "Windows"
 			}
 		}
 	],
@@ -560,9 +585,11 @@
 	},
 	"file_history":
 	[
+		"/C/Users/jplur/Desktop/mars_base/.gitignore",
+		"/C/Users/jplur/Desktop/mars_base/js/utils.js",
+		"/C/Users/jplur/Desktop/mars_base/coffee/utils.coffee",
 		"/C/Users/jplur/Desktop/mars_base/css/style.css",
 		"/C/xampp/htdocs/galaxy_dungeon/simple.html",
-		"/C/Users/jplur/Desktop/mars_base/.gitignore",
 		"/C/xampp/htdocs/pagelayer/coffee/style_editor.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/tools.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/options.coffee",
@@ -685,9 +712,7 @@
 		"/D/My Pictures/.comments/dancez.xml",
 		"/C/Users/jplur/Desktop/selfsame/temp/.htaccess",
 		"/C/Users/jplur/AppData/Local/Temp/fz3-13380847762030",
-		"/C/Users/jplur/Desktop/tangiers dev/journal/search.php",
-		"/C/Users/jplur/Desktop/tangiers dev/journal/webfonts/archer.css",
-		"/C/Users/jplur/Desktop/tangiers dev/journal/index.php"
+		"/C/Users/jplur/Desktop/tangiers dev/journal/search.php"
 	],
 	"find":
 	{
@@ -871,23 +896,23 @@
 			[
 				{
 					"buffer": 0,
-					"file": "index.html",
+					"file": "coffee/utils.coffee",
 					"settings":
 					{
-						"buffer_size": 453,
+						"buffer_size": 1474,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								413,
-								413
+								1126,
+								1126
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"syntax": "Packages/CoffeeScript.tmLanguage",
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
@@ -899,26 +924,104 @@
 				},
 				{
 					"buffer": 1,
-					"file": "js/utils.js",
+					"file": "coffee/mapper.coffee",
 					"settings":
 					{
-						"buffer_size": 1797,
+						"buffer_size": 1863,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								807,
+								807
 							]
 						],
 						"settings":
 						{
-							"auto_name": "",
+							"auto_name": "mapper",
+							"syntax": "Packages/CoffeeScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "js/mapper.js",
+					"settings":
+					{
+						"buffer_size": 3665,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								853,
+								853
+							]
+						],
+						"settings":
+						{
 							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 679.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "css/style.css",
+					"settings":
+					{
+						"buffer_size": 74,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								34,
+								34
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "map_tests.html",
+					"settings":
+					{
+						"buffer_size": 507,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								111,
+								111
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -926,11 +1029,6 @@
 					},
 					"type": "text"
 				}
-			]
-		},
-		{
-			"sheets":
-			[
 			]
 		}
 	],
@@ -951,18 +1049,11 @@
 				0,
 				1,
 				1
-			],
-			[
-				1,
-				0,
-				2,
-				1
 			]
 		],
 		"cols":
 		[
 			0.0,
-			0.668443999336,
 			1.0
 		],
 		"rows":
