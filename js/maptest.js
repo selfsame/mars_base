@@ -4,28 +4,40 @@ var win = document.defaultView;
 // Create the canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 1148/2;
-canvas.height = 1024/2;
+canvas.width = 608;
+canvas.height = 512;
 document.body.appendChild(canvas);
 
 // tile object
-function tile(map, type, x, y) {
+function tile(map, types, x, y) {
 	this.map = map;
-	this.type = type;
+	this.types = type;
 	this.posx = x;
 	this.posy = y;
 	this.draw = draw;
-	//this.getNeighbors = getNeighbors;
-	this.img = new Image();
+	this.getNeighbors = getNeighbors;
 	
-	if (type == "d") {
-		this.img.src = "./textures/ground/dirt.png";
-	} else if (type == "m") {
-		this.img.src = "./textures/ground/room_medical.png";
+	
+	
+	for (var i = 0; i < types.length; i++) {
+		var type = types[i];
+		var img = new Image();
+		if (type == "d") {
+			img.src = "./textures/ground/dirt.png";
+		} else if (type == "m") {
+			img.src = "./textures/ground/room_medical.png";
+		} else if (type == "c") {
+			img.src = "./textures/ground/room_corridor.png";
+		} else if (type == "r") {
+			img.src = "./textures/objects/rock.png";
+		} else if (type == "a") {
+			img.src = "./textures/objects/alphasquare.png";
+		}
+		this.draw(img);
 	}
 	
-	function draw() {
-		ctx.drawImage(this.img, this.posx * 16, this.posy * 16);
+	function draw(imgOb) {
+		ctx.drawImage(imgOb, this.posx * 32, this.posy * 32);
 	}
 	
 	function getNeighbors() {
@@ -43,7 +55,6 @@ function map(mapName) {
 	this.width = this.m[0].length;
 	this.height = this.m.length;
 	
-	
 	for (var i = 0; i < this.width; i++) {
 		var column = [];
 		for(var j = 0; j < this.height; j++) {
@@ -51,9 +62,6 @@ function map(mapName) {
 		}
 		this.tiles[i] = column;
 	}
-	
-
-	
 	
 	function draw() {
 		for (var i = 0; i < this.width; i++) {
@@ -69,6 +77,8 @@ function map(mapName) {
 }
 
 // create a map
-var tileMap = new map("mars");
+
 // display it
-tileMap.draw();
+var tileMap = new map("mars");
+$(window).ready( function(){tileMap.draw();} );
+
