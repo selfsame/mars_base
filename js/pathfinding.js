@@ -9,13 +9,16 @@
     function Guy(name, color) {
       this.name = name;
       this.color = color;
+      console.log(color);
       this.pos = window.mapper.get_random_pos();
+      this.pix_pos = [this.pos[0] * 16, this.pos[1] * 16];
+      this.speed = 1 + Math.random() * 4;
       this.state = 'idle';
       this.guy_image = window.mapper.guy_image;
     }
 
     Guy.prototype.update = function() {
-      var i, img, k, mx, my, n, point, point2, _i, _len, _ref;
+      var d, dd, img, k, mx, my, pmx, pmy;
       if (this.state === 'idle') {
         this.target = window.mapper.get_random_pos();
         if (this.target && this.pos) {
@@ -31,7 +34,25 @@
           }
         }
       }
-      if (this.state === 'has_target') {
+      d = this.pos[0] * 16 - this.pix_pos[0];
+      dd = this.pos[1] * 16 - this.pix_pos[1];
+      pmx = 0;
+      pmy = 0;
+      if (d < -this.speed) {
+        this.pix_pos[0] -= this.speed;
+        pmx = 1;
+      } else if (d > this.speed) {
+        this.pix_pos[0] += this.speed;
+        pmx = 1;
+      }
+      if (dd < -this.speed) {
+        this.pix_pos[1] -= this.speed;
+        pmy = 1;
+      } else if (dd > this.speed) {
+        this.pix_pos[1] += this.speed;
+        pmy = 1;
+      }
+      if (pmy === 0 && pmx === 0 && this.state === 'has_target') {
         mx = 0;
         my = 0;
         k = this.path.length - 1;
@@ -61,35 +82,26 @@
           this.state = 'idle';
         }
       }
-      _ref = this.path;
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        point = _ref[i];
-        if (i < this.path.length) {
-          point2 = this.path[i + 1];
-          window.mapper.draw_box(3 + point[0] * 16, 3 + point[1] * 16, 10, 10, {
-            fillStyle: 'transparent',
-            strokeStyle: this.color,
-            lineWidth: 1
-          });
-          if (point2) {
-            window.mapper.draw_line(8 + point[0] * 16, 8 + point[1] * 16, 8 + point2[0] * 16, 8 + point2[1] * 16, {
-              strokeStyle: this.color,
-              lineWidth: 2
-            });
-          } else {
-            n = 0;
-          }
-          if (i === this.path.length - 1) {
-            window.mapper.draw_line(8 + point[0] * 16, 8 + point[1] * 16, 8 + this.pos[0] * 16, 8 + this.pos[1] * 16, {
-              strokeStyle: this.color,
-              lineWidth: 2
-            });
-          }
-        }
-      }
+      /*
+      		for point, i in @path
+      			if i < @path.length
+      
+      				point2 = @path[i+1]
+      				window.mapper.draw_box(3+point[0]*16, 3+point[1]*16, 10,10, {fillStyle:'transparent', strokeStyle:@color,lineWidth:1})
+      				if point2
+      					#console.log i, point, point2
+      					window.mapper.draw_line(8+point[0]*16, 8+point[1]*16, 8+point2[0]*16, 8+point2[1]*16, {strokeStyle:@color,lineWidth:2})
+      				else
+      					#console.log @path
+      					n = 0
+      
+      				if i is @path.length-1
+      					window.mapper.draw_line(8+point[0]*16, 8+point[1]*16, 8+@pos[0]*16, 8+@pos[1]*16, {strokeStyle:@color,lineWidth:2})
+      */
+
       img = window.mapper.guy_image;
       if (img != null) {
-        return window.mapper.context.drawImage(img, this.pos[0] * 16, this.pos[1] * 16);
+        return window.mapper.context.drawImage(img, this.pix_pos[0], this.pix_pos[1]);
       }
     };
 
@@ -101,7 +113,7 @@
     window.mapper = {
       mouse_is_down: 0,
       init: function() {
-        var colors, i, j, _i, _j, _k, _ref, _ref1;
+        var i, j, _i, _j, _k, _ref, _ref1;
         this.canvas = $('#game_canvas');
         this.context = this.canvas[0].getContext("2d");
         this.grid_w = 71;
@@ -129,9 +141,8 @@
           return window.mapper.mouseup(e);
         });
         this.guys = [];
-        colors = ['silver', 'pink', 'blue', 'cyan', 'green', '#bada55'];
-        for (i = _k = 0; _k <= 5; i = ++_k) {
-          this.guys.push(new Guy('anon', colors[i]));
+        for (i = _k = 0; _k <= 600; i = ++_k) {
+          this.guys.push(new Guy('anon', 'rgb(' + parseInt(Math.random() * 255) + ',' + parseInt(Math.random() * 255) + ',' + parseInt(Math.random() * 255) + ')'));
         }
         this.guy_image = new Image();
         this.guy_image.src = "./astronaut.png";
@@ -178,7 +189,7 @@
         }
       },
       draw: function() {
-        var column, guy, i, j, row, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _results;
+        var column, guy, i, j, n, row, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _results;
         this.context.clearRect(0, 0, this.canvas.width(), this.canvas.height());
         _ref = this.map;
         for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
@@ -186,11 +197,7 @@
           for (j = _j = 0, _len1 = row.length; _j < _len1; j = ++_j) {
             column = row[j];
             if (column === 0) {
-              this.draw_box(j * 16, i * 16, 16, 16, {
-                fillStyle: "transparent",
-                strokeStyle: "rgba(130, 110, 80,.5)",
-                lineWidth: 1
-              });
+              n = 0;
             } else {
               this.draw_box(j * 16, i * 16, 16, 16, {
                 fillStyle: "silver"
