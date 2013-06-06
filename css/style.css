@@ -2,8 +2,10 @@
 
 #game_canvas{
 	position:relative;
-	margin: 30px auto;
+	margin: 0px auto;
 	cursor:pointer;
 	background-image: url(../rock.png);
 	background-repeat: repeat;
+	-webkit-user-select:none;
+	user-select:none;
 }

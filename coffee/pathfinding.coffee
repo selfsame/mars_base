@@ -10,48 +10,69 @@ class Guy
 		if @state is 'idle'
 			
 			@target = window.mapper.get_random_pos()
-			if window.mapper.path_map.isWalkableAt(@target[0],@target[1])
-				@state = 'has_target'
-				try
-					@path = window.mapper.path_finder.findPath(@pos[0], @pos[1], @target[0], @target[1], window.mapper.path_map)
-				catch e
-					console.log 'nope', e
-					console.log @pos, @target
+			if @target and @pos
+				if window.mapper.map[@target[1]][@target[0]] is 0
+					
+					try
+						@path = window.mapper.get_path(@pos[0], @pos[1], @target[0], @target[1])
+						@path = @path.reverse()
+						@state = 'has_target'
+					catch e
+						console.log 'nope', e
+						console.log @pos, @target
 
-
-
-
-		for point, i in @path
-			if i < @path.length-1
-
-				point2 = @path[i+1]
-				
-				if point2
-					#console.log i, point, point2
-					window.mapper.draw_line(point[0]*16, point[1]*16, point2[0]*16, point2[1]*16, {strokeStyle:'white',lineWidth:2})
 
 		if @state is 'has_target'
 			mx = 0
 			my = 0
-			if @pos[0] < @target[0]
-				@pos[0] += 1
-				mx = 1
-			if @pos[0] > @target[0]
-				@pos[0] -= 1
-				mx = 1
+			k = @path.length-1
+			if @path[k]?
+				if @pos[0] < @path[k][0]
+					@pos[0] += 1
+					mx = 1
+				if @pos[0] > @path[k][0]
+					@pos[0] -= 1
+					mx = 1
 
-			if @pos[1] < @target[1]
-				@pos[1] += 1
-				my = 1
-			if @pos[1] > @target[1]
-				@pos[1] -= 1
-				my = 1
+				if @pos[1] < @path[k][1]
+					@pos[1] += 1
+					my = 1
+				if @pos[1] > @path[k][1]
+					@pos[1] -= 1
+					my = 1
 
-			if mx is 0 and my is 0
-				if @path.length > 0
-					@path.pop(0)
+				if @pos[0] is @path[k][0] and @pos[1] is @path[k][1]
+					if @path.length > 0
+						@path.pop(0)
+			else
+				@state = 'idle'
+
+
+		for point, i in @path
+			if i < @path.length
+
+				point2 = @path[i+1]
+				window.mapper.draw_box(3+point[0]*16, 3+point[1]*16, 10,10, {fillStyle:'transparent', strokeStyle:@color,lineWidth:1})
+				if point2
+					#console.log i, point, point2
+					window.mapper.draw_line(8+point[0]*16, 8+point[1]*16, 8+point2[0]*16, 8+point2[1]*16, {strokeStyle:@color,lineWidth:2})
 				else
-					@state = 'idle'
+					#console.log @path
+					n = 0
+
+				if i is @path.length-1
+					window.mapper.draw_line(8+point[0]*16, 8+point[1]*16, 8+@pos[0]*16, 8+@pos[1]*16, {strokeStyle:@color,lineWidth:2})
+		
+
+		
+
+		
+
+			
+
+			#point = @path[0]
+			#if point?
+			#	window.mapper.draw_line(@pos[0]*16, @pos[1]*16, point[0]*16, point[1]*16, {strokeStyle:'white',lineWidth:2})
 
 
 		img = window.mapper.guy_image
@@ -66,20 +87,20 @@ $(window).ready ->
 			@canvas = $('#game_canvas')
 			@context = @canvas[0].getContext("2d")
 
-			@grid_w = 30
-			@grid_h = 30
+			@grid_w = 71
+			@grid_h = 50
 			@grid_size = 16
 			# grid rows are x, columns y
 			@map = []
 			for i in [0..@grid_h-1]
 				@map.push []
 				for j in [0..@grid_w-1]
-					if j is 0 or j is @grid_w-1 or i is 0 or i is @grid_h-1
+					if j < 1 or j is @grid_w-1 or i < 1 or i is @grid_h-1
 						@map[i].push 1
 					else
 						@map[i].push 0
 
-			@path_map = new PF.Grid(@grid_w, @grid_h, @map)
+			
 			@path_finder = new PF.JumpPointFinder()
 
 			@canvas.mousedown (e)->
@@ -91,7 +112,7 @@ $(window).ready ->
 
 			@guys = []
 			colors = ['silver','pink','blue','cyan','green','#bada55']
-			for i in [0..4]
+			for i in [0..5]
 				@guys.push new Guy('anon', colors[i])
 
 			#Load some images
@@ -100,7 +121,9 @@ $(window).ready ->
 
 			@animate()
 			
-
+		get_path: (x,y,x2,y2)->
+			grid = new PF.Grid(@grid_w, @grid_h, @map)
+			return @path_finder.findPath(x, y, x2, y2, grid)
 
 		mousedown: (e)->
 			@mouse_is_down = 1
@@ -108,8 +131,8 @@ $(window).ready ->
 		mousemove: (e)->
 			if @mouse_is_down
 				pos = @mouse_to_grid e.clientX, e.clientY
-				@map[pos[0]][pos[1]] = 1
-				@path_map.setWalkableAt(pos[0], pos[1], false)
+				@map[pos[1]][pos[0]] = 1
+
 
 
 		mouseup: (e)->
@@ -131,7 +154,7 @@ $(window).ready ->
 			y = Math.random()*(@grid_h-1)
  
 			xy = [parseInt(x), parseInt(y)]
-			if @path_map.isWalkableAt(xy[0],xy[1])
+			if @map[xy[1]][xy[0]] isnt 1
 				return xy
 			else
 				@get_random_pos()
@@ -142,9 +165,9 @@ $(window).ready ->
 			for row,i in @map
 				for column,j in row
 					if column is 0
-						@draw_box(i*16, j*16, 16, 16, {fillStyle:"transparent", strokeStyle:"rgba(130, 110, 80,.5)", lineWidth:1})
+						@draw_box(j*16, i*16, 16, 16, {fillStyle:"transparent", strokeStyle:"rgba(130, 110, 80,.5)", lineWidth:1})
 					else
-						@draw_box(i*16, j*16, 16, 16, {fillStyle:"red"})
+						@draw_box(j*16, i*16, 16, 16, {fillStyle:"silver"})
 			for guy in @guys
 				guy.update()
 
@@ -190,7 +213,7 @@ $(window).ready ->
 			x2 += .5 
 			y2 += .5 
 
-			console.log 'draw_line: ['+x+','+y+']'+'['+x2+','+y2+']'
+			#console.log 'draw_line: ['+x+','+y+']'+'['+x2+','+y2+']'
 
 			@context.fillStyle = options.fillStyle
 			@context.strokeStyle = options.strokeStyle

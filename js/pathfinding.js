@@ -15,56 +15,75 @@
     }
 
     Guy.prototype.update = function() {
-      var i, img, mx, my, point, point2, _i, _len, _ref;
+      var i, img, k, mx, my, n, point, point2, _i, _len, _ref;
       if (this.state === 'idle') {
         this.target = window.mapper.get_random_pos();
-        if (window.mapper.path_map.isWalkableAt(this.target[0], this.target[1])) {
-          this.state = 'has_target';
-          try {
-            this.path = window.mapper.path_finder.findPath(this.pos[0], this.pos[1], this.target[0], this.target[1], window.mapper.path_map);
-          } catch (e) {
-            console.log('nope', e);
-            console.log(this.pos, this.target);
-          }
-        }
-      }
-      _ref = this.path;
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        point = _ref[i];
-        if (i < this.path.length - 1) {
-          point2 = this.path[i + 1];
-          if (point2) {
-            window.mapper.draw_line(point[0] * 16, point[1] * 16, point2[0] * 16, point2[1] * 16, {
-              strokeStyle: 'white',
-              lineWidth: 2
-            });
+        if (this.target && this.pos) {
+          if (window.mapper.map[this.target[1]][this.target[0]] === 0) {
+            try {
+              this.path = window.mapper.get_path(this.pos[0], this.pos[1], this.target[0], this.target[1]);
+              this.path = this.path.reverse();
+              this.state = 'has_target';
+            } catch (e) {
+              console.log('nope', e);
+              console.log(this.pos, this.target);
+            }
           }
         }
       }
       if (this.state === 'has_target') {
         mx = 0;
         my = 0;
-        if (this.pos[0] < this.target[0]) {
-          this.pos[0] += 1;
-          mx = 1;
+        k = this.path.length - 1;
+        if (this.path[k] != null) {
+          if (this.pos[0] < this.path[k][0]) {
+            this.pos[0] += 1;
+            mx = 1;
+          }
+          if (this.pos[0] > this.path[k][0]) {
+            this.pos[0] -= 1;
+            mx = 1;
+          }
+          if (this.pos[1] < this.path[k][1]) {
+            this.pos[1] += 1;
+            my = 1;
+          }
+          if (this.pos[1] > this.path[k][1]) {
+            this.pos[1] -= 1;
+            my = 1;
+          }
+          if (this.pos[0] === this.path[k][0] && this.pos[1] === this.path[k][1]) {
+            if (this.path.length > 0) {
+              this.path.pop(0);
+            }
+          }
+        } else {
+          this.state = 'idle';
         }
-        if (this.pos[0] > this.target[0]) {
-          this.pos[0] -= 1;
-          mx = 1;
-        }
-        if (this.pos[1] < this.target[1]) {
-          this.pos[1] += 1;
-          my = 1;
-        }
-        if (this.pos[1] > this.target[1]) {
-          this.pos[1] -= 1;
-          my = 1;
-        }
-        if (mx === 0 && my === 0) {
-          if (this.path.length > 0) {
-            this.path.pop(0);
+      }
+      _ref = this.path;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        point = _ref[i];
+        if (i < this.path.length) {
+          point2 = this.path[i + 1];
+          window.mapper.draw_box(3 + point[0] * 16, 3 + point[1] * 16, 10, 10, {
+            fillStyle: 'transparent',
+            strokeStyle: this.color,
+            lineWidth: 1
+          });
+          if (point2) {
+            window.mapper.draw_line(8 + point[0] * 16, 8 + point[1] * 16, 8 + point2[0] * 16, 8 + point2[1] * 16, {
+              strokeStyle: this.color,
+              lineWidth: 2
+            });
           } else {
-            this.state = 'idle';
+            n = 0;
+          }
+          if (i === this.path.length - 1) {
+            window.mapper.draw_line(8 + point[0] * 16, 8 + point[1] * 16, 8 + this.pos[0] * 16, 8 + this.pos[1] * 16, {
+              strokeStyle: this.color,
+              lineWidth: 2
+            });
           }
         }
       }
@@ -85,21 +104,20 @@
         var colors, i, j, _i, _j, _k, _ref, _ref1;
         this.canvas = $('#game_canvas');
         this.context = this.canvas[0].getContext("2d");
-        this.grid_w = 30;
-        this.grid_h = 30;
+        this.grid_w = 71;
+        this.grid_h = 50;
         this.grid_size = 16;
         this.map = [];
         for (i = _i = 0, _ref = this.grid_h - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
           this.map.push([]);
           for (j = _j = 0, _ref1 = this.grid_w - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; j = 0 <= _ref1 ? ++_j : --_j) {
-            if (j === 0 || j === this.grid_w - 1 || i === 0 || i === this.grid_h - 1) {
+            if (j < 1 || j === this.grid_w - 1 || i < 1 || i === this.grid_h - 1) {
               this.map[i].push(1);
             } else {
               this.map[i].push(0);
             }
           }
         }
-        this.path_map = new PF.Grid(this.grid_w, this.grid_h, this.map);
         this.path_finder = new PF.JumpPointFinder();
         this.canvas.mousedown(function(e) {
           return window.mapper.mousedown(e);
@@ -112,12 +130,17 @@
         });
         this.guys = [];
         colors = ['silver', 'pink', 'blue', 'cyan', 'green', '#bada55'];
-        for (i = _k = 0; _k <= 4; i = ++_k) {
+        for (i = _k = 0; _k <= 5; i = ++_k) {
           this.guys.push(new Guy('anon', colors[i]));
         }
         this.guy_image = new Image();
         this.guy_image.src = "./astronaut.png";
         return this.animate();
+      },
+      get_path: function(x, y, x2, y2) {
+        var grid;
+        grid = new PF.Grid(this.grid_w, this.grid_h, this.map);
+        return this.path_finder.findPath(x, y, x2, y2, grid);
       },
       mousedown: function(e) {
         return this.mouse_is_down = 1;
@@ -126,8 +149,7 @@
         var pos;
         if (this.mouse_is_down) {
           pos = this.mouse_to_grid(e.clientX, e.clientY);
-          this.map[pos[0]][pos[1]] = 1;
-          return this.path_map.setWalkableAt(pos[0], pos[1], false);
+          return this.map[pos[1]][pos[0]] = 1;
         }
       },
       mouseup: function(e) {
@@ -149,7 +171,7 @@
         x = Math.random() * (this.grid_w - 1);
         y = Math.random() * (this.grid_h - 1);
         xy = [parseInt(x), parseInt(y)];
-        if (this.path_map.isWalkableAt(xy[0], xy[1])) {
+        if (this.map[xy[1]][xy[0]] !== 1) {
           return xy;
         } else {
           return this.get_random_pos();
@@ -164,14 +186,14 @@
           for (j = _j = 0, _len1 = row.length; _j < _len1; j = ++_j) {
             column = row[j];
             if (column === 0) {
-              this.draw_box(i * 16, j * 16, 16, 16, {
+              this.draw_box(j * 16, i * 16, 16, 16, {
                 fillStyle: "transparent",
                 strokeStyle: "rgba(130, 110, 80,.5)",
                 lineWidth: 1
               });
             } else {
-              this.draw_box(i * 16, j * 16, 16, 16, {
-                fillStyle: "red"
+              this.draw_box(j * 16, i * 16, 16, 16, {
+                fillStyle: "silver"
               });
             }
           }
@@ -249,7 +271,6 @@
         y += .5;
         x2 += .5;
         y2 += .5;
-        console.log('draw_line: [' + x + ',' + y + ']' + '[' + x2 + ',' + y2 + ']');
         this.context.fillStyle = options.fillStyle;
         this.context.strokeStyle = options.strokeStyle;
         if (options.lineWidth) {
