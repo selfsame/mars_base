@@ -24,6 +24,13 @@ $(window).ready( function(){
 	images.rock.src = "./textures/objects/rock.png";
 	images.alpha = new Image();
 	images.alpha.src = "./textures/objects/alphasquare.png";
+	images.crateOpen = new Image();
+	images.crateOpen.src = "./textures/objects/crate_open.png";
+	images.crateClosed = new Image();
+	images.crateClosed.src = "./textures/objects/crate_closed.png";
+	images.airTanks = new Image();
+	images.airTanks.src = "./textures/objects/airtanks.png";
+	
 	
 	// tile object
 	function tile(map, types, x, y) {
@@ -46,7 +53,14 @@ $(window).ready( function(){
 				this.draw(images.rock);
 			} else if (type == "a") {
 				this.draw(images.alpha);
+			} else if (type == "cc") {
+				this.draw(images.crateClosed);
+			} else if (type == "co") {
+				this.draw(images.crateOpen);
+			} else if (type == "at") {
+				this.draw(images.airTanks);
 			}
+			 
 		}
 		
 		function draw(imgOb) {
