@@ -2,7 +2,10 @@ class Guy
 	constructor: (name,color)->
 		@name = name
 		@color = color
+		console.log color
 		@pos = window.mapper.get_random_pos()
+		@pix_pos = [ @pos[0]*16, @pos[1]*16 ]
+		@speed = 1+ Math.random()*4
 		@state = 'idle'
 		@guy_image = window.mapper.guy_image
 
@@ -22,7 +25,26 @@ class Guy
 						console.log @pos, @target
 
 
-		if @state is 'has_target'
+		d = @pos[0]*16 - @pix_pos[0]
+		dd =@pos[1]*16 -  @pix_pos[1]
+
+		pmx = 0
+		pmy = 0
+		if d < -@speed
+			@pix_pos[0] -= @speed
+			pmx = 1
+		else if d > @speed
+			@pix_pos[0] += @speed
+			pmx = 1
+		if dd < -@speed
+			@pix_pos[1] -= @speed
+			pmy = 1
+		else if dd > @speed
+			@pix_pos[1] += @speed
+			pmy = 1
+			
+		if pmy is 0 and pmx is 0 and @state is 'has_target'
+
 			mx = 0
 			my = 0
 			k = @path.length-1
@@ -41,13 +63,18 @@ class Guy
 					@pos[1] -= 1
 					my = 1
 
+				#if window.mapper.map[@pos[1]][@pos[0]] is 1
+				#	@path = []
+					#@state = 'idle'
+				#	return
+
 				if @pos[0] is @path[k][0] and @pos[1] is @path[k][1]
 					if @path.length > 0
 						@path.pop(0)
 			else
 				@state = 'idle'
 
-
+		###
 		for point, i in @path
 			if i < @path.length
 
@@ -62,7 +89,7 @@ class Guy
 
 				if i is @path.length-1
 					window.mapper.draw_line(8+point[0]*16, 8+point[1]*16, 8+@pos[0]*16, 8+@pos[1]*16, {strokeStyle:@color,lineWidth:2})
-		
+		###
 
 		
 
@@ -77,7 +104,7 @@ class Guy
 
 		img = window.mapper.guy_image
 		if img?
-			window.mapper.context.drawImage(img, @pos[0]*16, @pos[1]*16)
+			window.mapper.context.drawImage(img,@pix_pos[0], @pix_pos[1])
 
 
 $(window).ready ->
@@ -111,9 +138,9 @@ $(window).ready ->
 				window.mapper.mouseup e
 
 			@guys = []
-			colors = ['silver','pink','blue','cyan','green','#bada55']
-			for i in [0..5]
-				@guys.push new Guy('anon', colors[i])
+			#colors = ['silver','pink','blue','cyan','green','#bada55']
+			for i in [0..600]
+				@guys.push new Guy('anon', 'rgb('+parseInt(Math.random()*255)+','+parseInt(Math.random()*255)+','+parseInt(Math.random()*255)+')')
 
 			#Load some images
 			@guy_image = new Image()
@@ -165,7 +192,8 @@ $(window).ready ->
 			for row,i in @map
 				for column,j in row
 					if column is 0
-						@draw_box(j*16, i*16, 16, 16, {fillStyle:"transparent", strokeStyle:"rgba(130, 110, 80,.5)", lineWidth:1})
+						#@draw_box(j*16, i*16, 16, 16, {fillStyle:"transparent", strokeStyle:"rgba(130, 110, 80,.5)", lineWidth:1})
+						n = 0
 					else
 						@draw_box(j*16, i*16, 16, 16, {fillStyle:"silver"})
 			for guy in @guys
