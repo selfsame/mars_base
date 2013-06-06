@@ -4,4 +4,6 @@
 	position:relative;
 	margin: 30px auto;
 	cursor:pointer;
+	background-image: url(../rock.png);
+	background-repeat: repeat;
 }

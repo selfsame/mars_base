@@ -1,3 +1,8 @@
+window.requestAnimFrame = (->
+  window.requestAnimationFrame or window.webkitRequestAnimationFrame or window.mozRequestAnimationFrame or (callback) ->
+    window.setTimeout callback, 1000 / 60
+)()
+
 window.util = 
   #the double click thing probably will eat up memory one way or another
   considered: 0
