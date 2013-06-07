@@ -15,10 +15,13 @@ window.Map = {
 			this.arrays['background'].push([]);
 			for (j = 0; j <= this.width-1; j += 1) {
 				tile = 0;
-				if (Math.random() < .4) {
+				if (Math.random() < .5) {
+					tile = 3;
+				}
+				if (Math.random() < .3) {
 					tile = 1;
 				}
-				if (Math.random() < .1) {
+				if (Math.random() < .05) {
 					tile = 2;
 				}
 				this.arrays['background'][i].push(tile);
@@ -56,7 +59,7 @@ window.Map = {
 			for (i = 0; i <= this.height-1; i += 1) {
 				for (j = 0; j <= this.width-1; j += 1) {
 					tile = this.get('background', j,i)
-					tiles = ['dirt','dirt2','dirt3']
+					tiles = ['dirt','dirt2','dirt3', 'dirt4']
 					window.Draw.image(tiles[tile],j*this.tilesize,i*this.tilesize);
 				}
 			}
@@ -73,6 +76,7 @@ $(window).ready( function(){
 	window.Draw.add_image('dirt', "./textures/ground/dirt.png");
 	window.Draw.add_image('dirt2', "./textures/ground/dirt2.png");
 	window.Draw.add_image('dirt3', "./textures/ground/dirt3.png");
+	window.Draw.add_image('dirt4', "./textures/ground/dirt4.png");
 	window.Draw.add_image('medical', "./textures/ground/room_medical.png");
 	window.Draw.add_image('corridor', "./textures/ground/room_corridor.png");
 	window.Draw.add_image('rock', "./textures/objects/rock.png");
