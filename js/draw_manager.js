@@ -105,6 +105,21 @@
         this.context.lineTo(x2, y2);
         this.context.closePath();
         return this.context.stroke();
+      },
+      clear_box: function(x, y, w, h) {
+        if (x == null) {
+          x = 0;
+        }
+        if (y == null) {
+          y = 0;
+        }
+        if (w == null) {
+          w = 100;
+        }
+        if (h == null) {
+          h = 100;
+        }
+        return this.context.clearRect(x, y, w, h);
       }
     };
     return window.Draw.init();

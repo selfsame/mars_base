@@ -25,8 +25,6 @@ $(window).ready ->
 				if not window.Draw.images[name]
 					window.Draw.images[name] = this[0]
 
-
-
 		image: (imgname, x,y)->
 			if @images[imgname]
 				@context.drawImage(@images[imgname],x,y )
@@ -64,6 +62,9 @@ $(window).ready ->
 			@context.lineTo(x2, y2)
 			@context.closePath()
 			@context.stroke()
+
+		clear_box: (x=0,y=0,w=100,h=100)->
+			@context.clearRect(x,y,w,h)
 
 
 	window.Draw.init()

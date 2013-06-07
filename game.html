@@ -2,7 +2,22 @@
 <html lang="en">
 	<head>
 		<style type = "text/css">
-			#canvas_background, #canvas_view{border: 1px solid black;}
+			#canvas_background{
+				border: 1px solid black; 
+				position:absolute;
+				left:0px;
+				top:0px;
+			}
+			#canvas_view{
+				border: 1px solid red;
+				position:absolute;
+			}
+			#background_clip{
+				position:absolute;
+				width:640px;
+				height:480px;
+				overflow:hidden;
+			}
 		</style>
 		<meta charset="utf-8">
 		<title>Canvas Map</title>
@@ -14,7 +29,7 @@
 			<div id="background_clip">
 				<canvas id="canvas_background"></canvas>
 			</div>
-			<canvas id="canvas_view"></canvas>
+			<canvas id="canvas_view" width="640" height="480"></canvas>
 		</div>
 
 		<script type="text/javascript" src = "./js/utils.js"></script>
