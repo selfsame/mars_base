@@ -1,7 +1,7 @@
 
 window.Map = {
-	width: 35,
-	height: 25,
+	width: 120,
+	height: 100,
 	view_w_px: 640,
 	view_h_px: 480,
 	tilesize: 32,
@@ -10,10 +10,11 @@ window.Map = {
 	tile_under_mouse: 0,
 	scroll_x: 0,
 	scroll_y: 0,
+	last_mouse_pos: [0,0],
 	init: function(){
 
 		// route mouse events
-		$('#canvas_view').mousedown(function(e){
+		$('#game_area').mousedown(function(e){
 			window.Map.mousedown(e);
 		});
 		$(window).mousemove(function(e){
@@ -22,9 +23,14 @@ window.Map = {
 		$(window).mouseup(function(e){
 			window.Map.mouseup(e);
 		});
+		$(window).bind('mousewheel', function(e){
+			window.Map.mousewheel(e);
+		});
 
-		$('#canvas_background').attr('width', this.width*this.tilesize);
-		$('#canvas_background').attr('height', this.height*this.tilesize);
+		// create the canvas layers
+		window.Draw.create_layer('background', true)
+		window.Draw.create_layer('blueprint', true)
+		window.Draw.create_layer('entities', false)
 
 		// Using array[y][x] so it syncs with how pathfinding works, but our get and set functions will be (x,y)
 		this.arrays['background'] = []
@@ -49,20 +55,15 @@ window.Map = {
 
 	},
 	draw: function(){
+		window.Draw.check_scroll( this.last_mouse_pos );
 		this.draw_background();
 
-		// check if need scroll
-		//this.scroll_view();
-
-		// clear the view
-		window.Draw.use_view();
-		window.Draw.clear_box(0,0,this.width*this.tilesize, this.height*this.tilesize);
-
 		// indicate the tile under the mouse
+		window.Draw.use_layer('entities');
 		if (this.tile_under_mouse){
 			x = this.tile_under_mouse[0] 
 			y = this.tile_under_mouse[1]
-			window.Draw.draw_box(x*tilesize - this.scroll_x, y*tilesize - this.scroll_y, tilesize, tilesize, {fillStyle:'transparent',strokeStyle:'#BADA55',lineWidth:1});
+			window.Draw.draw_box(x*tilesize, y*tilesize, tilesize, tilesize, {fillStyle:'transparent',strokeStyle:'#BADA55',lineWidth:1});
 		}
 		
 	},
@@ -78,6 +79,10 @@ window.Map = {
 	},
 	update: function(){
 		// will be called every time the window is ready for a new frame
+
+		//clears the view layers
+		window.Draw.update();
+
 		window.Map.draw();
 		window.requestAnimFrame( window.Map.update );
 	},
@@ -118,8 +123,7 @@ window.Map = {
 		// sloppy check if images are loaded
 		if (this.background_drawn == 0 && window.Draw.images.dirt && window.Draw.images.dirt2 && window.Draw.images.dirt3){
 			this.background_drawn = 1
-			window.Draw.use_background();
-			console.log('drawing background', window.Draw.images.dirt);
+			window.Draw.use_layer('background');
 			for (i = 0; i <= this.height-1; i += 1) {
 				for (j = 0; j <= this.width-1; j += 1) {
 					tile = this.get('background', j,i)
@@ -127,13 +131,12 @@ window.Map = {
 					window.Draw.image(tiles[tile],j*this.tilesize,i*this.tilesize);
 				}
 			}
-			window.Draw.use_view();
 		}
 	},
 	draw_blueprint_tile: function(name, x, y) {
 		// draw the given blueprint square over the map
 		if (this.background_drawn == 1 && window.Draw.images.blueprint1 && window.Draw.images.blueprint2){
-			window.Draw.use_background();
+			window.Draw.use_layer('blueprint');
 			tile = this.get(name, x, y);
 			if(tile == 1) {
 				console.log('drawing blueprint tile', window.Draw.images.blueprint1);
@@ -145,17 +148,15 @@ window.Map = {
 				console.log('drawing blueprint tile', window.Draw.images.dirt);
 				window.Draw.image("dirt", x*this.tilesize, y*this.tilesize);
 			}
-			window.Draw.use_view();
 		}
 	},
 	mouse_to_tile: function(x,y){
 		//converts mouse position to tile coords
-		view_offset = $('#canvas_view').offset();
-		x -= view_offset.left;
-		y -= view_offset.top;
 
-		x += this.scroll_x
-		y += this.scroll_y
+		x -= window.Draw.scroll_x
+		y -= window.Draw.scroll_y
+		x /= window.Draw.zoom
+		y /= window.Draw.zoom
 
 		x = parseInt(x/this.tilesize);
 		y = parseInt(y/this.tilesize);
@@ -175,27 +176,18 @@ window.Map = {
 		tilesize = window.Map.tilesize
 		x = e.clientX
 		y = e.clientY
+		this.last_mouse_pos = [x,y]
 		this.tile_under_mouse = this.mouse_to_tile(x,y)
+		
 
 	},
 	mouseup: function(e){
 
 	},
-	scroll_view: function(){
-		// if the mouse is near the edge of the view and it can scroll, scroll it
-		// probably temporary
-		sx = parseInt($('#canvas_background').css('left'));
-		sy = parseInt($('#canvas_background').css('top'));
-		mtile = this.tile_under_mouse
-		if (mtile){
-			if (mtile[0]*this.tilesize > this.view_w_px-64){
-				if ( (this.width*this.tilesize + sx > this.view_w_px) ){
-					$('#canvas_background').css('left', sx-5)
-					this.scroll_x -= 5;
-				}
-			}
-		}
+	mousewheel: function(e){
+		window.Draw.mousewheel(e);
 	}
+
 
 
 }

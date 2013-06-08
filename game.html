@@ -1,41 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<style type = "text/css">
-			#canvas_background{
-				border: 1px solid black; 
-				position:absolute;
-				left:0px;
-				top:0px;
-			}
-			#canvas_view{
-				border: 1px solid red;
-				position:absolute;
-			}
-			#background_clip{
-				position:absolute;
-				width:640px;
-				height:480px;
-				overflow:hidden;
-			}
-		</style>
 		<meta charset="utf-8">
-		<title>Canvas Map</title>
+		<title>Mars Base</title>
+		<link rel="stylesheet" href="./css/style.css">
 		<script type="text/javascript" src = "./js/libs/jQuery-1.8.3.min.js"></script>
 		<script type="text/javascript" src="./js/libs/jquery.imagesloaded.js"></script>
 	</head>
 	<body>
 		<div id="game_area">
 			<div id="background_clip">
-				<canvas id="canvas_background"></canvas>
+				<div id="scroll">
+
+				</div>
 			</div>
-			<canvas id="canvas_view" width="640" height="480"></canvas>
+
 		</div>
 
 		<script type="text/javascript" src = "./js/utils.js"></script>
-		<script type="text/javascript" src = "./js/maps.js"></script>
 		<script type="text/javascript" src = "./js/draw_manager.js"></script>
 		<script type="text/javascript" src = "./js/map_manager.js"></script>
+		<script type="text/javascript" src = "./js/room_manager.js"></script>
 
 	</body>
 </html>
