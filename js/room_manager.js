@@ -134,7 +134,7 @@ window.Blueprints = {
 };
 
 $(window).ready( function() {
-	alert("window loaded");
+
 	
 	function room_tile(type) {
 		this.type = type;
