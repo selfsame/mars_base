@@ -92,6 +92,14 @@ $(window).ready ->
 					$('#scroll').css('top', @scroll_y)
 
 		mousewheel: (e)->
+			mx = window.Map.last_mouse_pos[0]
+			my = window.Map.last_mouse_pos[1]
+			mx -= @scroll_x
+			my -= @scroll_y
+			ox = mx / @zoom
+			oy = my / @zoom
+
+
 			#find the minimum zoom that doesn't show empty space in the view
 			game_w = window.Map.width*window.Map.tilesize
 			game_h = window.Map.height*window.Map.tilesize
@@ -100,32 +108,43 @@ $(window).ready ->
 			if min_z_h > min_z
 				min_z = min_z_h
 			delta = parseInt(e.originalEvent.wheelDeltaY || -e.originalEvent.detail)
-			
 			if delta < 0
-				@zoom *= .9
+				@zoom *= .95
 			else if delta > 0
-				@zoom *= 1.1
+				@zoom *= 1.05
 			if @zoom < min_z
 				@zoom = min_z
 			if @zoom > 3
 				@zoom = 3
-			if @zoom > .9 and @zoom < 1.1
+			if @zoom > .95 and @zoom < 1.05
 				@zoom = 1.0
+
+			nox = mx / @zoom
+			nox_dif = ox-nox
+
+			noy = my / @zoom
+			noy_dif = oy-noy
 
 			$('#scroll').css
 				'-moz-transform': 'scale('+@zoom+')'
 				'-webkit-transform': 'scale('+@zoom+')'
 				'-o-transform': 'scale('+@zoom+')'
 
+			@scroll_x -= nox_dif*@zoom
 			exposed_w = @view_w - (game_w*@zoom + @scroll_x)
 			if exposed_w > 0
 				@scroll_x += exposed_w
-				$('#scroll').css('left', @scroll_x)
+			if @scroll_x > 0
+				@scroll_x = 0
+			$('#scroll').css('left', @scroll_x)
 
+			@scroll_y -= noy_dif*@zoom
 			exposed_h = @view_h - (game_h*@zoom + @scroll_y)
 			if exposed_h > 0
 				@scroll_y += exposed_h
-				$('#scroll').css('top', @scroll_y)
+			if @scroll_y > 0
+				@scroll_y = 0
+			$('#scroll').css('top', @scroll_y)
 
 		update: ()->
 			for layer of @view_layers

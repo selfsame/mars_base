@@ -109,7 +109,13 @@
         }
       },
       mousewheel: function(e) {
-        var delta, exposed_h, exposed_w, game_h, game_w, min_z, min_z_h;
+        var delta, exposed_h, exposed_w, game_h, game_w, min_z, min_z_h, mx, my, nox, nox_dif, noy, noy_dif, ox, oy;
+        mx = window.Map.last_mouse_pos[0];
+        my = window.Map.last_mouse_pos[1];
+        mx -= this.scroll_x;
+        my -= this.scroll_y;
+        ox = mx / this.zoom;
+        oy = my / this.zoom;
         game_w = window.Map.width * window.Map.tilesize;
         game_h = window.Map.height * window.Map.tilesize;
         min_z = this.view_w / game_w;
@@ -119,9 +125,9 @@
         }
         delta = parseInt(e.originalEvent.wheelDeltaY || -e.originalEvent.detail);
         if (delta < 0) {
-          this.zoom *= .9;
+          this.zoom *= .95;
         } else if (delta > 0) {
-          this.zoom *= 1.1;
+          this.zoom *= 1.05;
         }
         if (this.zoom < min_z) {
           this.zoom = min_z;
@@ -129,24 +135,36 @@
         if (this.zoom > 3) {
           this.zoom = 3;
         }
-        if (this.zoom > .9 && this.zoom < 1.1) {
+        if (this.zoom > .95 && this.zoom < 1.05) {
           this.zoom = 1.0;
         }
+        nox = mx / this.zoom;
+        nox_dif = ox - nox;
+        noy = my / this.zoom;
+        noy_dif = oy - noy;
         $('#scroll').css({
           '-moz-transform': 'scale(' + this.zoom + ')',
           '-webkit-transform': 'scale(' + this.zoom + ')',
           '-o-transform': 'scale(' + this.zoom + ')'
         });
+        this.scroll_x -= nox_dif * this.zoom;
         exposed_w = this.view_w - (game_w * this.zoom + this.scroll_x);
         if (exposed_w > 0) {
           this.scroll_x += exposed_w;
-          $('#scroll').css('left', this.scroll_x);
         }
+        if (this.scroll_x > 0) {
+          this.scroll_x = 0;
+        }
+        $('#scroll').css('left', this.scroll_x);
+        this.scroll_y -= noy_dif * this.zoom;
         exposed_h = this.view_h - (game_h * this.zoom + this.scroll_y);
         if (exposed_h > 0) {
           this.scroll_y += exposed_h;
-          return $('#scroll').css('top', this.scroll_y);
         }
+        if (this.scroll_y > 0) {
+          this.scroll_y = 0;
+        }
+        return $('#scroll').css('top', this.scroll_y);
       },
       update: function() {
         var layer, _results;
