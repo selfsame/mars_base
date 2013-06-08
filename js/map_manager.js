@@ -23,7 +23,7 @@ window.Map = {
 		$(window).mouseup(function(e){
 			window.Map.mouseup(e);
 		});
-		$(window).bind('mousewheel', function(e){
+		$(window).bind('mousewheel DOMMouseScroll MozMousePixelScroll', function(e){
 			window.Map.mousewheel(e);
 		});
 

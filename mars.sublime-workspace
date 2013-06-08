@@ -4,14 +4,6 @@
 		"selected_items":
 		[
 			[
-				"guy",
-				"guy_image"
-			],
-			[
-				"get",
-				"get_random_pos"
-			],
-			[
 				"convert_unit",
 				"convert_unit_for_element"
 			],
@@ -50,6 +42,10 @@
 			[
 				"op",
 				"op_scroll_start"
+			],
+			[
+				"get",
+				"get_lock_offset"
 			],
 			[
 				"up",
@@ -514,56 +510,20 @@
 			[
 				"input",
 				"input_panel"
+			],
+			[
+				"css",
+				"css_rules"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "js/map_manager.js",
-			"settings":
-			{
-				"buffer_size": 0,
-				"line_ending": "Windows"
-			}
-		},
-		{
 			"file": "coffee/draw_manager.coffee",
 			"settings":
 			{
-				"buffer_size": 0,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "coffee/utils.coffee",
-			"settings":
-			{
-				"buffer_size": 0,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "game.html",
-			"settings":
-			{
-				"buffer_size": 0,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "css/style.css",
-			"settings":
-			{
-				"buffer_size": 0,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "js/room_manager.js",
-			"settings":
-			{
-				"buffer_size": 0,
+				"buffer_size": 5694,
 				"line_ending": "Windows"
 			}
 		}
@@ -592,36 +552,24 @@
 	},
 	"file_history":
 	[
-		"/C/Users/jplur/Desktop/mars_base/old/pathfinding.html",
-		"/C/Users/jplur/Desktop/mars_base/coffee/jump_point.coffee",
-		"/C/Users/jplur/Desktop/mars_base/js/draw_manager.js",
-		"/C/Users/jplur/Desktop/mars_base/css/style.css",
-		"/C/Users/jplur/Desktop/mars_base/coffee/utils.coffee",
-		"/C/Users/jplur/Desktop/mars_base/js/map_manager.js",
-		"/C/Users/jplur/Desktop/mars_base/js/maptest.js",
-		"/C/Users/jplur/Desktop/mars_base/js/pathfinding.js",
-		"/C/Users/jplur/Desktop/mars_base/js/maps.js",
-		"/C/Users/jplur/Desktop/mars_base/maptest.html",
-		"/C/Users/jplur/Desktop/mars_base/coffee/pathfinding.coffee",
-		"/C/Users/jplur/Desktop/mars_base/pathfinding.html",
-		"/C/Users/jplur/Desktop/mars_base/map_tests.html",
-		"/C/Users/jplur/Desktop/mars_base/js/mapper.js",
-		"/C/Users/jplur/Desktop/mars_base/coffee/mapper.coffee",
-		"/C/Users/jplur/Desktop/mars_base/.gitignore",
-		"/C/Users/jplur/Desktop/mars_base/js/utils.js",
-		"/C/xampp/htdocs/galaxy_dungeon/simple.html",
+		"/C/Users/jplur/Desktop/mars_base/mars_base.sublime-workspace",
+		"/C/xampp/htdocs/pagelayer/coffee/rulers.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/context.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/fonts.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/tool_class.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/history.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/deferred.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/color_picker.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/widgets.coffee",
+		"/C/xampp/htdocs/pagelayer/pagelayer.sublime-workspace",
 		"/C/xampp/htdocs/pagelayer/coffee/style_editor.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/tools.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/options.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/export.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/color_picker.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/tool_class.coffee",
 		"/C/xampp/htdocs/pagelayer/js/globalizer.js",
 		"/C/xampp/htdocs/pagelayer/coffee/text.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/filebrowser.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/menu.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/context.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/history.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/image.coffee",
 		"/C/xampp/htdocs/galaxy_dungeon/js/globalize.js",
 		"/C/Users/jplur/Desktop/TomeNET/lib/game/e_info.txt",
@@ -639,9 +587,7 @@
 		"/C/xampp/htdocs/pagelayer/js/libs/rangy-1.2.3/rangy-core.js",
 		"/C/xampp/htdocs/pagelayer/node/js/peg_css_parser_full",
 		"/C/xampp/htdocs/pagelayer/coffee/tooltips.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/fonts.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/breakpoints.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/rulers.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/hover.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/defs.coffee",
 		"/C/xampp/htdocs/pagelayer/js/libs/require.js",
@@ -719,7 +665,21 @@
 		"/C/xampp/htdocs/pagelayer/js/libs/cleditor/jquery.cleditor.css",
 		"/C/Users/jplur/Desktop/pagelayer_export.html",
 		"/C/Users/jplur/Desktop/stef.html",
-		"/C/Users/jplur/Desktop/nyrs backup/wp-config.php"
+		"/C/Users/jplur/Desktop/nyrs backup/wp-config.php",
+		"/C/xampp/htdocs/pagelayer/coffee/tmce.coffee",
+		"/C/xampp/htdocs/pagelayer/js/image.js",
+		"/C/xampp/htdocs/pagelayer/js/style_editor.js",
+		"/C/xampp/htdocs/pagelayer/coffee/style_editor",
+		"/C/Users/jplur/Desktop/pagelayer/js/script.js",
+		"/C/Users/jplur/Desktop/selfsame/content/tinymce/index.html",
+		"/C/Users/jplur/Desktop/7190_blender-r47198-vpaint-pyconsole-mods.7z",
+		"/C/Users/jplur/Desktop/selfsame/content/draw/error_log",
+		"/C/Users/jplur/Desktop/selfsame/content/draw.html",
+		"/D/My Pictures/.comments/dancez.xml",
+		"/C/Users/jplur/Desktop/selfsame/temp/.htaccess",
+		"/C/Users/jplur/AppData/Local/Temp/fz3-13380847762030",
+		"/C/Users/jplur/Desktop/tangiers dev/journal/search.php",
+		"/C/Users/jplur/Desktop/tangiers dev/journal/webfonts/archer.css"
 	],
 	"find":
 	{
@@ -903,45 +863,18 @@
 			[
 				{
 					"buffer": 0,
-					"file": "js/map_manager.js",
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
 					"file": "coffee/draw_manager.coffee",
 					"settings":
 					{
-						"buffer_size": 0,
+						"buffer_size": 5694,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								2851,
+								2851
 							]
 						],
 						"settings":
@@ -950,119 +883,16 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "coffee/utils.coffee",
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/CoffeeScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "game.html",
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/HTML/HTML.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "css/style.css",
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/CSS/CSS.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "js/room_manager.js",
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 966.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				}
+			]
+		},
+		{
+			"sheets":
+			[
 			]
 		}
 	],
@@ -1083,11 +913,18 @@
 				0,
 				1,
 				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
 			]
 		],
 		"cols":
 		[
 			0.0,
+			0.928550788046,
 			1.0
 		],
 		"rows":
@@ -1099,7 +936,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 154.0
+		"height": 29.0
 	},
 	"replace":
 	{

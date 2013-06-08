@@ -99,7 +99,8 @@ $(window).ready ->
 			min_z_h = @view_h / game_h
 			if min_z_h > min_z
 				min_z = min_z_h
-			delta = e.originalEvent.wheelDeltaY
+			delta = parseInt(e.originalEvent.wheelDeltaY || -e.originalEvent.detail)
+			
 			if delta < 0
 				@zoom *= .9
 			else if delta > 0
