@@ -52,7 +52,7 @@ window.Map = {
 		this.draw_background();
 
 		// check if need scroll
-		this.scroll_view();
+		//this.scroll_view();
 
 		// clear the view
 		window.Draw.use_view();
@@ -66,10 +66,31 @@ window.Map = {
 		}
 		
 	},
+	new_layer: function(name, base) {
+		// it will create a layer with name "name" of base objects
+		this.arrays[name] = [];
+		for (i = 0; i <= this.height-1; i++) {
+			this.arrays[name].push([]);
+			for (j = 0; j <= this.width-1; j++) {
+				this.arrays[name][i].push(base);
+			}
+		}
+	},
 	update: function(){
 		// will be called every time the window is ready for a new frame
 		window.Map.draw();
 		window.requestAnimFrame( window.Map.update );
+	},
+	get_neighbors: function(layer, x, y) {
+		// starts at top left and goes clockwise
+		neighbors = [this.get(layer, x-1, y-1), this.get(layer, x, y-1), this.get(layer, x+1, y-1), this.get(layer, x+1, y), 
+					 this.get(layer, x+1, y+1), this.get(layer, x, y+1), this.get(layer, x-1, y+1), this.get(layer, x-1, y)];
+		return neighbors;
+	},
+	get_immediate_neighbors: function(layer, x, y) {
+		// returns an array of tiles [top, right, bottom, left] with respect to given x, y
+		neighbors = [this.get(layer, x, y-1), this.get(layer, x+1, y), this.get(layer, x, y+1), this.get(layer, x-1, y)];
+		return neighbors;
 	},
 	get: function(layer,x,y){
 		if (this.arrays[layer]){
@@ -78,6 +99,17 @@ window.Map = {
 				if (x >= 0 && x <= this.width-1){
 					return a[y][x]
 				
+				}
+			}
+		}
+	},
+	set: function(layer, x, y, ob) {
+		if (this.arrays[layer]){
+			a = this.arrays[layer]
+			if (y >= 0 && y <= this.height-1){
+				if (x >= 0 && x <= this.width-1){
+					a[y][x] = ob;
+					return a[y][x];
 				}
 			}
 		}
@@ -94,6 +126,24 @@ window.Map = {
 					tiles = ['dirt','dirt2','dirt3', 'dirt4']
 					window.Draw.image(tiles[tile],j*this.tilesize,i*this.tilesize);
 				}
+			}
+			window.Draw.use_view();
+		}
+	},
+	draw_blueprint_tile: function(name, x, y) {
+		// draw the given blueprint square over the map
+		if (this.background_drawn == 1 && window.Draw.images.blueprint1 && window.Draw.images.blueprint2){
+			window.Draw.use_background();
+			tile = this.get(name, x, y);
+			if(tile == 1) {
+				console.log('drawing blueprint tile', window.Draw.images.blueprint1);
+				window.Draw.image("blueprint1", x*this.tilesize, y*this.tilesize);
+			} else if (tile == 2 || tile == 3) {
+				console.log('drawing blueprint tile', window.Draw.images.blueprint2);
+				window.Draw.image("blueprint2", x*this.tilesize, y*this.tilesize);
+			} else if (tile == 0) { // kind of a hack for now
+				console.log('drawing blueprint tile', window.Draw.images.dirt);
+				window.Draw.image("dirt", x*this.tilesize, y*this.tilesize);
 			}
 			window.Draw.use_view();
 		}
@@ -117,7 +167,8 @@ window.Map = {
 
 	},
 	mousedown: function(e){
-
+		this.tile_clicked = this.tile_under_mouse;
+		window.Blueprints.toggle('blues1', this.tile_clicked[0], this.tile_clicked[1]);
 	},
 	mousemove: function(e){
 		
@@ -157,6 +208,8 @@ $(window).ready( function(){
 	window.Draw.add_image('dirt2', "./textures/ground/dirt2.png");
 	window.Draw.add_image('dirt3', "./textures/ground/dirt3.png");
 	window.Draw.add_image('dirt4', "./textures/ground/dirt4.png");
+	window.Draw.add_image('blueprint1', "./textures/ground/blueprint_valid.png");
+	window.Draw.add_image('blueprint2', "./textures/ground/blueprint_invalid.png");
 	window.Draw.add_image('medical', "./textures/ground/room_medical.png");
 	window.Draw.add_image('corridor', "./textures/ground/room_corridor.png");
 	
