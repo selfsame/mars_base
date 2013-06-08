@@ -117,7 +117,7 @@
         if (min_z_h > min_z) {
           min_z = min_z_h;
         }
-        delta = e.originalEvent.wheelDeltaY;
+        delta = parseInt(e.originalEvent.wheelDeltaY || -e.originalEvent.detail);
         if (delta < 0) {
           this.zoom *= .9;
         } else if (delta > 0) {
