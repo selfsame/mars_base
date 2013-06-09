@@ -4,6 +4,7 @@
   $(window).ready(function() {
     window.Draw = {
       init: function() {
+        window.Events.add_listener(this);
         this.images = {};
         this.persistant_layers = {};
         this.view_layers = {};
@@ -66,7 +67,7 @@
           this.view_layers[layer].attr('width', this.view_w);
           this.view_layers[layer].attr('height', this.view_h);
         }
-        this.check_scroll(window.Map.last_mouse_pos);
+        this.check_scroll(window.Events.last_mouse_pos);
         fake_event = {
           originalEvent: {
             wheelDeltaY: -120
@@ -129,8 +130,8 @@
       },
       mousewheel: function(e) {
         var delta, exposed_h, exposed_w, game_h, game_w, min_z, min_z_h, mx, my, nox, nox_dif, noy, noy_dif, ox, oy;
-        mx = window.Map.last_mouse_pos[0];
-        my = window.Map.last_mouse_pos[1];
+        mx = window.Events.last_mouse_pos[0];
+        my = window.Events.last_mouse_pos[1];
         mx -= this.scroll_x;
         my -= this.scroll_y;
         ox = mx / this.zoom;
@@ -186,13 +187,12 @@
         return $('#scroll').css('top', this.scroll_y);
       },
       update: function() {
-        var layer, _results;
-        _results = [];
+        var layer;
         for (layer in this.view_layers) {
           this.use_layer(layer);
-          _results.push(this.clear_box(0, 0, this.view_w, this.view_h));
+          this.clear_box(0, 0, this.view_w, this.view_h);
         }
-        return _results;
+        return this.check_scroll(window.Events.last_mouse_pos);
       },
       add_image: function(name, url) {
         var img;

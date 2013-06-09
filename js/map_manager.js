@@ -7,30 +7,10 @@ window.Map = {
 	tilesize: 32,
 	arrays: {},
 	background_drawn: 0,
-	tile_under_mouse: 0,
-	scroll_x: 0,
-	scroll_y: 0,
-	last_mouse_pos: [0,0],
-	tile_under_mouse: [0,0],
 	init: function(){
-
-		// route mouse events
-		$('#game_area').mousedown(function(e){
-			window.Map.mousedown(e);
-		});
-		$(window).mousemove(function(e){
-			window.Map.mousemove(e);
-		});
-		$(window).mouseup(function(e){
-			window.Map.mouseup(e);
-		});
-		$(window).bind('mousewheel DOMMouseScroll MozMousePixelScroll', function(e){
-			window.Map.mousewheel(e);
-		});
-		$(window).mouseleave(function(e){
-			window.Map.mousemove(e);
-		});
-
+		// ask for events
+		window.Events.add_listener( this );
+	
 		// create the canvas layers
 		window.Draw.create_layer('background', true)
 		window.Draw.create_layer('blueprint', true)
@@ -58,22 +38,15 @@ window.Map = {
 				this.arrays['background'][i].push(tile);
 			}
 		}
-
-		this.update();
-
 	},
 	draw: function(){
-
-		this.tile_under_mouse = this.mouse_to_tile(this.last_mouse_pos[0],this.last_mouse_pos[1])
-
-		window.Draw.check_scroll( this.last_mouse_pos );
 		this.draw_background();
-
 		// indicate the tile under the mouse
 		window.Draw.use_layer('entities');
-		if (this.tile_under_mouse){
-			x = this.tile_under_mouse[0] 
-			y = this.tile_under_mouse[1]
+		mtile = window.Events.tile_under_mouse
+		if (mtile){
+			x = mtile[0] 
+			y = mtile[1]
 			window.Draw.draw_box(x*this.tilesize, y*this.tilesize, this.tilesize, this.tilesize, {fillStyle:'transparent',strokeStyle:'#BADA55',lineWidth:1});
 		}
 		
@@ -88,16 +61,8 @@ window.Map = {
 			}
 		}
 	},
-	update: function(){
-		// will be called every time the window is ready for a new frame
-		
-
-		//clears the view layers
-		window.Draw.update();
-		window.Entities.update();
-
-		window.Map.draw();
-		window.requestAnimFrame( window.Map.update );
+	update: function(){		
+		this.draw();
 	},
 	get_neighbors: function(layer, x, y) {
 		// starts at top left and goes clockwise
@@ -163,45 +128,10 @@ window.Map = {
 			}
 		}
 	},
-	mouse_to_tile: function(x,y){
-		//converts mouse position to tile coords
-
-		x -= window.Draw.scroll_x
-		y -= window.Draw.scroll_y
-		x /= window.Draw.zoom
-		y /= window.Draw.zoom
-
-		x = parseInt(x/this.tilesize);
-		y = parseInt(y/this.tilesize);
-		if (x >= 0 && x < this.width && y >= 0 && y < this.height){
-			return [x,y];
-		} else {
-			return false;
-		}
-
-	},
 	mousedown: function(e){
-		this.tile_clicked = this.tile_under_mouse;
-		window.Blueprints.toggle('blues1', this.tile_clicked[0], this.tile_clicked[1]);
-	},
-	mousemove: function(e){
-		
-		tilesize = window.Map.tilesize
-		x = e.clientX
-		y = e.clientY
-		this.last_mouse_pos = [x,y]
-		
-		
-
-	},
-	mouseup: function(e){
-
-	},
-	mousewheel: function(e){
-		window.Draw.mousewheel(e);
+		tile_clicked = window.Events.tile_under_mouse;
+		window.Blueprints.toggle('blues1', tile_clicked[0], tile_clicked[1]);
 	}
-
-
 
 }
 

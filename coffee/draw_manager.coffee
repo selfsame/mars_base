@@ -4,6 +4,7 @@ $(window).ready ->
 	window.Draw =
 
 		init: ->
+			window.Events.add_listener( @ )
 			@images = {}
 			@persistant_layers = {}
 			@view_layers = {}
@@ -59,7 +60,7 @@ $(window).ready ->
 			for layer of @view_layers
 				@view_layers[layer].attr('width', @view_w)
 				@view_layers[layer].attr('height', @view_h)
-			@check_scroll(window.Map.last_mouse_pos)
+			@check_scroll(window.Events.last_mouse_pos)
 			fake_event =
 				originalEvent:
 					wheelDeltaY: -120
@@ -71,6 +72,7 @@ $(window).ready ->
 			game_w = window.Map.width*window.Map.tilesize * @zoom
 			game_h = window.Map.height*window.Map.tilesize * @zoom
 			if mx > @view_w-64	
+
 				diff = 64 - (@view_w - mx)
 				diff = parseInt(10* (diff/64))
 				diff = window.util.constrict(diff, 1, 10)
@@ -80,6 +82,7 @@ $(window).ready ->
 						@scroll_x = @view_w - game_w
 					$('#scroll').css('left', @scroll_x)
 			else if mx < 64	
+
 				diff = 64 - mx
 				diff = parseInt(10* (diff/64))
 				diff = window.util.constrict(diff, 1, 10)
@@ -90,6 +93,7 @@ $(window).ready ->
 					$('#scroll').css('left', @scroll_x)
 
 			if my > @view_h-64	
+
 				diff = 64 - (@view_h - my)
 				diff = parseInt(10* (diff/64))
 				diff = window.util.constrict(diff, 1, 10)
@@ -99,6 +103,7 @@ $(window).ready ->
 						@scroll_y = @view_h - game_h
 					$('#scroll').css('top', @scroll_y)
 			else if my < 64	
+
 				diff = 64 - my
 				diff = parseInt(10* (diff/64))
 				diff = window.util.constrict(diff, 1, 10)
@@ -109,8 +114,8 @@ $(window).ready ->
 					$('#scroll').css('top', @scroll_y)
 
 		mousewheel: (e)->
-			mx = window.Map.last_mouse_pos[0]
-			my = window.Map.last_mouse_pos[1]
+			mx = window.Events.last_mouse_pos[0]
+			my = window.Events.last_mouse_pos[1]
 			mx -= @scroll_x
 			my -= @scroll_y
 			ox = mx / @zoom
@@ -167,6 +172,7 @@ $(window).ready ->
 			for layer of @view_layers
 				@use_layer(layer)
 				@clear_box(0,0,@view_w, @view_h)
+			@check_scroll(window.Events.last_mouse_pos)
 
 
 		add_image: (name, url)->

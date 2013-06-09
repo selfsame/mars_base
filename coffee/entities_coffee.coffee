@@ -56,6 +56,7 @@ class Walker extends Entity
 
 window.Entities =
   init: ->
+    window.Events.add_listener( @ )
     @classes =
       Entity: Entity
       Walker: Walker

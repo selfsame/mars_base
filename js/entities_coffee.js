@@ -106,6 +106,7 @@
 
   window.Entities = {
     init: function() {
+      window.Events.add_listener(this);
       this.classes = {
         Entity: Entity,
         Walker: Walker
