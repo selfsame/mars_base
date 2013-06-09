@@ -12,12 +12,12 @@ window.Map = {
 		window.Events.add_listener( this );
 	
 		// create the canvas layers
-		window.Draw.create_layer('background', true)
-		window.Draw.create_layer('blueprint', true)
-		window.Draw.create_layer('entities', false)
+		window.Draw.create_layer('background', true);
+		window.Draw.create_layer('blueprint', true);
+		window.Draw.create_layer('entities', false);
 
 		// create pathfinding map
-		this.new_layer('pathfinding', 0)
+		this.create_layer('pathfinding', 0);
 
 		// Using array[y][x] so it syncs with how pathfinding works, but our get and set functions will be (x,y)
 		this.arrays['background'] = []
@@ -43,15 +43,15 @@ window.Map = {
 		this.draw_background();
 		// indicate the tile under the mouse
 		window.Draw.use_layer('entities');
-		mtile = window.Events.tile_under_mouse
+		mtile = window.Events.tile_under_mouse;
 		if (mtile){
-			x = mtile[0] 
-			y = mtile[1]
+			x = mtile[0] ;
+			y = mtile[1];
 			window.Draw.draw_box(x*this.tilesize, y*this.tilesize, this.tilesize, this.tilesize, {fillStyle:'transparent',strokeStyle:'#BADA55',lineWidth:1});
 		}
 		
 	},
-	new_layer: function(name, base) {
+	create_layer: function(name, base) {
 		// it will create a layer with name "name" of base objects
 		this.arrays[name] = [];
 		for (i = 0; i <= this.height-1; i++) {
@@ -77,10 +77,10 @@ window.Map = {
 	},
 	get: function(layer,x,y){
 		if (this.arrays[layer]){
-			a = this.arrays[layer]
+			a = this.arrays[layer];
 			if (y >= 0 && y <= this.height-1){
 				if (x >= 0 && x <= this.width-1){
-					return a[y][x]
+					return a[y][x];
 				
 				}
 			}
@@ -111,26 +111,9 @@ window.Map = {
 			}
 		}
 	},
-	draw_blueprint_tile: function(name, x, y) {
-		// draw the given blueprint square over the map
-		if (this.background_drawn == 1 && window.Draw.images.blueprint1 && window.Draw.images.blueprint2){
-			window.Draw.use_layer('blueprint');
-			tile = this.get(name, x, y);
-			if(tile == 1) {
-				console.log('drawing blueprint tile', window.Draw.images.blueprint1);
-				window.Draw.image("blueprint1", x*this.tilesize, y*this.tilesize);
-			} else if (tile == 2 || tile == 3) {
-				console.log('drawing blueprint tile', window.Draw.images.blueprint2);
-				window.Draw.image("blueprint2", x*this.tilesize, y*this.tilesize);
-			} else if (tile == 0) { // kind of a hack for now
-				console.log('drawing blueprint tile', window.Draw.images.dirt);
-				window.Draw.image("dirt", x*this.tilesize, y*this.tilesize);
-			}
-		}
-	},
 	mousedown: function(e){
 		tile_clicked = window.Events.tile_under_mouse;
-		window.Blueprints.toggle('blues1', tile_clicked[0], tile_clicked[1]);
+		window.Blueprints.toggle(tile_clicked[0], tile_clicked[1]);
 	}
 
 }
@@ -143,8 +126,6 @@ $(window).ready( function(){
 	window.Draw.add_image('dirt2', "./textures/ground/dirt2.png");
 	window.Draw.add_image('dirt3', "./textures/ground/dirt3.png");
 	window.Draw.add_image('dirt4', "./textures/ground/dirt4.png");
-	window.Draw.add_image('blueprint1', "./textures/ground/blueprint_valid.png");
-	window.Draw.add_image('blueprint2', "./textures/ground/blueprint_invalid.png");
 	window.Draw.add_image('medical', "./textures/ground/room_medical.png");
 	window.Draw.add_image('corridor', "./textures/ground/room_corridor.png");
 	window.Draw.add_image('sprite', "./textures/astronauts/sprite.png");
