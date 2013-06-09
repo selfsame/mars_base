@@ -189,8 +189,8 @@
       },
       image: function(imgname, x, y) {
         var h, w;
-        w = $(this.images[imgname]).width();
-        h = $(this.images[imgname]).height();
+        w = 32;
+        h = 32;
         if (this.layer_mode === 'view') {
           x *= this.zoom;
           y *= this.zoom;
@@ -205,7 +205,7 @@
           }
         }
         if (this.images[imgname]) {
-          return this.context.drawImage(this.images[imgname], x, y);
+          return this.context.drawImage(this.images[imgname], x, y, w, h);
         }
       },
       within_view: function(x, y, w, h) {

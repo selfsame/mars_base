@@ -1,0 +1,18 @@
+body{
+	padding: 0px;
+	margin: 0px;
+}
+#background_clip, #game_area{
+	position:absolute;
+	width:100%;
+	height:100%;
+	overflow:hidden;
+}
+#scroll{
+	position:absolute;
+	left:0px;
+	top:0px;
+}
+canvas{
+	position:absolute;
+}

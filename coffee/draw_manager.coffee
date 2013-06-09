@@ -162,8 +162,8 @@ $(window).ready ->
 					window.Draw.images[name] = this[0]
 
 		image: (imgname, x,y)->
-			w = $(@images[imgname]).width()
-			h = $(@images[imgname]).height()
+			w = 32 #@images[imgname].width
+			h = 32 #@images[imgname].height
 
 			if @layer_mode is 'view'
 				x *= @zoom
@@ -179,7 +179,7 @@ $(window).ready ->
 					y += @scroll_y
 
 			if @images[imgname]
-				@context.drawImage(@images[imgname],x,y )
+				@context.drawImage(@images[imgname],x,y, w, h )
 
 		within_view: (x,y,w,h)->
 			#takes global pixel values and checks if the draw area is partially visible

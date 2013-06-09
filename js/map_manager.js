@@ -32,6 +32,9 @@ window.Map = {
 		window.Draw.create_layer('blueprint', true)
 		window.Draw.create_layer('entities', false)
 
+		// create pathfinding map
+		this.new_layer('pathfinding', 0)
+
 		// Using array[y][x] so it syncs with how pathfinding works, but our get and set functions will be (x,y)
 		this.arrays['background'] = []
 		for (i = 0; i <= this.height-1; i += 1) {
@@ -46,6 +49,7 @@ window.Map = {
 				}
 				if (Math.random() < .05) {
 					tile = 2;
+					//this.arrays.pathfinding[i][j] = 1
 				}
 				this.arrays['background'][i].push(tile);
 			}
@@ -82,6 +86,7 @@ window.Map = {
 
 		//clears the view layers
 		window.Draw.update();
+		window.Entities.update();
 
 		window.Map.draw();
 		window.requestAnimFrame( window.Map.update );
@@ -204,6 +209,7 @@ $(window).ready( function(){
 	window.Draw.add_image('blueprint2', "./textures/ground/blueprint_invalid.png");
 	window.Draw.add_image('medical', "./textures/ground/room_medical.png");
 	window.Draw.add_image('corridor', "./textures/ground/room_corridor.png");
+	window.Draw.add_image('sprite', "./textures/astronauts/sprite.png");
 	
 	window.Map.init();
 });
