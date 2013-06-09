@@ -202,7 +202,6 @@
           w *= this.zoom;
           h *= this.zoom;
           if (!this.within_view(x, y, w, h)) {
-            console.log('not in view');
             return;
           } else {
             x += this.scroll_x;

@@ -106,6 +106,10 @@
 
   window.Entities = {
     init: function() {
+      this.classes = {
+        Entity: Entity,
+        Walker: Walker
+      };
       this.path_finder = new PF.JumpPointFinder();
       this.sentient = [];
       return this.sentient.push(new Walker('bot', 'sprite', [100, 100]));
@@ -129,6 +133,18 @@
         return this.path_finder.findPath(x, y, x2, y2, grid);
       } catch (error) {
         return false;
+      }
+    },
+    add_class: function(name, ancestor) {
+      if (ancestor == null) {
+        ancestor = 'Entity';
+      }
+      if (this.classes[name] != null) {
+        return false;
+      }
+      if (this.classes[ancestor] != null) {
+        eval("this.classes[name] = (function(_super) {          __extends(" + name + ", _super);          function " + name + "() {            return " + name + ".__super__.constructor.apply(this, arguments);          }          return " + name + ";        })(this.classes[ancestor]);");
+        return this.classes[name];
       }
     }
   };

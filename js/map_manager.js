@@ -218,7 +218,7 @@ $(window).ready( function(){
 	window.Draw.add_image('medical', "./textures/ground/room_medical.png");
 	window.Draw.add_image('corridor', "./textures/ground/room_corridor.png");
 	window.Draw.add_image('sprite', "./textures/astronauts/sprite.png");
-	
+	window.Draw.add_image('spirit', "./textures/astronauts/spirit.png");
 	window.Map.init();
 });
 

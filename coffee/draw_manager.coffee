@@ -177,7 +177,7 @@ $(window).ready ->
 				h *= @zoom
 
 				if not @within_view(x,y,w,h)
-					console.log 'not in view'
+					#console.log 'not in view'
 					return
 				else
 					x += @scroll_x
