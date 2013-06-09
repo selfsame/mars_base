@@ -47,6 +47,11 @@ $(window).ready ->
 			for layer of @view_layers
 				@view_layers[layer].attr('width', @view_w)
 				@view_layers[layer].attr('height', @view_h)
+			@check_scroll(window.Map.last_mouse_pos)
+			fake_event =
+				originalEvent:
+					wheelDeltaY: -120
+			@mousewheel( fake_event )
 
 		check_scroll: (mpos)->
 			mx = mpos[0]
@@ -201,7 +206,7 @@ $(window).ready ->
 				h *= @zoom
 
 				if not @within_view(x,y,w,h)
-					console.log 'not in view'
+					#console.log 'not in view'
 					return
 				else
 					x += @scroll_x

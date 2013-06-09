@@ -1,7 +1,7 @@
 
 window.Map = {
-	width: 120,
-	height: 100,
+	width: 64,
+	height: 64,
 	view_w_px: 640,
 	view_h_px: 480,
 	tilesize: 32,
@@ -11,6 +11,7 @@ window.Map = {
 	scroll_x: 0,
 	scroll_y: 0,
 	last_mouse_pos: [0,0],
+	tile_under_mouse: [0,0],
 	init: function(){
 
 		// route mouse events
@@ -25,6 +26,9 @@ window.Map = {
 		});
 		$(window).bind('mousewheel DOMMouseScroll MozMousePixelScroll', function(e){
 			window.Map.mousewheel(e);
+		});
+		$(window).mouseleave(function(e){
+			window.Map.mousemove(e);
 		});
 
 		// create the canvas layers
@@ -59,6 +63,9 @@ window.Map = {
 
 	},
 	draw: function(){
+
+		this.tile_under_mouse = this.mouse_to_tile(this.last_mouse_pos[0],this.last_mouse_pos[1])
+
 		window.Draw.check_scroll( this.last_mouse_pos );
 		this.draw_background();
 
@@ -67,7 +74,7 @@ window.Map = {
 		if (this.tile_under_mouse){
 			x = this.tile_under_mouse[0] 
 			y = this.tile_under_mouse[1]
-			window.Draw.draw_box(x*tilesize, y*tilesize, tilesize, tilesize, {fillStyle:'transparent',strokeStyle:'#BADA55',lineWidth:1});
+			window.Draw.draw_box(x*this.tilesize, y*this.tilesize, this.tilesize, this.tilesize, {fillStyle:'transparent',strokeStyle:'#BADA55',lineWidth:1});
 		}
 		
 	},
@@ -83,6 +90,7 @@ window.Map = {
 	},
 	update: function(){
 		// will be called every time the window is ready for a new frame
+		
 
 		//clears the view layers
 		window.Draw.update();
@@ -182,7 +190,7 @@ window.Map = {
 		x = e.clientX
 		y = e.clientY
 		this.last_mouse_pos = [x,y]
-		this.tile_under_mouse = this.mouse_to_tile(x,y)
+		
 		
 
 	},

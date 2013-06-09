@@ -17,14 +17,17 @@
 
     Entity.prototype.init = function() {};
 
-    Entity.prototype.update = function() {
-      return this.draw();
+    Entity.prototype._update = function() {
+      this.draw();
+      return this.update();
     };
 
     Entity.prototype.draw = function() {
       window.Draw.use_layer('entities');
       return window.Draw.image(this.image, this.pos[0], this.pos[1]);
     };
+
+    Entity.prototype.update = function() {};
 
     return Entity;
 
@@ -49,11 +52,12 @@
       return this.tile_pos = [parseInt(this.pos[0] / window.Map.tilesize), parseInt(this.pos[1] / window.Map.tilesize)];
     };
 
-    Walker.prototype.update = function() {
+    Walker.prototype._update = function() {
       if (this[this.state] != null) {
         this[this.state]();
       }
-      return this.draw();
+      this.draw();
+      return this.update();
     };
 
     Walker.prototype.get_random_tile = function(distance) {
@@ -113,7 +117,7 @@
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           thing = _ref[_i];
-          _results.push(thing.update());
+          _results.push(thing._update());
         }
         return _results;
       }

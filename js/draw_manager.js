@@ -45,15 +45,20 @@
         }
       },
       resize: function() {
-        var layer, _results;
+        var fake_event, layer;
         this.view_w = $(window).width();
         this.view_h = $(window).height();
-        _results = [];
         for (layer in this.view_layers) {
           this.view_layers[layer].attr('width', this.view_w);
-          _results.push(this.view_layers[layer].attr('height', this.view_h));
+          this.view_layers[layer].attr('height', this.view_h);
         }
-        return _results;
+        this.check_scroll(window.Map.last_mouse_pos);
+        fake_event = {
+          originalEvent: {
+            wheelDeltaY: -120
+          }
+        };
+        return this.mousewheel(fake_event);
       },
       check_scroll: function(mpos) {
         var diff, game_h, game_w, mx, my;
@@ -247,7 +252,6 @@
           w *= this.zoom;
           h *= this.zoom;
           if (!this.within_view(x, y, w, h)) {
-            console.log('not in view');
             return;
           } else {
             x += this.scroll_x;

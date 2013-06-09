@@ -2,11 +2,13 @@ class Entity
   constructor: (@name='thing', @image='sprite', @pos=[0,0])->
     @init()
   init: ->
-  update: ->
+  _update: ->
     @draw()
+    @update()
   draw: ->
     window.Draw.use_layer 'entities'
     window.Draw.image(@image, @pos[0], @pos[1])
+  update: ->
 
 class Walker extends Entity
   init: ->
@@ -16,10 +18,11 @@ class Walker extends Entity
     @path = 0
     @vector = 0
     @tile_pos = [parseInt(@pos[0]/window.Map.tilesize), parseInt(@pos[1]/window.Map.tilesize)]
-  update: ->
+  _update: ->
     if @[@state]?
       @[@state]()
     @draw()
+    @update()
   get_random_tile: (distance=false)->
     x = parseInt(Math.random()*window.Map.width)
     y = parseInt(Math.random()*window.Map.height)
@@ -59,7 +62,7 @@ window.Entities =
   update: ->
     if @sentient?
       for thing in @sentient
-        thing.update()
+        thing._update()
   get_path: (x,y,x2,y2)->
       grid = new PF.Grid(window.Map.width, window.Map.height, window.Map.arrays['pathfinding'])
       try  
