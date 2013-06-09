@@ -41,6 +41,18 @@ $(window).ready ->
 				@context = @view_layers[layer][0].getContext('2d')
 				@layer_mode = 'view'
 
+		hide_layer: (layer)->
+			if @persistant_layers[layer]
+				@persistant_layers[layer].hide()
+			else if @view_layers[layer]
+				@view_layers[layer].hide()
+
+		show_layer: (layer)->
+			if @persistant_layers[layer]
+				@persistant_layers[layer].show()
+			else if @view_layers[layer]
+				@view_layers[layer].show()
+
 		resize: ()->
 			@view_w = $(window).width()
 			@view_h = $(window).height()

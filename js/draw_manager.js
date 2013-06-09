@@ -44,6 +44,20 @@
           return this.layer_mode = 'view';
         }
       },
+      hide_layer: function(layer) {
+        if (this.persistant_layers[layer]) {
+          return this.persistant_layers[layer].hide();
+        } else if (this.view_layers[layer]) {
+          return this.view_layers[layer].hide();
+        }
+      },
+      show_layer: function(layer) {
+        if (this.persistant_layers[layer]) {
+          return this.persistant_layers[layer].show();
+        } else if (this.view_layers[layer]) {
+          return this.view_layers[layer].show();
+        }
+      },
       resize: function() {
         var fake_event, layer;
         this.view_w = $(window).width();
