@@ -1,62 +1,109 @@
-function tile (x, y, room, state) {
+function Tile(x, y, room, state) {
 	this.x = x;
 	this.y = y;
 	this.room = room;
 	this.state = state;
 	this.draw = draw;
+	this.build = build;
+	this.update_state = update_state;
+	// build the tile
+	function build() {
+		this.state = 4;
+		this.draw();
+	}
 	
+	// figures out what the current state should be
+	function update_state() {
+		this.state = 4;
+		this.room.update_tile(this);
+		
+		this.draw();
+		return this.state; // move stuff over from window.Blueprints to here
+	}
 	
+	// display the tile
 	function draw() {
 		tilesize = window.Map.tilesize;
-		if (this.room.type != "outside") {
-			window.Draw.use_layer("rooms");
-			window.window.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+		if (this.state == 1) { // "BUILD"
+			window.Draw.use_layer("blueprints");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
 			window.Draw.image(this.room.type, this.x * tilesize, this.y * tilesize);
-		}
-		
-		if (state == 1) { // "BUILD"
+			window.Draw.image("blueprint1", this.x * tilesize, this.y * tilesize);
+		} else if (this.state == 2) { // "INVALID"
 			window.Draw.use_layer("blueprints");
-			window.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
-			window.Draw.image("blueprints1", x*tilesize, y * tilesize);
-		} else if (state == 2) { // "INVALID"
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image(this.room.type, this.x * tilesize, this.y * tilesize);
+			window.Draw.image("blueprint2", this.x * tilesize, this.y * tilesize);
+		} else if (this.state == 3) { // "REMOVE"
 			window.Draw.use_layer("blueprints");
-			window.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
-			window.Draw.image("blueprints2", x*tilesize, y * tilesize);
-		} else if (state == 3) { // "REMOVE"
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image("blueprint3", this.x * tilesize, this.y * tilesize);
+		} else if (this.state == 4) { // "BUILT"
+			window.Draw.use_layer("rooms");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image(this.room.type, this.x * tilesize, this.y * tilesize);
 			window.Draw.use_layer("blueprints");
-			window.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
-			window.Draw.image("blueprints3", x*tilesize, y * tilesize);
-		} else if (state == 4) { // "BUILT"
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image("blueprint4", this.x * tilesize, this.y * tilesize);
+		} else if (this.state == 5) { // "EMPTY"
 			window.Draw.use_layer("blueprints");
-			window.window.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.use_layer("rooms");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
 		}
 	}
 }
 
-function room (type) {
+function Room(type) {
 	this.type = type;
-	this.tiles = [];
+	
+	this.tiles = {
+		build: [],
+		built: []
+	};
+	
 	this.add_tile = add_tile;
-	function add_tile(x, y) {
-		// check if it is already part of a room
-		value = window.Map.get("rooms", x, y);
-		if (value == 0) {
-		
+	this.merge = merge;
+	this.contains = contains;
+	this.update_tile = update_tile;
+	
+	function update_tile(tile) {
+		if(tile.state == 4) {
+			if(this.tiles.built.indexOf(tile) == -1) {
+				this.tiles.built.push(tile);
+				this.tiles.build.remove(tile);
+			}
+		} else {
+			this.tiles.built.remove(tile);
+			this.tiles.build.push(tile);
 		}
-		
-	}
-	function remove_tile(x, y) { // remove the tile from this room
-		if (this.tiles.indexOf(
-		window.Map.set("rooms", x, y, 0);
 	}
 	
-	function merge_room(other) { // merge "other" room with this one
-		
+	function add_tile(tile) { // add the given tile to this room
+		other = tile.room;
+		tile.room = this;
+		if(tile.state == 4) {
+			this.tiles.built.push(tile);
+			other.tiles.built.remove(tile);
+		} else {
+			this.tiles.build.push(tile);
+			other.tiles.build.remove(tile);
+		}
 	}
 	
-	function get_tile(x, y) {
-		
+	function merge(other) { // merge given room with this one
+		if(this.type == other.type) {
+			this.tiles.built.concat(other.tiles.built);
+			other.tiles.built = [];
+			this.tiles.build.concat(other.tiles.build);
+			other.tiles.build = [];
+			window.Rooms.delete_room(other);
+		}
 	}
+	
+	function contains(tile) { // check if this room contains the given tile
+		return (this.tiles.build.indexOf(tile) > -1 && this.tiles.built.indexOf(tile) > -1);
+	} 
 }
 
 window.Blueprint = {
@@ -68,8 +115,19 @@ window.Blueprint = {
 		window.Draw.add_image('blueprint1', "./textures/ground/blueprint_build.png");
 		window.Draw.add_image('blueprint2', "./textures/ground/blueprint_invalid.png");
 		window.Draw.add_image('blueprint3', "./textures/ground/blueprint_remove.png");
+		window.Draw.add_image('blueprint3', "./textures/ground/blueprint_built.png");
 		
-		// create a layer for blueprints
+		// create a layer for tiles
+		tiles = [];
+		for (i = 0; i <= window.Map.height-1; i++) {
+			tiles.push([]);
+			for (j = 0; j <= window.Map.width-1; j++) {
+				tiles[i].push(new tile(j, i, "outside", 5));
+			}
+		}
+		window.Map.arrays["tiles"] = tiles;
+		window.Draw.create_layer("tiles", true);
+		
 		window.Map.create_layer("blueprints", 0);
 		window.Draw.create_layer("blueprints", true);
 	},
@@ -85,10 +143,6 @@ window.Blueprint = {
 				window.Draw.image("blueprint2", x*tilesize, y*tilesize);
 			}
 		}
-	},
-	mousedown: function(e){
-		tile_clicked = window.Events.tile_under_mouse;
-		this.toggle(tile_clicked[0], tile_clicked[1]);
 	},
 	toggle: function(x, y) {
 		tile = window.Map.get("blueprints", x, y);
@@ -222,35 +276,108 @@ window.Blueprint = {
 window.Rooms = {
 	init: function() {
 		this.rooms = [];
-	
+		
+		this.mode = "edit";
+		this.currentType = "supply";
+		
 		// ask for events
 		window.Events.add_listener(this);
 	
 		// load room images
 		window.Draw.add_image('medical', "./textures/ground/room_medical.png");
 		window.Draw.add_image('corridor', "./textures/ground/room_corridor.png");
-		window.Draw.add_image('laboratory', "./textures/ground/laboratory.png");
+		window.Draw.add_image('laboratory', "./textures/ground/room_laboratory.png");
 		window.Draw.add_image('commons', "./textures/ground/room_commons.png");
 		window.Draw.add_image('greenhouse', "./textures/ground/room_greenhouse.png");
 		window.Draw.add_image('power', "./textures/ground/room_power.png");
 		window.Draw.add_image('supply', "./textures/ground/room_supply.png");
 		
-		// create a layer for rooms
-		window.Map.create_layer("rooms", 0);
-		window.Draw.create_layer("rooms", true);
-	
-	
-	},
-	add_room: function(type, tile) {
+		// load blueprint images
+		window.Draw.add_image('blueprint1', "./textures/ground/blueprint_build.png");
+		window.Draw.add_image('blueprint2', "./textures/ground/blueprint_invalid.png");
+		window.Draw.add_image('blueprint3', "./textures/ground/blueprint_remove.png");
+		window.Draw.add_image('blueprint4', "./textures/ground/blueprint_built.png");
 		
+		
+		// create draw layers for rooms and blueprints
+		window.Draw.create_layer("rooms", true);
+		window.Draw.create_layer("blueprints", true);
+		
+		// create a map layer for tiles
+		outside = new Room("outside");
+		this.rooms.push(outside);
+		tiles = [];
+		for (i = 0; i <= window.Map.height-1; i++) {
+			tiles.push([]);
+			for (j = 0; j <= window.Map.width-1; j++) {
+				t = new Tile(j, i, outside, 5);
+				tiles[i].push(t);
+			}
+		}
+		window.Map.arrays["rooms"] = tiles;
+		
+	},
+	
+	mousedown: function(e){
+		if (this.mode == "edit") {
+			// get the tile the user clicked
+			tile_coords = window.Events.tile_under_mouse;
+			tile = window.Map.get("rooms", tile_coords[0], tile_coords[1]);
+			// check if the tile isn't already part of a room
+			if (tile.room.type == "outside") {
+				// check if the tile is next to an existing room(s)
+				connections = this.isConnected(tile);
+				if (connections.length == 0) { // this tile is on it's own
+					room = this.add_room(this.currentType);
+					tile.update_state();
+					room.add_tile(tile);
+				} else if (connections.length == 1) { // this tile is connected to one other
+					tile.update_state();
+					connections[0].add_tile(tile);
+				} else { // this tile is next to multiple rooms
+					room = connections[0];
+					tile.update_state();
+					room.add_tile(tile);
+					for(k = 1; k < connections.length; k++) {
+						room.merge(connections[k]);
+					}
+				}
+			}
+		}
+		console.log("num rooms: " + (this.rooms.length-1));
+		
+	},
+	isConnected: function(tile) { // used when constructing rooms
+		neighbors = window.Map.get_immediate_neighbors("rooms", tile.x, tile.y);
+		rooms = [];
+		for (i = 0; i < neighbors.length; i++) {
+			if (neighbors[i].room.type == this.currentType) {
+				if(rooms.indexOf(neighbors[i].room) == -1) { // we don't want to count duplicate rooms
+					rooms.push(neighbors[i].room); // add it to the list of connected rooms
+				}
+			}
+		}
+		
+		return rooms;
+		
+	},
+	delete_room: function(room) { // remove a room object
+		// check if it's empty
+		if (room.tiles.built.length == 0 && room.tiles.build.length == 0) {
+			this.rooms.remove(room);
+			return true;
+		}
+		return false;
+	},
+	add_room: function(type) { // create a new room object
+		room = new Room(type);
+		this.rooms.push(room);
+		return room;
 	}
 };
 
 $(window).ready( function() {
-	function room_tile(type) {
-		this.type = type;
-	}
-	window.Blueprint.init();
+	//window.Blueprint.init();
 	window.Rooms.init();
 	
 });
