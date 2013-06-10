@@ -207,10 +207,16 @@
           }
         });
       },
-      image: function(imgname, x, y) {
-        var h, w;
-        w = 32;
-        h = 32;
+      image: function(imgname, x, y, w, h, rotation) {
+        if (w == null) {
+          w = 32;
+        }
+        if (h == null) {
+          h = 32;
+        }
+        if (rotation == null) {
+          rotation = false;
+        }
         if (this.layer_mode === 'view') {
           x *= this.zoom;
           y *= this.zoom;
@@ -224,7 +230,15 @@
           }
         }
         if (this.images[imgname]) {
-          return this.context.drawImage(this.images[imgname], x, y, w, h);
+          if (rotation) {
+            this.context.save();
+            this.context.translate(x + (w / 2), y + (h / 2));
+            this.context.rotate(rotation);
+            this.context.drawImage(this.images[imgname], -(w / 2), -(h / 2), w, h);
+            return this.context.restore();
+          } else {
+            return this.context.drawImage(this.images[imgname], x, y, w, h);
+          }
         }
       },
       within_view: function(x, y, w, h) {
@@ -322,6 +336,30 @@
         this.context.closePath();
         return this.context.stroke();
       },
+      draw_text: function(string, x, y, options) {
+        if (options == null) {
+          options = {
+            fillStyle: 0,
+            font: 0,
+            scale: true,
+            rulerw: 16,
+            use_scroll: true
+          };
+        }
+        x *= this.zoom;
+        y *= this.zoom;
+        x += this.scroll_x;
+        y += this.scroll_y;
+        x += .5;
+        y -= .5;
+        if (options.fillStyle) {
+          this.context.fillStyle = options.fillStyle;
+        }
+        if (options.font) {
+          this.context.font = options.font;
+        }
+        return this.context.fillText(string, x, y);
+      },
       clear_box: function(x, y, w, h) {
         if (x == null) {
           x = 0;
@@ -338,7 +376,7 @@
         return this.context.clearRect(x, y, w, h);
       },
       make_rotation_sheet: function(sprite, size) {
-        var canvas, context, half, i, j, num, pad_size, padding, radian_step, _i, _j;
+        var canvas, context, half, i, j, num, pad_size, padding, radian_step, _i, _results;
         if (this.images[sprite] != null) {
           if (!(this.rotation_sheets[sprite] != null)) {
             pad_size = parseInt(size * 1.5);
@@ -352,17 +390,23 @@
             half = pad_size / 2;
             radian_step = (Math.PI * 2) / 16;
             num = 0;
+            _results = [];
             for (i = _i = 0; _i <= 3; i = ++_i) {
-              for (j = _j = 0; _j <= 3; j = ++_j) {
-                context.save();
-                context.translate(j * pad_size + half, i * pad_size + half);
-                context.rotate(num * radian_step);
-                context.drawImage(this.images[sprite], -(size / 2), -(size / 2), size, size);
-                context.restore();
-                num += 1;
-              }
+              _results.push((function() {
+                var _j, _results1;
+                _results1 = [];
+                for (j = _j = 0; _j <= 3; j = ++_j) {
+                  context.save();
+                  context.translate(j * pad_size + half, i * pad_size + half);
+                  context.rotate(num * radian_step);
+                  context.drawImage(this.images[sprite], -(size / 2), -(size / 2), size, size);
+                  context.restore();
+                  _results1.push(num += 1);
+                }
+                return _results1;
+              }).call(this));
             }
-            return $('body').append(canvas);
+            return _results;
           } else {
             return true;
           }
