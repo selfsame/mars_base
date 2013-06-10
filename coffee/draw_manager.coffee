@@ -290,36 +290,27 @@ $(window).ready ->
 		clear_box: (x=0,y=0,w=100,h=100)->
 			@context.clearRect(x,y,w,h)
 
-		make_rotation_sheet: (sprite, size)->
 
-			if @images[sprite]?
-				if not @rotation_sheets[sprite]?
-					pad_size = parseInt(size*1.5)
-					pad_size -= pad_size % 2
-					padding = (pad_size-size)/2
-					canvas = $('<canvas>')
-					canvas.attr('width', pad_size*4)
-					canvas.attr('height', pad_size*4)
-					@rotation_sheets[sprite] = canvas
-					context = canvas[0].getContext('2d')
+		sub_image: (imgname, x,y, w, h, clipsize=32, offset=[0,0])->
 
-					half = pad_size/2
-					radian_step = (Math.PI*2)/16
-					num = 0
-					for i in [0..3]
-						for j in [0..3]
-							context.save()
-							context.translate(j*pad_size + half, i*pad_size + half )
-							context.rotate(num*radian_step)
-							context.drawImage(@images[sprite],-(size/2),-(size/2), size, size )
-							context.restore()
-							num += 1
+
+			if @layer_mode is 'view'
+				x *= @zoom
+				y *= @zoom
+				w *= @zoom
+				h *= @zoom
+
+				if not @within_view(x,y,w,h)
+					#console.log 'not in view'
+					return
 				else
-					return true
-			else
-				return false
+					x += @scroll_x
+					y += @scroll_y
 
-
+			if @images[imgname]
+				sx = offset[0]*clipsize
+				sy = offset[1]*clipsize
+				@context.drawImage(@images[imgname],sx,sy, clipsize, clipsize, x, y, w, h )
 
 
 

@@ -375,43 +375,30 @@
         }
         return this.context.clearRect(x, y, w, h);
       },
-      make_rotation_sheet: function(sprite, size) {
-        var canvas, context, half, i, j, num, pad_size, padding, radian_step, _i, _results;
-        if (this.images[sprite] != null) {
-          if (!(this.rotation_sheets[sprite] != null)) {
-            pad_size = parseInt(size * 1.5);
-            pad_size -= pad_size % 2;
-            padding = (pad_size - size) / 2;
-            canvas = $('<canvas>');
-            canvas.attr('width', pad_size * 4);
-            canvas.attr('height', pad_size * 4);
-            this.rotation_sheets[sprite] = canvas;
-            context = canvas[0].getContext('2d');
-            half = pad_size / 2;
-            radian_step = (Math.PI * 2) / 16;
-            num = 0;
-            _results = [];
-            for (i = _i = 0; _i <= 3; i = ++_i) {
-              _results.push((function() {
-                var _j, _results1;
-                _results1 = [];
-                for (j = _j = 0; _j <= 3; j = ++_j) {
-                  context.save();
-                  context.translate(j * pad_size + half, i * pad_size + half);
-                  context.rotate(num * radian_step);
-                  context.drawImage(this.images[sprite], -(size / 2), -(size / 2), size, size);
-                  context.restore();
-                  _results1.push(num += 1);
-                }
-                return _results1;
-              }).call(this));
-            }
-            return _results;
+      sub_image: function(imgname, x, y, w, h, clipsize, offset) {
+        var sx, sy;
+        if (clipsize == null) {
+          clipsize = 32;
+        }
+        if (offset == null) {
+          offset = [0, 0];
+        }
+        if (this.layer_mode === 'view') {
+          x *= this.zoom;
+          y *= this.zoom;
+          w *= this.zoom;
+          h *= this.zoom;
+          if (!this.within_view(x, y, w, h)) {
+            return;
           } else {
-            return true;
+            x += this.scroll_x;
+            y += this.scroll_y;
           }
-        } else {
-          return false;
+        }
+        if (this.images[imgname]) {
+          sx = offset[0] * clipsize;
+          sy = offset[1] * clipsize;
+          return this.context.drawImage(this.images[imgname], sx, sy, clipsize, clipsize, x, y, w, h);
         }
       }
     };

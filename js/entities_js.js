@@ -9,6 +9,7 @@ $(window).ready(function() {
       this.speed = 1;
       this.turn_speed = .005;
       this.footprint_img = 'tracks';
+      
     };
 
   // creating an instance, and adding it to the list of entities that get updated.

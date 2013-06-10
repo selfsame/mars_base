@@ -24,33 +24,45 @@ class Walker extends Entity
     @wait_time = 0
     @total_time = 0
     @frame_count = 0
-    @rotation_ready = 0
     @footprint_img = 'prints'
     @velcoity = .1
     @draw_prints = 0
-    window.Draw.make_rotation_sheet @image, 32
+    @rotate_sprite = 1
     @pos = [@pos[0]-@pos[0]%32, @pos[1]-@pos[1]%32]
+    @sprite_size = 32
+    @sprite_offset = [0,0]
   _update: (delta)->
     @delta_time = delta
     @total_time += delta
     @frame_count += 1
     if @[@state]?
       @[@state]()
-    if not @rotation_ready
-      if window.Draw.make_rotation_sheet( @image, 32)
-        @rotation_ready = 1
 
     @draw()
     @update()
   draw: ->
     
+    
+
+    @draw_sprite()
+
+    window.Draw.context.fillStyle = 'white'
+    #window.Draw.draw_text(@state, @pos[0], @pos[1]-18, {fillStyle: 'white', font:'16px courier'})
+    #for s, i in @debug
+    #  window.Draw.draw_text(s, @pos[0]+18, @pos[1]+i*18, {fillStyle: 'white', font:'16px courier'})
+    @debug = []
+    if @target
+      x = @target[0]*window.Map.tilesize
+      y = @target[1]*window.Map.tilesize
+      #window.Draw.draw_box(x, y, 32, 32, {fillStyle:'transparent',strokeStyle:'magenta',lineWidth:1})
+
+  draw_sprite: ()->
     rotation = false
-    if @vector
+    if @vector and @rotate_sprite
       rotation = Math.atan2(@vector.y, @vector.x)
       rotation += Math.PI + Math.PI/2
       #rotation -= (2*Math.PI)/4
       #rotation = -rotation
-
     if @footprint_img
       if @draw_prints
         @draw_prints = 0
@@ -58,17 +70,8 @@ class Walker extends Entity
         window.Draw.image(@footprint_img, @pos[0], @pos[1], 32, 32, rotation)
 
     window.Draw.use_layer 'entities'
-    window.Draw.image(@image, @pos[0], @pos[1], 32, 32, rotation)
+    window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, rotation)
 
-    window.Draw.context.fillStyle = 'white'
-    window.Draw.draw_text(@state, @pos[0], @pos[1]-18, {fillStyle: 'white', font:'16px courier'})
-    for s, i in @debug
-      window.Draw.draw_text(s, @pos[0]+18, @pos[1]+i*18, {fillStyle: 'white', font:'16px courier'})
-    @debug = []
-    if @target
-      x = @target[0]*window.Map.tilesize
-      y = @target[1]*window.Map.tilesize
-      window.Draw.draw_box(x, y, 32, 32, {fillStyle:'transparent',strokeStyle:'magenta',lineWidth:1})
   get_random_tile: (distance=false)->
     if not distance
       x = parseInt(Math.random()*window.Map.width)
@@ -207,7 +210,7 @@ class Wanderer extends Walker
 
     if r > .05
       friction = (1-r*.2)
-    @debug.push 'diff: '+r.toFixed(2)
+    
 
     @vvv = (@vvv).multiply(friction)
     @vvv = @vvv.add(@vector.multiply(.2))
@@ -229,6 +232,53 @@ class Wanderer extends Walker
       @wait_time = 0
       @state = 'idle'
 
+class Fancy extends Wanderer
+  draw_sprite: ()->
+    rotation = false
+    i = 0
+    j = 0
+    if @vvv
+      rotation = Math.atan2(@vvv.y, @vvv.x)
+      rotation += Math.PI
+      #@debug.push 'r: '+rotation.toFixed(2)
+      step = (2*Math.PI) / 15
+      rot = Math.abs(parseInt(rotation/step) )
+
+      i = Math.floor(rot/5)
+      j = rot%4
+      #j = 3-j
+      #i = 3-i
+      #console.log  i, j
+      rotation += Math.PI/2
+
+    if @footprint_img
+      if @draw_prints
+        @draw_prints = 0
+        window.Draw.use_layer 'background'
+        window.Draw.image(@footprint_img, @pos[0], @pos[1], 32, 32, rotation)
+
+    window.Draw.use_layer 'entities'
+    x = @pos[0]+@sprite_offset[0]
+    y = @pos[1]+@sprite_offset[0]
+    window.Draw.image('shadow', @pos[0]-6, @pos[1]+16, 32, 16)
+    window.Draw.sub_image(@image, x,y+@sprite_offset[1], @sprite_size, @sprite_size, 128, offset=[i,j])
+
+  wait: ->
+    @wait_time += @delta_time
+    #console.log @wait_time
+    if @wait_time > 300
+      @wait_time = 0
+      @state = 'jump'
+      @jump_v = -3
+  jump: ->
+    @jump_v += .1
+    @sprite_offset[1] = @sprite_offset[1] + @jump_v
+    if @jump_v > 3
+      @jump_v = 3
+      @state = 'idle'
+      @sprite_offset[1] = 0
+    
+
 
 
 
@@ -245,8 +295,15 @@ window.Entities =
     @path_finder = new PF.JumpPointFinder()
     #@path_finder = new PF.AStarFinder()
     @sentient = []
-    @sentient.push new Wanderer('bot', 'sprite', [640,640])
-    @sentient.push new Wanderer('Joe', 'sprite', [320,640])
+    for i in [0..10]
+      x = parseInt(Math.random()*(window.Map.width*window.Map.tilesize))
+      y = parseInt(Math.random()*(window.Map.width*window.Map.tilesize))
+      advanced = new Fancy('Joe', 'testy', [x,y])
+      advanced.speed = 1.5
+      advanced.sprite_offset = [-16, 0]
+      advanced.sprite_size = 48
+      @sentient.push advanced
+
 
   update: (delta)->
     if @sentient?
@@ -277,4 +334,6 @@ window.Entities =
 $(window).ready ->
   window.Draw.add_image('tracks', "./textures/tracks.png");
   window.Draw.add_image('prints', "./textures/prints.png");
+  window.Draw.add_image('testy', "./textures/astronauts/astrosheet.png");
+  window.Draw.add_image('shadow', "./textures/astronauts/shadow.png");
   window.Entities.init()
