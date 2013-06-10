@@ -7,7 +7,7 @@ window.Map = {
 	tilesize: 32,
 	arrays: {},
 	background_drawn: 0,
-	init: function(){
+	init: function() {
 		// ask for events
 		window.Events.add_listener( this );
 	
@@ -110,12 +110,7 @@ window.Map = {
 				}
 			}
 		}
-	},
-	mousedown: function(e){
-		tile_clicked = window.Events.tile_under_mouse;
-		window.Blueprints.toggle(tile_clicked[0], tile_clicked[1]);
 	}
-
 }
 
 
@@ -126,8 +121,6 @@ $(window).ready( function(){
 	window.Draw.add_image('dirt2', "./textures/ground/dirt2.png");
 	window.Draw.add_image('dirt3', "./textures/ground/dirt3.png");
 	window.Draw.add_image('dirt4', "./textures/ground/dirt4.png");
-	window.Draw.add_image('medical', "./textures/ground/room_medical.png");
-	window.Draw.add_image('corridor', "./textures/ground/room_corridor.png");
 	window.Draw.add_image('sprite', "./textures/astronauts/sprite.png");
 	window.Draw.add_image('spirit', "./textures/astronauts/spirit.png");
 	window.Map.init();

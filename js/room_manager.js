@@ -1,8 +1,73 @@
-window.Blueprints = {
+function tile (x, y, room, state) {
+	this.x = x;
+	this.y = y;
+	this.room = room;
+	this.state = state;
+	this.draw = draw;
+	
+	
+	function draw() {
+		tilesize = window.Map.tilesize;
+		if (this.room.type != "outside") {
+			window.Draw.use_layer("rooms");
+			window.window.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image(this.room.type, this.x * tilesize, this.y * tilesize);
+		}
+		
+		if (state == 1) { // "BUILD"
+			window.Draw.use_layer("blueprints");
+			window.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image("blueprints1", x*tilesize, y * tilesize);
+		} else if (state == 2) { // "INVALID"
+			window.Draw.use_layer("blueprints");
+			window.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image("blueprints2", x*tilesize, y * tilesize);
+		} else if (state == 3) { // "REMOVE"
+			window.Draw.use_layer("blueprints");
+			window.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image("blueprints3", x*tilesize, y * tilesize);
+		} else if (state == 4) { // "BUILT"
+			window.Draw.use_layer("blueprints");
+			window.window.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+		}
+	}
+}
+
+function room (type) {
+	this.type = type;
+	this.tiles = [];
+	this.add_tile = add_tile;
+	function add_tile(x, y) {
+		// check if it is already part of a room
+		value = window.Map.get("rooms", x, y);
+		if (value == 0) {
+		
+		}
+		
+	}
+	function remove_tile(x, y) { // remove the tile from this room
+		if (this.tiles.indexOf(
+		window.Map.set("rooms", x, y, 0);
+	}
+	
+	function merge_room(other) { // merge "other" room with this one
+		
+	}
+	
+	function get_tile(x, y) {
+		
+	}
+}
+
+window.Blueprint = {
 	init: function() {
+		// ask for events
+		window.Events.add_listener(this);
+	
 		// load blueprint images
-		window.Draw.add_image('blueprint1', "./textures/ground/blueprint_valid.png");
+		window.Draw.add_image('blueprint1', "./textures/ground/blueprint_build.png");
 		window.Draw.add_image('blueprint2', "./textures/ground/blueprint_invalid.png");
+		window.Draw.add_image('blueprint3', "./textures/ground/blueprint_remove.png");
 		
 		// create a layer for blueprints
 		window.Map.create_layer("blueprints", 0);
@@ -20,6 +85,10 @@ window.Blueprints = {
 				window.Draw.image("blueprint2", x*tilesize, y*tilesize);
 			}
 		}
+	},
+	mousedown: function(e){
+		tile_clicked = window.Events.tile_under_mouse;
+		this.toggle(tile_clicked[0], tile_clicked[1]);
 	},
 	toggle: function(x, y) {
 		tile = window.Map.get("blueprints", x, y);
@@ -150,11 +219,38 @@ window.Blueprints = {
 	}
 };
 
+window.Rooms = {
+	init: function() {
+		this.rooms = [];
+	
+		// ask for events
+		window.Events.add_listener(this);
+	
+		// load room images
+		window.Draw.add_image('medical', "./textures/ground/room_medical.png");
+		window.Draw.add_image('corridor', "./textures/ground/room_corridor.png");
+		window.Draw.add_image('laboratory', "./textures/ground/laboratory.png");
+		window.Draw.add_image('commons', "./textures/ground/room_commons.png");
+		window.Draw.add_image('greenhouse', "./textures/ground/room_greenhouse.png");
+		window.Draw.add_image('power', "./textures/ground/room_power.png");
+		window.Draw.add_image('supply', "./textures/ground/room_supply.png");
+		
+		// create a layer for rooms
+		window.Map.create_layer("rooms", 0);
+		window.Draw.create_layer("rooms", true);
+	
+	
+	},
+	add_room: function(type, tile) {
+		
+	}
+};
+
 $(window).ready( function() {
 	function room_tile(type) {
 		this.type = type;
 	}
-	window.Blueprints.init();
-	//window.Rooms.init();
+	window.Blueprint.init();
+	window.Rooms.init();
 	
 });
