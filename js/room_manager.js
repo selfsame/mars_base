@@ -18,9 +18,21 @@ function blueprint_tile(x, y, type, state) {
 			this.type = window.Rooms.editType;
 			s = 1;
 		} else if (this.state == 1) {
-			s = 0;
+			if (this.type != window.Rooms.editType) {
+				this.type = window.Rooms.editType;
+				this.check_neighbors();
+				s = 2;
+			} else {
+				s = 0;
+			}
 		} else if (this.state == 2) {
-			s = 0;
+			if (this.type != window.Rooms.editType) {
+				this.type = window.Rooms.editType;
+				s = 2;
+				this.check_neighbors();
+			} else {
+				s = 0;
+			}
 		} else if (this.state == 3) {
 			s = 0;
 		} else if (this.state == 4) {
@@ -34,10 +46,8 @@ function blueprint_tile(x, y, type, state) {
 	
 	function check_neighbors() { // Check all the neighboring states
 		n = window.Map.get_neighbors("blueprints", this.x, this.y);
-		tot = 0;
 		for (i = 0; i < n.length; i++) {
-			if (n[i].type == this.type) {
-				tot++;
+			if (n[i].state != 5) {
 				old_state = n[i].state;
 				n[i].check_state(old_state);
 				//if (old_state != neighbors[i].state) {
@@ -45,17 +55,13 @@ function blueprint_tile(x, y, type, state) {
 				//}
 			}
 		}
-		//alert(this.n);
-		//alert(this.type + " total similiar neighbors: " + tot);
 		
 	}
 	
 	function set_state(new_state) { // change the tiles state and redraw
 		old_state = this.state;
-		if(new_state != old_state) {
-			this.state = new_state;
-			this.draw();
-		}
+		this.state = new_state;
+		this.draw();
 	}
 	
 	function check_state(new_state) { // This function looks at neighboring tiles and it's current state, to figure out if it should change
@@ -127,9 +133,9 @@ function blueprint_tile(x, y, type, state) {
 			
 		} else {
 			this.set_state(2);
-			return;
 		}
-	
+		this.draw();
+		return;
 	}
 	
 	function check_obstacles() {
