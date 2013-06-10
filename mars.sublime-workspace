@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"tile",
+				"tile_under_mouse"
+			],
+			[
+				"get",
+				"get_random_tile"
+			],
+			[
 				"convert_unit",
 				"convert_unit_for_element"
 			],
@@ -42,10 +50,6 @@
 			[
 				"op",
 				"op_scroll_start"
-			],
-			[
-				"get",
-				"get_lock_offset"
 			],
 			[
 				"up",
@@ -510,20 +514,49 @@
 			[
 				"input",
 				"input_panel"
-			],
-			[
-				"css",
-				"css_rules"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "coffee/draw_manager.coffee",
+			"file": "coffee/entities_coffee.coffee",
 			"settings":
 			{
-				"buffer_size": 6062,
+				"buffer_size": 2493,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/entities_js.js",
+			"settings":
+			{
+				"buffer_size": 440,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "js/libs/vector.js",
+			"settings":
+			{
+				"buffer_size": 3735,
+				"line_ending": "Windows",
+				"name": "function Vector(x, y, z) {"
+			}
+		},
+		{
+			"file": "old/coffee/pathfinding.coffee",
+			"settings":
+			{
+				"buffer_size": 5851,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "game.html",
+			"settings":
+			{
+				"buffer_size": 1097,
 				"line_ending": "Windows"
 			}
 		},
@@ -531,7 +564,31 @@
 			"file": "js/map_manager.js",
 			"settings":
 			{
-				"buffer_size": 5943,
+				"buffer_size": 3983,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/events.js",
+			"settings":
+			{
+				"buffer_size": 2689,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "coffee/draw_manager.coffee",
+			"settings":
+			{
+				"buffer_size": 6606,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/room_manager.js",
+			"settings":
+			{
+				"buffer_size": 4407,
 				"line_ending": "Windows"
 			}
 		}
@@ -560,6 +617,9 @@
 	},
 	"file_history":
 	[
+		"/C/Users/jplur/Desktop/mars_base/js/room_manager.js",
+		"/C/Users/jplur/Desktop/mars_base/js/entities_coffee.js",
+		"/C/Users/jplur/Desktop/mars_base/old/coffee/mapper.coffee",
 		"/C/Users/jplur/Desktop/mars_base/mars_base.sublime-workspace",
 		"/C/xampp/htdocs/pagelayer/coffee/rulers.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/context.coffee",
@@ -684,10 +744,7 @@
 		"/C/Users/jplur/Desktop/selfsame/content/draw/error_log",
 		"/C/Users/jplur/Desktop/selfsame/content/draw.html",
 		"/D/My Pictures/.comments/dancez.xml",
-		"/C/Users/jplur/Desktop/selfsame/temp/.htaccess",
-		"/C/Users/jplur/AppData/Local/Temp/fz3-13380847762030",
-		"/C/Users/jplur/Desktop/tangiers dev/journal/search.php",
-		"/C/Users/jplur/Desktop/tangiers dev/journal/webfonts/archer.css"
+		"/C/Users/jplur/Desktop/selfsame/temp/.htaccess"
 	],
 	"find":
 	{
@@ -706,6 +763,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"tile_under",
+			"window.Map",
 			"console",
 			"select widget change",
 			"_fp_s_options",
@@ -831,9 +890,7 @@
 			"off_limits",
 			"opacity",
 			"recalc_outliner",
-			"hierarchy",
-			"console",
-			"with"
+			"hierarchy"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -866,23 +923,108 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 5,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "coffee/draw_manager.coffee",
+					"file": "coffee/entities_coffee.coffee",
 					"settings":
 					{
-						"buffer_size": 6062,
+						"buffer_size": 2493,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3551,
-								3551
+								1484,
+								1484
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CoffeeScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 602.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "js/entities_js.js",
+					"settings":
+					{
+						"buffer_size": 440,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								440,
+								440
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "js/libs/vector.js",
+					"settings":
+					{
+						"buffer_size": 3735,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1930,
+								1930
+							]
+						],
+						"settings":
+						{
+							"auto_name": "function Vector(x, y, z) {",
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "old/coffee/pathfinding.coffee",
+					"settings":
+					{
+						"buffer_size": 5851,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3487,
+								3376
 							]
 						],
 						"settings":
@@ -891,25 +1033,52 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1218.0,
+						"translation.y": 413.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "js/map_manager.js",
+					"buffer": 4,
+					"file": "game.html",
 					"settings":
 					{
-						"buffer_size": 5943,
+						"buffer_size": 1097,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4708,
-								4607
+								712,
+								712
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "js/map_manager.js",
+					"settings":
+					{
+						"buffer_size": 3983,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1668,
+								1668
 							]
 						],
 						"settings":
@@ -918,7 +1087,88 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 2058.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "js/events.js",
+					"settings":
+					{
+						"buffer_size": 2689,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1368,
+								1368
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 546.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "coffee/draw_manager.coffee",
+					"settings":
+					{
+						"buffer_size": 6606,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								353,
+								353
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CoffeeScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 188.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "js/room_manager.js",
+					"settings":
+					{
+						"buffer_size": 4407,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								860,
+								860
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -971,7 +1221,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 29.0
+		"height": 170.0
 	},
 	"replace":
 	{

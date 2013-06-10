@@ -3,6 +3,11 @@ window.requestAnimFrame = (->
     window.setTimeout callback, 1000 / 60
 )()
 
+Array.prototype.remove = (item)->
+  indx = @indexOf(item)
+  if indx != -1
+    return @.splice(indx,1)
+
 window.util = 
   #the double click thing probably will eat up memory one way or another
   considered: 0

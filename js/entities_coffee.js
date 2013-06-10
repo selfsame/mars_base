@@ -49,12 +49,19 @@
       this.target = 0;
       this.path = 0;
       this.vector = 0;
-      return this.tile_pos = [parseInt(this.pos[0] / window.Map.tilesize), parseInt(this.pos[1] / window.Map.tilesize)];
+      this.tile_pos = [parseInt(this.pos[0] / window.Map.tilesize), parseInt(this.pos[1] / window.Map.tilesize)];
+      this.rotation_ready = 0;
+      return window.Draw.make_rotation_sheet(this.image, 32);
     };
 
     Walker.prototype._update = function() {
       if (this[this.state] != null) {
         this[this.state]();
+      }
+      if (!this.rotation_ready) {
+        if (window.Draw.make_rotation_sheet(this.image, 32)) {
+          this.rotation_ready = 1;
+        }
       }
       this.draw();
       return this.update();

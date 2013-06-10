@@ -7,6 +7,14 @@
     };
   })();
 
+  Array.prototype.remove = function(item) {
+    var indx;
+    indx = this.indexOf(item);
+    if (indx !== -1) {
+      return this.splice(indx, 1);
+    }
+  };
+
   window.util = {
     considered: 0,
     last_click: 0,

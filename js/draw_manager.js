@@ -11,6 +11,7 @@
         this.view_w = $(window).width();
         this.view_h = $(window).height();
         this.layer_mode = 'view';
+        this.rotation_sheets = {};
         this.scroll_x = 0;
         this.scroll_y = 0;
         this.zoom = 1.0;
@@ -335,6 +336,39 @@
           h = 100;
         }
         return this.context.clearRect(x, y, w, h);
+      },
+      make_rotation_sheet: function(sprite, size) {
+        var canvas, context, half, i, j, num, pad_size, padding, radian_step, _i, _j;
+        if (this.images[sprite] != null) {
+          if (!(this.rotation_sheets[sprite] != null)) {
+            pad_size = parseInt(size * 1.5);
+            pad_size -= pad_size % 2;
+            padding = (pad_size - size) / 2;
+            canvas = $('<canvas>');
+            canvas.attr('width', pad_size * 4);
+            canvas.attr('height', pad_size * 4);
+            this.rotation_sheets[sprite] = canvas;
+            context = canvas[0].getContext('2d');
+            half = pad_size / 2;
+            radian_step = (Math.PI * 2) / 16;
+            num = 0;
+            for (i = _i = 0; _i <= 3; i = ++_i) {
+              for (j = _j = 0; _j <= 3; j = ++_j) {
+                context.save();
+                context.translate(j * pad_size + half, i * pad_size + half);
+                context.rotate(num * radian_step);
+                context.drawImage(this.images[sprite], -(size / 2), -(size / 2), size, size);
+                context.restore();
+                num += 1;
+              }
+            }
+            return $('body').append(canvas);
+          } else {
+            return true;
+          }
+        } else {
+          return false;
+        }
       }
     };
     return window.Draw.init();

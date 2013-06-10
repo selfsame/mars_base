@@ -11,6 +11,7 @@ $(window).ready ->
 			@view_w = $(window).width()
 			@view_h = $(window).height()
 			@layer_mode = 'view'
+			@rotation_sheets = {}
 
 			#view properties
 			@scroll_x = 0
@@ -261,6 +262,41 @@ $(window).ready ->
 
 		clear_box: (x=0,y=0,w=100,h=100)->
 			@context.clearRect(x,y,w,h)
+
+		make_rotation_sheet: (sprite, size)->
+
+			if @images[sprite]?
+				if not @rotation_sheets[sprite]?
+					pad_size = parseInt(size*1.5)
+					pad_size -= pad_size % 2
+					padding = (pad_size-size)/2
+					canvas = $('<canvas>')
+					canvas.attr('width', pad_size*4)
+					canvas.attr('height', pad_size*4)
+					@rotation_sheets[sprite] = canvas
+					context = canvas[0].getContext('2d')
+
+					half = pad_size/2
+					radian_step = (Math.PI*2)/16
+					num = 0
+					for i in [0..3]
+						for j in [0..3]
+							context.save()
+							context.translate(j*pad_size + half, i*pad_size + half )
+							context.rotate(num*radian_step)
+							context.drawImage(@images[sprite],-(size/2),-(size/2), size, size )
+
+							context.restore()
+							#context.translate(-(i*size + half), -(j*size + half) )
+
+							
+							num += 1
+					$('body').append canvas
+				else
+					return true
+			else
+				return false
+
 
 
 	window.Draw.init()

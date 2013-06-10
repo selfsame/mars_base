@@ -18,9 +18,14 @@ class Walker extends Entity
     @path = 0
     @vector = 0
     @tile_pos = [parseInt(@pos[0]/window.Map.tilesize), parseInt(@pos[1]/window.Map.tilesize)]
+    @rotation_ready = 0
+    window.Draw.make_rotation_sheet @image, 32
   _update: ->
     if @[@state]?
       @[@state]()
+    if not @rotation_ready
+      if window.Draw.make_rotation_sheet( @image, 32)
+        @rotation_ready = 1
     @draw()
     @update()
   get_random_tile: (distance=false)->
