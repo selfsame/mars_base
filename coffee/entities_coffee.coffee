@@ -1,6 +1,7 @@
 class Entity
   constructor: (@name='thing', @image='sprite', @pos=[0,0])->
     @init()
+    @debug = []
   init: ->
   _update: ->
     @draw()
@@ -13,7 +14,8 @@ class Entity
 class Walker extends Entity
   init: ->
     @state = 'idle'
-    @speed = 3
+    @speed = 2.5
+    @turn_speed = .02
     @target = 0
     @path = 0
     @vector = @normalize_vector( new Vector(0,1,0))
@@ -24,7 +26,10 @@ class Walker extends Entity
     @frame_count = 0
     @rotation_ready = 0
     @footprint_img = 'prints'
+    @velcoity = .1
+    @draw_prints = 0
     window.Draw.make_rotation_sheet @image, 32
+    @pos = [@pos[0]-@pos[0]%32, @pos[1]-@pos[1]%32]
   _update: (delta)->
     @delta_time = delta
     @total_time += delta
@@ -47,8 +52,8 @@ class Walker extends Entity
       #rotation = -rotation
 
     if @footprint_img
-      console.log @total_time
-      if @frame_count % 8 is 0
+      if @draw_prints
+        @draw_prints = 0
         window.Draw.use_layer 'background'
         window.Draw.image(@footprint_img, @pos[0], @pos[1], 32, 32, rotation)
 
@@ -56,7 +61,14 @@ class Walker extends Entity
     window.Draw.image(@image, @pos[0], @pos[1], 32, 32, rotation)
 
     window.Draw.context.fillStyle = 'white'
-    window.Draw.draw_text(@state, @pos[0], @pos[1]-18, {fillStyle: 'white', font:'18px arial'})
+    window.Draw.draw_text(@state, @pos[0], @pos[1]-18, {fillStyle: 'white', font:'16px courier'})
+    for s, i in @debug
+      window.Draw.draw_text(s, @pos[0]+18, @pos[1]+i*18, {fillStyle: 'white', font:'16px courier'})
+    @debug = []
+    if @target
+      x = @target[0]*window.Map.tilesize
+      y = @target[1]*window.Map.tilesize
+      window.Draw.draw_box(x, y, 32, 32, {fillStyle:'transparent',strokeStyle:'magenta',lineWidth:1})
   get_random_tile: (distance=false)->
     if not distance
       x = parseInt(Math.random()*window.Map.width)
@@ -77,7 +89,7 @@ class Walker extends Entity
 
   idle: ->
 
-    @target = @get_random_tile(5)
+    @target = @get_random_tile(10)
     path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], @target[0], @target[1])
     if path
       @path = path
@@ -113,19 +125,111 @@ class Walker extends Entity
     @vector = Vector.lerp(@old_vector, @new_vector, fraction)
     
   moving: ->
-    @tile_pos = [parseInt(@pos[0]/window.Map.tilesize), parseInt(@pos[1]/window.Map.tilesize)]
-    if @tile_pos[0] is @path[0][0] and @tile_pos[1] is @path[0][1]
+    tilesize = window.Map.tilesize
+    @tile_pos = [parseInt((@pos[0])/window.Map.tilesize), parseInt((@pos[1])/window.Map.tilesize)]
+    p1 = @path[0][0]*tilesize
+    p2 = @path[0][1]*tilesize
+    if @pos[0] > p1-@speed and @pos[0] < p1+@speed and @pos[1] > p2-@speed and @pos[1] < p2+@speed
+      @pos = [p1,p2]
+      @tile_pos = @path[0]
       @path = @path.splice(1,@path.length)
+      @velocity = .1
       if @path.length is 0
+        @target = 0
         @state = 'wait'
         return
-      @new_vector = @normalize_vector( new Vector(@path[0][0]-@tile_pos[0], @path[0][1]-@tile_pos[1], 0) )
+      @new_vector = @normalize_vector( new Vector((@path[0][0]*tilesize)-@pos[0], (@path[0][1]*tilesize)-@pos[1], 0) )
       @old_vector = @vector
       @state = 'rotating'
     else
-      @pos[0] += @new_vector.x
-      @pos[1] += @new_vector.y
+      @velocity *= 1.1
+      if @velocity > 1.0
+        @velocity = 1.0
+      @pos[0] += @new_vector.x*@velocity
+      @pos[1] += @new_vector.y*@velocity
     
+class Wanderer extends Walker
+  moving: ->
+    if not @path? or @path.length is 0
+      @state = 'wait'
+      return
+    tilesize = window.Map.tilesize
+    @tile_pos = [parseInt((@pos[0])/window.Map.tilesize), parseInt((@pos[1])/window.Map.tilesize)]
+    p1 = @path[0][0]*tilesize
+    p2 = @path[0][1]*tilesize
+
+    @vect_to_target = new Vector((@path[0][0]*tilesize)-@pos[0], (@path[0][1]*tilesize)-@pos[1], 0)
+    @dist_to_target = @vect_to_target.length()
+    @target_vect = @normalize_vector( @vect_to_target )
+
+    @vector = Vector.lerp(@vector, @target_vect, @turn_speed)
+
+    near = 10
+    if @pos[0] > p1-near and @pos[0] < p1+near and @pos[1] > p2-near and @pos[1] < p2+near
+
+      @tile_pos = @path[0]
+      @path = @path.splice(1,@path.length)
+      @velocity = .1
+      if @path.length is 0
+        @target = 0
+        @state = 'wait'
+        #@vector = @vector.negative()
+        return
+
+    else
+
+      @move(1)
+
+  move: (friction=.95)->
+    @vector = @vector.multiply(.90)
+    if not @vvv
+      @vvv =  new Vector(0,0,0)
+
+    
+    if not @dist_to_target
+      return
+    #if @dist_to_target < 32
+    #  friction = .8 + (.2 * (@dist_to_target/32) )
+    #console.log friction
+
+    #check if we overshot
+    p = Math.PI + Math.PI/2
+    r1 = Math.atan2(@vector.y, @vector.x)+p
+    r2 = Math.atan2(@vect_to_target.y, @vect_to_target.x)+p
+    if r1 > r2
+      r = r1-r2
+    else
+      r = r2 - r1
+
+    if r > .9
+
+      r = .9
+
+    if r > .05
+      friction = (1-r*.2)
+    @debug.push 'diff: '+r.toFixed(2)
+
+    @vvv = (@vvv).multiply(friction)
+    @vvv = @vvv.add(@vector.multiply(.2))
+    
+    if @vvv.length() > @speed
+      @vvv = @normalize_vector(@vvv)
+    if @vvv.length() > @speed/3
+      if @frame_count%18 is 0
+        @draw_prints = 1
+    @pos[0] += @vvv.x
+    @pos[1] += @vvv.y
+    
+
+  wait: ->
+    @wait_time += @delta_time
+    #console.log @wait_time
+    @move(.8)
+    if @wait_time > 600
+      @wait_time = 0
+      @state = 'idle'
+
+
 
 
 
@@ -137,9 +241,12 @@ window.Entities =
     @classes =
       Entity: Entity
       Walker: Walker
+      Wanderer: Wanderer
     @path_finder = new PF.JumpPointFinder()
+    #@path_finder = new PF.AStarFinder()
     @sentient = []
-    @sentient.push new Walker('bot', 'sprite', [700,700])
+    @sentient.push new Wanderer('bot', 'sprite', [640,640])
+    @sentient.push new Wanderer('Joe', 'sprite', [320,640])
 
   update: (delta)->
     if @sentient?

@@ -30,10 +30,11 @@ window.Map = {
 				}
 				if (Math.random() < .3) {
 					tile = 1;
+					this.arrays.pathfinding[i][j] = 1
 				}
 				if (Math.random() < .05) {
 					tile = 2;
-					//this.arrays.pathfinding[i][j] = 1
+					this.arrays.pathfinding[i][j] = 1
 				}
 				this.arrays['background'][i].push(tile);
 			}
