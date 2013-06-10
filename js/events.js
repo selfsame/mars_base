@@ -27,6 +27,9 @@ window.Events = {
 		$(window).keyup(function(e){
 			window.Events.keyup(e);
 		});
+
+		d = new Date();
+		this.time = d.getTime();
 		this.update();
 
 	},
@@ -74,13 +77,20 @@ window.Events = {
 		this.delegate('keydown',[e]);
 	},
 	update: function(){
-		
+		d = new Date();
+		newtime = d.getTime();
+		delta = newtime - this.time;
+		if (!delta){
+			delta = 0;
+		}
+		this.time = newtime;
+
 		mtile = window.Events.mouse_to_tile(window.Events.last_mouse_pos[0], window.Events.last_mouse_pos[1]);
 		if (mtile){
 			window.Events.tile_under_mouse = mtile;
 		}
 
-		window.Events.delegate('update');
+		window.Events.delegate('update', [delta]);
 		window.requestAnimFrame( window.Events.update );
 	},
 	mouse_to_tile: function(x,y){

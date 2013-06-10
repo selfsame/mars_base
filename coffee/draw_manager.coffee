@@ -185,9 +185,8 @@ $(window).ready ->
 				if not window.Draw.images[name]
 					window.Draw.images[name] = this[0]
 
-		image: (imgname, x,y)->
-			w = 32 #@images[imgname].width
-			h = 32 #@images[imgname].height
+		image: (imgname, x,y, w=32, h=32, rotation=false)->
+
 
 			if @layer_mode is 'view'
 				x *= @zoom
@@ -203,7 +202,14 @@ $(window).ready ->
 					y += @scroll_y
 
 			if @images[imgname]
-				@context.drawImage(@images[imgname],x,y, w, h )
+				if rotation
+					@context.save()
+					@context.translate(x+(w/2), y+(h/2) )
+					@context.rotate(rotation)
+					@context.drawImage(@images[imgname],-(w/2),-(h/2), w, h )
+					@context.restore()
+				else
+					@context.drawImage(@images[imgname],x,y, w, h )
 
 		within_view: (x,y,w,h)->
 			#takes global pixel values and checks if the draw area is partially visible
@@ -260,6 +266,27 @@ $(window).ready ->
 			@context.closePath()
 			@context.stroke()
 
+		draw_text: (string, x,y, options={fillStyle:0,font:0,scale:true, rulerw:16, use_scroll: true})->
+			#if options.scale isnt false
+			x *= @zoom
+			y *= @zoom	
+
+			x +=  @scroll_x 
+			y +=  @scroll_y
+
+			
+
+			x += .5 
+			y -= .5
+			#if options.use_scroll
+			 
+
+			if options.fillStyle
+				@context.fillStyle = options.fillStyle
+			if options.font
+				@context.font = options.font
+			@context.fillText(string, x, y)
+
 		clear_box: (x=0,y=0,w=100,h=100)->
 			@context.clearRect(x,y,w,h)
 
@@ -285,17 +312,14 @@ $(window).ready ->
 							context.translate(j*pad_size + half, i*pad_size + half )
 							context.rotate(num*radian_step)
 							context.drawImage(@images[sprite],-(size/2),-(size/2), size, size )
-
 							context.restore()
-							#context.translate(-(i*size + half), -(j*size + half) )
-
-							
 							num += 1
-					$('body').append canvas
 				else
 					return true
 			else
 				return false
+
+
 
 
 

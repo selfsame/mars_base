@@ -48,13 +48,21 @@
       this.speed = 3;
       this.target = 0;
       this.path = 0;
-      this.vector = 0;
+      this.vector = this.normalize_vector(new Vector(0, 1, 0));
+      this.new_vector = false;
       this.tile_pos = [parseInt(this.pos[0] / window.Map.tilesize), parseInt(this.pos[1] / window.Map.tilesize)];
+      this.wait_time = 0;
+      this.total_time = 0;
+      this.frame_count = 0;
       this.rotation_ready = 0;
+      this.footprint_img = 'prints';
       return window.Draw.make_rotation_sheet(this.image, 32);
     };
 
-    Walker.prototype._update = function() {
+    Walker.prototype._update = function(delta) {
+      this.delta_time = delta;
+      this.total_time += delta;
+      this.frame_count += 1;
       if (this[this.state] != null) {
         this[this.state]();
       }
@@ -67,19 +75,56 @@
       return this.update();
     };
 
+    Walker.prototype.draw = function() {
+      var rotation;
+      rotation = false;
+      if (this.vector) {
+        rotation = Math.atan2(this.vector.y, this.vector.x);
+        rotation += Math.PI + Math.PI / 2;
+      }
+      if (this.footprint_img) {
+        console.log(this.total_time);
+        if (this.frame_count % 8 === 0) {
+          window.Draw.use_layer('background');
+          window.Draw.image(this.footprint_img, this.pos[0], this.pos[1], 32, 32, rotation);
+        }
+      }
+      window.Draw.use_layer('entities');
+      window.Draw.image(this.image, this.pos[0], this.pos[1], 32, 32, rotation);
+      window.Draw.context.fillStyle = 'white';
+      return window.Draw.draw_text(this.state, this.pos[0], this.pos[1] - 18, {
+        fillStyle: 'white',
+        font: '18px arial'
+      });
+    };
+
     Walker.prototype.get_random_tile = function(distance) {
       var x, y;
       if (distance == null) {
         distance = false;
       }
-      x = parseInt(Math.random() * window.Map.width);
-      y = parseInt(Math.random() * window.Map.height);
+      if (!distance) {
+        x = parseInt(Math.random() * window.Map.width);
+        y = parseInt(Math.random() * window.Map.height);
+      } else {
+        x = parseInt((Math.random() * distance * 2) - distance) + this.tile_pos[0];
+        y = parseInt((Math.random() * distance * 2) - distance) + this.tile_pos[1];
+        x = window.util.constrict(x, 0, window.Map.width);
+        y = window.util.constrict(y, 0, window.Map.height);
+      }
       return [x, y];
+    };
+
+    Walker.prototype.normalize_vector = function(vector) {
+      var len;
+      len = vector.length();
+      vector = vector.unit().multiply(this.speed);
+      return vector;
     };
 
     Walker.prototype.idle = function() {
       var path;
-      this.target = this.get_random_tile();
+      this.target = this.get_random_tile(5);
       path = window.Entities.get_path(this.tile_pos[0], this.tile_pos[1], this.target[0], this.target[1]);
       if (path) {
         this.path = path;
@@ -87,23 +132,50 @@
       }
     };
 
-    Walker.prototype.moving = function() {
-      var len;
-      if (!this.vector) {
-        this.vector = new Vector(this.path[0][0] - this.tile_pos[0], this.path[0][1] - this.tile_pos[1], 0);
-        len = this.vector.length();
-        this.vector = this.vector.unit().multiply(this.speed);
+    Walker.prototype.wait = function() {
+      this.wait_time += this.delta_time;
+      if (this.wait_time > 600) {
+        this.wait_time = 0;
+        return this.state = 'idle';
       }
-      this.pos[0] += this.vector.x;
-      this.pos[1] += this.vector.y;
+    };
+
+    Walker.prototype.rotating = function() {
+      var fraction, p, r, r1, r2;
+      this.wait_time += this.delta_time;
+      p = Math.PI;
+      r1 = Math.atan2(this.old_vector.y, this.old_vector.x) + p;
+      r2 = Math.atan2(this.new_vector.y, this.new_vector.x) + p;
+      if (r1 > r2) {
+        r = r1 - r2;
+      } else {
+        r = r2 - r1;
+      }
+      this.rotate_speed = r * 300;
+      if (this.wait_time > this.rotate_speed) {
+        this.wait_time = 0;
+        this.vector = this.new_vector;
+        this.state = 'moving';
+        return;
+      }
+      fraction = this.wait_time / this.rotate_speed;
+      return this.vector = Vector.lerp(this.old_vector, this.new_vector, fraction);
+    };
+
+    Walker.prototype.moving = function() {
       this.tile_pos = [parseInt(this.pos[0] / window.Map.tilesize), parseInt(this.pos[1] / window.Map.tilesize)];
       if (this.tile_pos[0] === this.path[0][0] && this.tile_pos[1] === this.path[0][1]) {
         this.path = this.path.splice(1, this.path.length);
-        this.vector = 0;
         if (this.path.length === 0) {
-          this.state = 'idle';
-          return this.vector = 0;
+          this.state = 'wait';
+          return;
         }
+        this.new_vector = this.normalize_vector(new Vector(this.path[0][0] - this.tile_pos[0], this.path[0][1] - this.tile_pos[1], 0));
+        this.old_vector = this.vector;
+        return this.state = 'rotating';
+      } else {
+        this.pos[0] += this.new_vector.x;
+        return this.pos[1] += this.new_vector.y;
       }
     };
 
@@ -120,16 +192,16 @@
       };
       this.path_finder = new PF.JumpPointFinder();
       this.sentient = [];
-      return this.sentient.push(new Walker('bot', 'sprite', [100, 100]));
+      return this.sentient.push(new Walker('bot', 'sprite', [700, 700]));
     },
-    update: function() {
+    update: function(delta) {
       var thing, _i, _len, _ref, _results;
       if (this.sentient != null) {
         _ref = this.sentient;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           thing = _ref[_i];
-          _results.push(thing._update());
+          _results.push(thing._update(delta));
         }
         return _results;
       }
@@ -158,6 +230,8 @@
   };
 
   $(window).ready(function() {
+    window.Draw.add_image('tracks', "./textures/tracks.png");
+    window.Draw.add_image('prints', "./textures/prints.png");
     return window.Entities.init();
   });
 
