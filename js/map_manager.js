@@ -13,7 +13,6 @@ window.Map = {
 	
 		// create the canvas layers
 		window.Draw.create_layer('background', true);
-		window.Draw.create_layer('blueprint', true);
 		window.Draw.create_layer('entities', false);
 
 		// create pathfinding map
