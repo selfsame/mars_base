@@ -10,9 +10,11 @@ function blueprint_tile(x, y, type, state) {
 	this.set_state = set_state;
 	this.check_state = check_state;
 	this.check_obstacles = check_obstacles;
+	this.build = build;
+	this.promote = promote;
 	
 	function toggle() { // The player has clicked this tile while in edit mode
-	
+		
 		// change the state based on what it is currently;
 		if (this.state == 0) {
 			this.type = window.Rooms.editType;
@@ -34,11 +36,13 @@ function blueprint_tile(x, y, type, state) {
 				s = 0;
 			}
 		} else if (this.state == 3) {
-			s = 0;
-		} else if (this.state == 4) {
 			s = 4;
+		} else if (this.state == 4) {
+			s = 3;
 		}
-
+		
+		//alert(s);
+		
 		// check to make sure the state is ok
 		this.check_state(s);
 		
@@ -62,6 +66,28 @@ function blueprint_tile(x, y, type, state) {
 		old_state = this.state;
 		this.state = new_state;
 		this.draw();
+	}
+	
+	function build() {
+		if (this.state == 1) {
+			room_tile = window.Map.get("rooms", this.x, this.y);
+			room_tile.change_type(this.type);
+			this.set_state(4);
+			return true;
+		} else if (this.state == 3) {
+			room_tile = window.Map.get("rooms", this.x, this.y);
+			room_tile.change_type("outside");
+			this.set_state(0);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	function promote() {
+		if (this.state == 2) {
+			this.state = 1;
+		}
 	}
 	
 	function check_state(new_state) { // This function looks at neighboring tiles and it's current state, to figure out if it should change
@@ -131,6 +157,10 @@ function blueprint_tile(x, y, type, state) {
 			}
 			return;
 			
+		} else if (new_state == 3) {
+			this.set_state(3);
+		} else if (new_state == 4) {
+			this.set_state(4);
 		} else {
 			this.set_state(2);
 		}
@@ -172,41 +202,31 @@ function blueprint_tile(x, y, type, state) {
 		}
 	}	
 }
-function room_tile(x, y, room) {
+function room_tile(x, y, type) {
 	this.x = x;
 	this.y = y;
-	this.room = room;
+	this.type = type;
 	this.draw = draw;
-
+	this.change_type = change_type;
+	
+	function change_type(new_type) {
+		old_type = this.type;
+		if (old_type != new_type) {
+			this.type = new_type;
+			this.draw();
+		}
+	}
+	
 	// display the tile
 	function draw() {
 		tilesize = window.Map.tilesize;
-		if (this.state == 1) { // "BUILD"
-			window.Draw.use_layer("blueprints");
-			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
-			window.Draw.image(this.room.type, this.x * tilesize, this.y * tilesize);
-			window.Draw.image("blueprint1", this.x * tilesize, this.y * tilesize);
-		} else if (this.state == 2) { // "INVALID"
-			window.Draw.use_layer("blueprints");
-			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
-			window.Draw.image(this.room.type, this.x * tilesize, this.y * tilesize);
-			window.Draw.image("blueprint2", this.x * tilesize, this.y * tilesize);
-		} else if (this.state == 3) { // "REMOVE"
-			window.Draw.use_layer("blueprints");
-			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
-			window.Draw.image("blueprint3", this.x * tilesize, this.y * tilesize);
-		} else if (this.state == 4) { // "BUILT"
+		if(this.type == "outside") {
 			window.Draw.use_layer("rooms");
 			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
-			window.Draw.image(this.room.type, this.x * tilesize, this.y * tilesize);
-			window.Draw.use_layer("blueprints");
-			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
-			window.Draw.image("blueprint4", this.x * tilesize, this.y * tilesize);
-		} else if (this.state == 5) { // "EMPTY"
-			window.Draw.use_layer("blueprints");
-			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+		} else {
 			window.Draw.use_layer("rooms");
 			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image(this.type, this.x * tilesize, this.y * tilesize);
 		}
 	}
 }
@@ -309,6 +329,14 @@ window.Rooms = {
 		window.Map.arrays["rooms"] = room_tiles;
 		window.Map.arrays["blueprints"] = blueprint_tiles;
 	},
+	construct_all: function() {
+		for(i = 0; i < window.Map.arrays["blueprints"].length; i++) {
+			for(j = 0; j < window.Map.arrays["blueprints"][i].length; j++) {
+				window.Map.arrays["blueprints"][i][j].build();
+			}
+		}
+	},
+	
 	mousedown: function(e){
 		if (this.mode == "edit") {
 			// get the tile the user clicked
@@ -330,9 +358,21 @@ window.Rooms = {
 		} else if (e.keyCode == 53) { // 5
 			this.editType = "laboratory";
 		} else if (e.keyCode == 54) { // 6
-			this.editType = "medical";
+			this.editType = "medical";bv
 		} else if (e.keyCode == 55) { // 7
 			this.editType = "power";
+		} else if (e.keyCode == 66) { // b
+			console.log("constructing tiles from blueprints");
+			this.construct_all();
+		} else if (e.keyCode == 86) { // v
+			if (this.mode == "edit") {
+				this.mode = "view";
+				window.Draw.hide_layer("blueprints");
+			} else {
+				this.mode = "edit";
+				window.Draw.show_layer("blueprints");
+			}
+			console.log("switching view mode to " + this.mode);
 		}
 	}
 	
