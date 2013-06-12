@@ -66,9 +66,9 @@ window.Map = {
 	},
 	get_neighbors: function(layer, x, y) {
 		// starts at top left and goes clockwise
-		neighbors = [this.get(layer, x-1, y-1), this.get(layer, x, y-1), this.get(layer, x+1, y-1), this.get(layer, x+1, y), 
+		neighbs = [this.get(layer, x-1, y-1), this.get(layer, x, y-1), this.get(layer, x+1, y-1), this.get(layer, x+1, y), 
 					 this.get(layer, x+1, y+1), this.get(layer, x, y+1), this.get(layer, x-1, y+1), this.get(layer, x-1, y)];
-		return neighbors;
+		return neighbs;
 	},
 	get_immediate_neighbors: function(layer, x, y) {
 		// returns an array of tiles [top, right, bottom, left] with respect to given x, y

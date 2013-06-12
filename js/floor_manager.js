@@ -10,10 +10,14 @@ function floor_tile(x, y, state) {
 	this.toggle = toggle;
 	this.build = build;
 	this.cancel = cancel;
+	this.get_wall_type = get_wall_type;
+	this.get_wall_locations = get_wall_locations;
+	this.connected = connected;
+	this.set_style = set_style;
 	this.timer = 0;
 	this.change = false;
-	this.change_style = 0;
-	this.wall_type = 0;
+	this.change_style = "corridor";
+	this.wall_type = "wall_0";
 	this.prev_built = 0; // was the wall previously built, was it being built, or was it being removed
 	this.change_to = 0;
 	
@@ -32,7 +36,7 @@ function floor_tile(x, y, state) {
 			this.get_wall_locations();
 		} else if (this.state == 2) { // the tile is invalid
 			this.set_state(0);
-			this.get_wall_locations();
+			//this.get_wall_locations();
 		} else if (this.state == 3) { // the tile will be removed
 			this.set_state(4);
 			this.get_wall_locations();
@@ -86,11 +90,25 @@ function floor_tile(x, y, state) {
 			if(this.state == 5) {
 				this.set_state(4)
 				window.Map.set("pathfinding", this.x, this.y, 0);
+				this.timer = 0;
+				window.Floors.under_construction.remove(this);
 			} else if (this.state == 6) {
 				this.set_state(0);
+				this.timer = 0;
+				window.Floors.under_construction.remove(this);
+			} else if (this.timer >= 8000) {
+				if (this.state == 10) {
+					this.set_state(9);
+				} else if (this.state == 11) {
+					if (this.change) {
+						this.set_state(5);
+					} else {
+						this.set_state(0);
+						window.Floors.under_construction.remove(this);
+					}
+				}
+				this.timer = 0;
 			}
-			this.timer = 0;
-			window.Floors.under_construction.remove(this);
 		}
 	}
 	
@@ -122,35 +140,54 @@ function floor_tile(x, y, state) {
 			window.Floors.under_construction.push(this);
 			this.set_state(6);
 			return true;
+		} else if (this.state == 7) {
+			window.Floors.under_construction.push(this);
+			this.set_state(10);
+			return true;
+		} else if (this.state == 8) {
+			window.Floors.under_construction.push(this);
+			this.set_state(11);
+			return true;
 		} else {
 			return false;
 		}
 	}
 	
 	function get_wall_type() { // gets the type of wall tile to place
-		return 0; // return a block type for now
+		return "wall_0"; // return a block type for now
 	}
 	
 	function get_wall_locations() { // determines what neighbors should be walls
-		neighbors = window.Map.get_neighbors("blueprint", this.x, this.y);
+		neighbors = window.Map.get_neighbors("floor", this.x, this.y);
+
 		if (this.state == 0) { // There is nothing here
 			// check to see if each neighbor is connected
+
 			for (i = 0; i < neighbors.length; i++) {
 				if(!neighbors[i].connected()) { // the neighbor is a wall tile, that isn't connected
-					neighbors[i].change = false;
-					neighbors[i].set_state(8); // remove it
+					if (neighbors[i].state == 7) {
+						neighbors[i].set_state(0);
+					} else if (neighbors[i].state == 10) {
+						neighbors[i].change = false;
+						neighbors[i].prev_built = 10;
+						neighbors[i].set_state(8);
+					} else if (neighbors[i].state == 9) {
+						neighbors[i].change = false;
+						neighbors[i].prev_built = 9;
+						neighbors[i].set_state(8);
+					}
 				} else {
 					neighbors[i].wall_type = get_wall_type();
 					// POSSIBLE CALL TO DRAW IF WALL TYPE IS DIFFERENT?
 				}
 			}
-		} else if (this.state == 1) { // 
+		} else if (this.state == 1) { //
 			for (i = 0; i < neighbors.length; i++) {
-				if(neighbors[i].check_clear) { // the neighbor is invalid, need to set this tile to invalid
+				if(!neighbors[i].check_clear()) { // the neighbor is invalid, need to set this tile to invalid
 					this.set_state(2);
 				} else if (neighbors[i].state == 0) {
 					neighbors[i].set_state(7);
-					neighbors[i].wall_type = neighbors[i].get_wall_type();
+					//neighbors[i].wall_type = neighbors[i].get_wall_type();
 				}
 			}
 		} else if (this.state == 2) { // this tile is invalid. there shouldn't be any walls.
@@ -192,12 +229,12 @@ function floor_tile(x, y, state) {
 				}
 			}
 		} else if (this.state == 6) {
-			for (i = 0; i < neighbors[i]; i++) {
-				if (!neighbors[i].connected() {
-					if (neighbors[i].set_state == 7) { // scheduled to be built
-						neighbors[i].set_state = 0;
+			for (i = 0; i < neighbors.length; i++) {
+				if (!neighbors[i].connected()) {
+					if (neighbors[i].state == 7) { // scheduled to be built
+						neighbors[i].set_state(0);
 					} else if (neighbors[i].state == 9) { // already built
-						neighbors[i].set_state = 8;
+						neighbors[i].set_state(8);
 					} else if (neighbors[i].state == 10) { // process of being built
 						neighbors[i].change = false;
 						neighbors[i].set_state(8);
@@ -211,28 +248,51 @@ function floor_tile(x, y, state) {
 		} else if (this.state == 8) { // the wall is scheduled to be removed
 			if(this.change) { // check if it's changing
 				for (i = 0; i < neighbors.length; i++) {
-					if (neighbors[i].state == 
+					if (neighbors[i].state == 0) { // the neighbor is empty. wall must be built
+						neighbors[i].set_state(7);
+					} else if (neighbors[i].state == 8) { // the neighbor wall is being removed. set it back to normal
+						// check that it's not turning into a tile first
+						if (!neighbors[i].change) {
+							neighbors[i].set_state(9);
+						}
+					} else if (neighbors[i].state == 11) { // the neighbors wall is in the process of being removed
+						if (!neighbors[i].change) { // make sure it's not changing into a tile
+							neighbors[i].set_state(7); //DOUBLE CHECK HERE!!! ---------------------------------------------- <
+						}
+					}
+				}
+			} else { // wall is not changing, look for unconnected walls
+				for (i = 0; i < neighbors.length; i++) {
+					if (!neighbors[i].connected) { // if it's not connected, build a wall
+						neighbors[i].set_state(7); // CHECK INVALID HERE TOO MAYBE? <-------------------------------------------
+					}	
 				}
 			}
-		} else if (this.state == 10) {
-		
-		} else if (this.state == 11) {
-		
+		} else if (this.state == 10) { // a wall is being built here
+			if(!this.connected()) {
+				this.change = false;
+				this.prev_built = 10;
+				this.set_state(8);
+			}
+		} else if (this.state == 11) { // a wall is being removed here
+			if(this.connected && !this.change) {
+				this.prev_built = 11;
+				this.set_state(7);
+			}
 		}
 	}
 	
 	function connected() { // is this tile connected to a tile?
 		if (this.state != 1 || this.state != 2 || this.state != 3 || this.state != 4 || this.state != 5 || this.state != 6) { // MAYBE DON'T INCLUDE 6 HERE?? <--------------
-			neighbors = window.Map.get_neighbors("blueprint", this.x, this.y);
-			for (i = 0; i < neighbors.length; i++) {
-				if (neighbors[i].state == 1 || neighbors[i].state == 4 || neighbors[i].state == 5 || (neighbors[i].state == 8 && neighbors[i].change) {
+			n = window.Map.get_neighbors("floor", this.x, this.y);
+			for (j = 0; j < n.length; j++) {
+				if (n[j].state == 1 || n[j].state == 4 || n[j].state == 5 || (n[j].state == 8 && n[j].change)) {
 					return true;
 				}
 			}
 			return false;
-		} else {
-			return true;
 		}
+		return true;
 	}
 	
 	function cancel() { // cancel all changes to the blueprint
@@ -296,6 +356,41 @@ function floor_tile(x, y, state) {
 			window.Draw.use_layer("floor");
 			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
 			window.Draw.image("construction", this.x * tilesize, this.y * tilesize);
+		} else if (this.state == 7) { // "WALL BUILD"
+			window.Draw.use_layer("blueprint");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image(this.wall_type, this.x * tilesize, this.y * tilesize);
+			window.Draw.image("blueprint1", this.x * tilesize, this.y * tilesize);
+		} else if (this.state == 8) { // "WALL REMOVE"
+			window.Draw.use_layer("blueprint");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			if(this.change) {
+				window.Draw.image(this.change_style, this.x * tilesize, this.y * tilesize);
+				window.Draw.image("blueprint1", this.x * tilesize, this.y * tilesize);
+			} else {
+				window.Draw.image("blueprint3", this.x * tilesize, this.y * tilesize);
+			}
+		} else if (this.state == 9) { // "WALL BUILT"
+			window.Draw.use_layer("blueprint");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image("blueprint4", this.x * tilesize, this.y * tilesize);
+			window.Draw.use_layer("floor");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image(this.wall_type, this.x * tilesize, this.y * tilesize);
+		} else if (this.state == 10) { // "WALL BEING BUILT"
+			window.Draw.use_layer("blueprint");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image("blueprint4", this.x * tilesize, this.y * tilesize);
+			window.Draw.use_layer("floor");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image("construction", this.x * tilesize, this.y * tilesize);
+		} else if (this.state == 11) { // "WALL BEING REMOVED"
+			window.Draw.use_layer("blueprint");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image("blueprint3", this.x * tilesize, this.y * tilesize);
+			window.Draw.use_layer("floor");
+			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
+			window.Draw.image("construction", this.x * tilesize, this.y * tilesize);
 		}
 	}
 }
@@ -320,7 +415,7 @@ window.Floors = {
 		window.Draw.add_image('construction', "./textures/ground/under_construction.png");
 		
 		// load wall images
-		window.Draw.add_image('wall', "./textures/walls/external/wall_ext_m.png");
+		window.Draw.add_image('wall_0', "./textures/walls/external/wall_ext_m.png");
 		
 		// load blueprint images
 		window.Draw.add_image('blueprint1', "./textures/ground/blueprint_build.png");
