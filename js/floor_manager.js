@@ -11,27 +11,71 @@ function floor_tile(x, y, state) {
 	this.build = build;
 	this.cancel = cancel;
 	this.timer = 0;
+	this.change = false;
+	this.change_style = 0;
+	this.wall_type = 0;
+	this.prev_built = 0; // was the wall previously built, was it being built, or was it being removed
+	this.change_to = 0;
 	
 	function toggle(style) { // called when the tile is clicked on
 		if (this.state == 0) { // the tile is empty
 			this.style = style;
 			if (this.check_clear()) {
 				this.set_state(1);
+				this.get_wall_locations();
 			} else {
 				this.set_state(2);
+				this.get_wall_locations();
 			}
 		} else if (this.state == 1) { // the tile will be built
 			this.set_state(0);
+			this.get_wall_locations();
 		} else if (this.state == 2) { // the tile is invalid
 			this.set_state(0);
+			this.get_wall_locations();
 		} else if (this.state == 3) { // the tile will be removed
 			this.set_state(4);
+			this.get_wall_locations();
 		} else if (this.state == 4) { // The tile was already build
 			this.set_state(3);
+			this.get_wall_locations();
 		} else if (this.state == 5) { // the tile is being built
 			this.set_state(6);
+			this.get_wall_locations();
 		} else if (this.state == 6) { // the tile is being removed
-			this.set-state(5)
+			this.set_state(5)
+			this.get_wall_locations();
+		} else if (this.state == 7) { // a wall will be built
+			this.set_state(1);
+			this.get_wall_locations();
+		} else if (this.state == 8) { // a wall will be removed here
+			if (this.change) { // wall is already being changed into somethign else, change it back to just a wall or a wall being built or a wall being removed
+				this.change = false;
+				this.set_state(prev_built);
+				this.get_wall_locations();
+			} else { // wall is being removed because it isn't connected to any tiles
+				this.change = true;
+				this.change_style = style;
+				this.get_wall_locations();
+			}
+		} else if (this.state == 9) { // a wall is already built here
+			this.change = true;
+			this.prev_built = 9;
+			this.set_state(8);
+			this.change_style = style;
+			this.get_wall_locations();
+		} else if (this.state == 10) { // a wall is being built here
+			this.change = true;
+			this.prev_built = 10;
+			this.change_style = style;
+			this.set_state(8);
+			this.get_wall_locations();
+		} else if (this.state == 11) { // a wall is being removed here
+			this.change = true;
+			this.prev_built = 11;
+			this.change_style = style;
+			this.set_state(8);
+			this.get_wall_locations();
 		}
 	}
 	
@@ -41,6 +85,7 @@ function floor_tile(x, y, state) {
 		if(this.timer >= 6000) {
 			if(this.state == 5) {
 				this.set_state(4)
+				window.Map.set("pathfinding", this.x, this.y, 0);
 			} else if (this.state == 6) {
 				this.set_state(0);
 			}
@@ -59,7 +104,13 @@ function floor_tile(x, y, state) {
 	
 	function check_clear() { // check to make sure it is ok to build here
 		// THIS IS WHERE YOU CHECK FOR AN OBSTACLE
-		return true;
+		// hackish, only looks for big ol' rocks
+		background = window.Map.get("background", this.x, this.y);
+		if (background == 2) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
 	function confirm() { // confirm the build orders
@@ -73,6 +124,114 @@ function floor_tile(x, y, state) {
 			return true;
 		} else {
 			return false;
+		}
+	}
+	
+	function get_wall_type() { // gets the type of wall tile to place
+		return 0; // return a block type for now
+	}
+	
+	function get_wall_locations() { // determines what neighbors should be walls
+		neighbors = window.Map.get_neighbors("blueprint", this.x, this.y);
+		if (this.state == 0) { // There is nothing here
+			// check to see if each neighbor is connected
+			for (i = 0; i < neighbors.length; i++) {
+				if(!neighbors[i].connected()) { // the neighbor is a wall tile, that isn't connected
+					neighbors[i].change = false;
+					neighbors[i].set_state(8); // remove it
+				} else {
+					neighbors[i].wall_type = get_wall_type();
+					// POSSIBLE CALL TO DRAW IF WALL TYPE IS DIFFERENT?
+				}
+			}
+		} else if (this.state == 1) { // 
+			for (i = 0; i < neighbors.length; i++) {
+				if(neighbors[i].check_clear) { // the neighbor is invalid, need to set this tile to invalid
+					this.set_state(2);
+				} else if (neighbors[i].state == 0) {
+					neighbors[i].set_state(7);
+					neighbors[i].wall_type = neighbors[i].get_wall_type();
+				}
+			}
+		} else if (this.state == 2) { // this tile is invalid. there shouldn't be any walls.
+			return; // ghetto for now
+		} else if (this.state == 3) { // tile is being removed. remove any unconnected walls
+			for (i = 0; i < neighbors.length; i++) {
+				if (!neighbors[i].connected()) { // if the neighbor isn't connected, schedule to be removed
+					neighbors[i].set_state(8);
+				}
+			}
+		} else if (this.state == 4) { // the tile is already built. check to make sure walls are built, or being built.
+			for (i = 0; i < neighbors.length; i++) {
+				if (neighbors[i].state == 0) { // the neighbor is empty. wall must be built
+					neighbors[i].set_state(7);
+				} else if (neighbors[i].state == 8) { // the neighbor wall is being removed. set it back to normal
+					// check that it's not turning into a tile first
+					if (!neighbors[i].change) {
+						neighbors[i].set_state(9);
+					}
+				} else if (neighbors[i].state == 11) { // the neighbors wall is in the process of being removed
+					if (!neighbors[i].change) { // make sure it's not changing into a tile
+						neighbors[i].set_state(7); //DOUBLE CHECK HERE!!! ---------------------------------------------- <
+					}
+				}
+			}
+		} else if (this.state == 5) {
+			for (i = 0; i < neighbors.length; i++) {
+				if (neighbors[i].state == 0) { // the neighbor is empty. wall must be built
+					neighbors[i].set_state(7);
+				} else if (neighbors[i].state == 8) { // the neighbor wall is being removed. set it back to normal
+					// check that it's not turning into a tile first
+					if (!neighbors[i].change) {
+						neighbors[i].set_state(9);
+					}
+				} else if (neighbors[i].state == 11) { // the neighbors wall is in the process of being removed
+					if (!neighbors[i].change) { // make sure it's not changing into a tile
+						neighbors[i].set_state(7); //DOUBLE CHECK HERE!!! ---------------------------------------------- <
+					}
+				}
+			}
+		} else if (this.state == 6) {
+			for (i = 0; i < neighbors[i]; i++) {
+				if (!neighbors[i].connected() {
+					if (neighbors[i].set_state == 7) { // scheduled to be built
+						neighbors[i].set_state = 0;
+					} else if (neighbors[i].state == 9) { // already built
+						neighbors[i].set_state = 8;
+					} else if (neighbors[i].state == 10) { // process of being built
+						neighbors[i].change = false;
+						neighbors[i].set_state(8);
+					}
+				}
+			}
+		} else if (this.state == 7) { // a wall scheduled to be built
+			if(!this.connected()) {
+				this.set_state(0);
+			}
+		} else if (this.state == 8) { // the wall is scheduled to be removed
+			if(this.change) { // check if it's changing
+				for (i = 0; i < neighbors.length; i++) {
+					if (neighbors[i].state == 
+				}
+			}
+		} else if (this.state == 10) {
+		
+		} else if (this.state == 11) {
+		
+		}
+	}
+	
+	function connected() { // is this tile connected to a tile?
+		if (this.state != 1 || this.state != 2 || this.state != 3 || this.state != 4 || this.state != 5 || this.state != 6) { // MAYBE DON'T INCLUDE 6 HERE?? <--------------
+			neighbors = window.Map.get_neighbors("blueprint", this.x, this.y);
+			for (i = 0; i < neighbors.length; i++) {
+				if (neighbors[i].state == 1 || neighbors[i].state == 4 || neighbors[i].state == 5 || (neighbors[i].state == 8 && neighbors[i].change) {
+					return true;
+				}
+			}
+			return false;
+		} else {
+			return true;
 		}
 	}
 	
@@ -160,6 +319,9 @@ window.Floors = {
 		window.Draw.add_image('supply', "./textures/ground/room_supply.png");
 		window.Draw.add_image('construction', "./textures/ground/under_construction.png");
 		
+		// load wall images
+		window.Draw.add_image('wall', "./textures/walls/external/wall_ext_m.png");
+		
 		// load blueprint images
 		window.Draw.add_image('blueprint1', "./textures/ground/blueprint_build.png");
 		window.Draw.add_image('blueprint2', "./textures/ground/blueprint_invalid.png");
@@ -184,7 +346,6 @@ window.Floors = {
 		// create draw layers
 		window.Draw.create_layer("floor", true);
 		window.Draw.create_layer("blueprint", true);
-		alert("init");
 	},
 	confirm_all: function() { // confirm all blueprints
 		for(i = 0; i < window.Map.arrays["floor"].length; i++) {
@@ -234,7 +395,7 @@ window.Floors = {
 			}
 		}
 	},
-	update: function(delta) {
+	update: function(delta) { // hackish update code, change when astronauts can interact
 		for(i = 0; i < this.under_construction.length; i++) {
 			this.under_construction[i].build(delta);
 		}
