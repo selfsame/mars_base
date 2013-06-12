@@ -41,7 +41,11 @@ $(window).ready ->
 				@layer_mode = 'persistant'
 			else if @view_layers[layer]
 				@context = @view_layers[layer][0].getContext('2d')
+				
 				@layer_mode = 'view'
+			@context.imageSmoothingEnabled = false
+			@context.mozImageSmoothingEnabled = false
+			@context.webkitImageSmoothingEnabled = false
 
 		hide_layer: (layer)->
 			if @persistant_layers[layer]
