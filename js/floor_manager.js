@@ -50,6 +50,7 @@ function floor_tile(x, y, state) {
 			this.set_state(5)
 			this.get_wall_locations();
 		} else if (this.state == 7) { // a wall will be built
+			this.style = style;
 			this.set_state(1);
 			this.get_wall_locations();
 		} else if (this.state == 8) { // a wall will be removed here
@@ -99,9 +100,11 @@ function floor_tile(x, y, state) {
 			} else if (this.timer >= 8000) {
 				if (this.state == 10) {
 					this.set_state(9);
+					window.Map.set("pathfinding", this.x, this.y, 1);
 				} else if (this.state == 11) {
 					if (this.change) {
 						this.set_state(5);
+						
 					} else {
 						this.set_state(0);
 						window.Floors.under_construction.remove(this);
@@ -162,7 +165,6 @@ function floor_tile(x, y, state) {
 
 		if (this.state == 0) { // There is nothing here
 			// check to see if each neighbor is connected
-
 			for (i = 0; i < neighbors.length; i++) {
 				if(!neighbors[i].connected()) { // the neighbor is a wall tile, that isn't connected
 					if (neighbors[i].state == 7) {
@@ -181,17 +183,37 @@ function floor_tile(x, y, state) {
 					// POSSIBLE CALL TO DRAW IF WALL TYPE IS DIFFERENT?
 				}
 			}
+			// check to see if this place needs a wall
+			if(this.connected()) {
+				this.prev_build = 7;
+				this.set_state(7);
+			}
 		} else if (this.state == 1) { //
 			for (i = 0; i < neighbors.length; i++) {
 				if(!neighbors[i].check_clear()) { // the neighbor is invalid, need to set this tile to invalid
 					this.set_state(2);
 				} else if (neighbors[i].state == 0) {
+					neighbors[i].prev_build = 7;
 					neighbors[i].set_state(7);
 					//neighbors[i].wall_type = neighbors[i].get_wall_type();
 				}
 			}
 		} else if (this.state == 2) { // this tile is invalid. there shouldn't be any walls.
-			return; // ghetto for now
+			for (i = 0; i < neighbors.length; i++) {
+				if(!neighbors[i].connected()) { // the neighbor is a wall tile, that isn't connected
+					if (neighbors[i].state == 7) {
+						neighbors[i].set_state(0);
+					} else if (neighbors[i].state == 10) {
+						neighbors[i].change = false;
+						neighbors[i].prev_built = 10;
+						neighbors[i].set_state(8);
+					} else if (neighbors[i].state == 9) {
+						neighbors[i].change = false;
+						neighbors[i].prev_built = 9;
+						neighbors[i].set_state(8);
+					}
+				}
+			}
 		} else if (this.state == 3) { // tile is being removed. remove any unconnected walls
 			for (i = 0; i < neighbors.length; i++) {
 				if (!neighbors[i].connected()) { // if the neighbor isn't connected, schedule to be removed
@@ -201,6 +223,7 @@ function floor_tile(x, y, state) {
 		} else if (this.state == 4) { // the tile is already built. check to make sure walls are built, or being built.
 			for (i = 0; i < neighbors.length; i++) {
 				if (neighbors[i].state == 0) { // the neighbor is empty. wall must be built
+					neighbors[i].prev_build = 7;
 					neighbors[i].set_state(7);
 				} else if (neighbors[i].state == 8) { // the neighbor wall is being removed. set it back to normal
 					// check that it's not turning into a tile first
@@ -209,6 +232,7 @@ function floor_tile(x, y, state) {
 					}
 				} else if (neighbors[i].state == 11) { // the neighbors wall is in the process of being removed
 					if (!neighbors[i].change) { // make sure it's not changing into a tile
+						neighbors[i].prev_build = 7;
 						neighbors[i].set_state(7); //DOUBLE CHECK HERE!!! ---------------------------------------------- <
 					}
 				}
@@ -216,6 +240,7 @@ function floor_tile(x, y, state) {
 		} else if (this.state == 5) {
 			for (i = 0; i < neighbors.length; i++) {
 				if (neighbors[i].state == 0) { // the neighbor is empty. wall must be built
+					neighbors[i].prev_build = 7;
 					neighbors[i].set_state(7);
 				} else if (neighbors[i].state == 8) { // the neighbor wall is being removed. set it back to normal
 					// check that it's not turning into a tile first
@@ -224,6 +249,7 @@ function floor_tile(x, y, state) {
 					}
 				} else if (neighbors[i].state == 11) { // the neighbors wall is in the process of being removed
 					if (!neighbors[i].change) { // make sure it's not changing into a tile
+						neighbors[i].prev_build = 7;
 						neighbors[i].set_state(7); //DOUBLE CHECK HERE!!! ---------------------------------------------- <
 					}
 				}
@@ -249,6 +275,7 @@ function floor_tile(x, y, state) {
 			if(this.change) { // check if it's changing
 				for (i = 0; i < neighbors.length; i++) {
 					if (neighbors[i].state == 0) { // the neighbor is empty. wall must be built
+						neighbors[i].prev_build = 7;
 						neighbors[i].set_state(7);
 					} else if (neighbors[i].state == 8) { // the neighbor wall is being removed. set it back to normal
 						// check that it's not turning into a tile first
@@ -264,6 +291,7 @@ function floor_tile(x, y, state) {
 			} else { // wall is not changing, look for unconnected walls
 				for (i = 0; i < neighbors.length; i++) {
 					if (!neighbors[i].connected) { // if it's not connected, build a wall
+						neighbors[i].prev_build = 7;
 						neighbors[i].set_state(7); // CHECK INVALID HERE TOO MAYBE? <-------------------------------------------
 					}	
 				}
@@ -277,6 +305,7 @@ function floor_tile(x, y, state) {
 		} else if (this.state == 11) { // a wall is being removed here
 			if(this.connected && !this.change) {
 				this.prev_built = 11;
+				neighbors[i].prev_build = 7;
 				this.set_state(7);
 			}
 		}
