@@ -5,6 +5,7 @@ function floor_tile(x, y, state) {
 	this.style = "corridor";
 	this.draw = draw;
 	this.check_clear = check_clear;
+	this.check_neighbor_clear = check_neighbor_clear;
 	this.confirm = confirm;
 	this.set_state = set_state;
 	this.toggle = toggle;
@@ -13,6 +14,7 @@ function floor_tile(x, y, state) {
 	this.get_wall_type = get_wall_type;
 	this.get_wall_locations = get_wall_locations;
 	this.connected = connected;
+	this.is_wall = is_wall;
 	this.set_style = set_style;
 	this.timer = 0;
 	this.change = false;
@@ -24,7 +26,7 @@ function floor_tile(x, y, state) {
 	function toggle(style) { // called when the tile is clicked on
 		if (this.state == 0) { // the tile is empty
 			this.style = style;
-			if (this.check_clear()) {
+			if (this.check_clear() && this.check_neighbor_clear()) {
 				this.set_state(1);
 				this.get_wall_locations();
 			} else {
@@ -36,7 +38,7 @@ function floor_tile(x, y, state) {
 			this.get_wall_locations();
 		} else if (this.state == 2) { // the tile is invalid
 			this.set_state(0);
-			//this.get_wall_locations();
+			this.get_wall_locations();
 		} else if (this.state == 3) { // the tile will be removed
 			this.set_state(4);
 			this.get_wall_locations();
@@ -51,8 +53,13 @@ function floor_tile(x, y, state) {
 			this.get_wall_locations();
 		} else if (this.state == 7) { // a wall will be built
 			this.style = style;
-			this.set_state(1);
-			this.get_wall_locations();
+			if (this.check_clear() && this.check_neighbor_clear()) {
+				this.set_state(1);
+				this.get_wall_locations();
+			} else {
+				this.set_state(2);
+				this.get_wall_locations();
+			}
 		} else if (this.state == 8) { // a wall will be removed here
 			if (this.change) { // wall is already being changed into somethign else, change it back to just a wall or a wall being built or a wall being removed
 				this.change = false;
@@ -67,16 +74,19 @@ function floor_tile(x, y, state) {
 			this.change = true;
 			this.prev_built = 9;
 			this.set_state(8);
+			this.style = style;
 			this.change_style = style;
 			this.get_wall_locations();
 		} else if (this.state == 10) { // a wall is being built here
 			this.change = true;
 			this.prev_built = 10;
+			this.style = style;
 			this.change_style = style;
 			this.set_state(8);
 			this.get_wall_locations();
 		} else if (this.state == 11) { // a wall is being removed here
 			this.change = true;
+			this.style = style;
 			this.prev_built = 11;
 			this.change_style = style;
 			this.set_state(8);
@@ -106,6 +116,7 @@ function floor_tile(x, y, state) {
 						this.set_state(5);
 						
 					} else {
+						window.Map.set("pathfinding", this.x, this.y, 0);
 						this.set_state(0);
 						window.Floors.under_construction.remove(this);
 					}
@@ -124,14 +135,23 @@ function floor_tile(x, y, state) {
 	}
 	
 	function check_clear() { // check to make sure it is ok to build here
-		// THIS IS WHERE YOU CHECK FOR AN OBSTACLE
-		// hackish, only looks for big ol' rocks
-		background = window.Map.get("background", this.x, this.y);
-		if (background == 2) {
-			return false;
-		} else {
-			return true;
+		
+		back = window.Map.get("background", this.x, this.y);
+		return (back != 2);
+	}
+	
+	function check_neighbor_clear() {
+		back = window.Map.get_neighbors("background", this.x, this.y);
+		for (n = 0; n < back.length; n++) {
+			if (back[n] == 2) {
+				return false;
+			}
 		}
+		return true;
+	}
+	
+	function is_wall() { // is this tile a wall?
+		return (this.state == 7 || this.state == 8 || this.state == 9 || this.state == 10 || this.state == 11);
 	}
 	
 	function confirm() { // confirm the build orders
@@ -312,7 +332,7 @@ function floor_tile(x, y, state) {
 	}
 	
 	function connected() { // is this tile connected to a tile?
-		if (this.state != 1 || this.state != 2 || this.state != 3 || this.state != 4 || this.state != 5 || this.state != 6) { // MAYBE DON'T INCLUDE 6 HERE?? <--------------
+		if (this.state != 1 || this.state != 3 || this.state != 4 || this.state != 5 || this.state != 6) { // MAYBE DON'T INCLUDE 6 HERE?? <--------------
 			n = window.Map.get_neighbors("floor", this.x, this.y);
 			for (j = 0; j < n.length; j++) {
 				if (n[j].state == 1 || n[j].state == 4 || n[j].state == 5 || (n[j].state == 8 && n[j].change)) {
