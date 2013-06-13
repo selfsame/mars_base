@@ -102,29 +102,34 @@ function floor_tile(x, y, state) {
 				this.set_state(4)
 				window.Map.set("pathfinding", this.x, this.y, 0);
 				this.timer = 0;
-				window.Floors.under_construction.remove(this);
+				//window.Floors.under_construction.remove(this);
+				this.built = true;
 			} else if (this.state == 6) {
 				this.set_state(0);
 				this.timer = 0;
 				window.Floors.under_construction.remove(this);
+
 			} else if (this.timer >= 8000) {
 				if (this.state == 10) {
 					this.set_state(9);
 					window.Map.set("pathfinding", this.x, this.y, 1);
+					this.built = true;
 				} else if (this.state == 11) {
 					if (this.change) {
 						this.set_state(5);
-						
+						this.built = true;
 					} else {
 						window.Map.set("pathfinding", this.x, this.y, 0);
 						this.set_state(0);
-						window.Floors.under_construction.remove(this);
+						//window.Floors.under_construction.remove(this);
+						this.built = true;
 					}
 				}
 				this.timer = 0;
 			}
 		}
 	}
+
 	
 	function set_state(new_state) { // change the tiles state and redraw
 		old_state = this.state;
@@ -541,7 +546,7 @@ window.Floors = {
 	},
 	update: function(delta) { // hackish update code, change when astronauts can interact
 		for(i = 0; i < this.under_construction.length; i++) {
-			this.under_construction[i].build(delta);
+			//this.under_construction[i].build(delta);
 		}
 	}
 }

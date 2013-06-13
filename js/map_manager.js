@@ -15,6 +15,9 @@ window.Map = {
 		window.Draw.create_layer('background', true);
 		window.Draw.create_layer('entities', false);
 
+		this.px_w = this.width*this.tilesize
+		this.px_h = this.height*this.tilesize
+
 		// create pathfinding map
 		this.create_layer('pathfinding', 0);
 
@@ -29,12 +32,8 @@ window.Map = {
 				}
 				if (Math.random() < .3) {
 					tile = 1;
-					this.arrays.pathfinding[i][j] = 1
 				}
-				if (Math.random() < .05) {
-					tile = 2;
-					this.arrays.pathfinding[i][j] = 1
-				}
+
 				this.arrays['background'][i].push(tile);
 			}
 		}
