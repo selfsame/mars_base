@@ -627,9 +627,9 @@ window.Floors = {
 		}
 	},
 	update: function(delta) { // hackish update code, change when astronauts can interact
-		for(i = 0; i < this.under_construction.length; i++) {
-			this.under_construction[i].build(delta);
-		}
+		//for(i = 0; i < this.under_construction.length; i++) {
+		//	this.under_construction[i].build(delta);
+		//}
 	}
 }
 

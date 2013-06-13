@@ -110,12 +110,12 @@ class Walker extends Entity
 
   path_to: (pos)->
     path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], pos[0], pos[1])
-    if path
+    if path and path.length? and path.length > 0
       @path = path
       @state = 'moving'
       return true
     else
-      @state = 'idle'
+      @state = 'wait'
       return false
 
   # State functions
@@ -243,7 +243,9 @@ class Walker extends Entity
       @wait_time = 0
       @state = 'idle'
 
-
+  n_tiles_away: (p1,p2, n)->
+    if p1[0] > p2[0]-n and p1[0] < p2[0]+n and p1[1] > p2[1]-n and p1[1] < p2[1]+n
+      return true
 
     
 class Engineer extends Walker
@@ -254,7 +256,7 @@ class Engineer extends Walker
       @remove_order = false
     else if @build_order
 
-      if @tile_pos[0] is @build_order.x and @tile_pos[1] is @build_order.y
+      if @n_tiles_away( @tile_pos, [@build_order.x, @build_order.y], 2 )
         @build_order.build(@delta_time*3)
         if @build_order.built?
           if not @build_order.is_wall()
@@ -262,6 +264,7 @@ class Engineer extends Walker
           console.log 'tile built'
           @build_order = false
       else
+        console.log 'not close enough to build'
         window.Floors.under_construction.push @build_order
         @build_order = false
     else
@@ -272,15 +275,13 @@ class Engineer extends Walker
           window.Floors.under_construction.remove tile
           @state = 'moving'
         else
-          console.log 'cant path to build'
-          debree = window.Entities.objects_hash.get_within([tile.x*window.Map.tilesize,tile.y*window.Map.tilesize], 32)
-          if debree
-            for thing in debree
-              if thing.tile_pos[0] is tile.x and thing.tile_pos[1] is tile.y
-                console.log 'removing ', thing
-                @remove_order = thing
-                @state = 'removing_object'
-                return
+          for p in [[-1,0], [1,0], [0,-1], [0,1]]
+            if @path_to [p[0]+tile.x,p[1]+tile.y]
+              @build_order = tile
+              window.Floors.under_construction.remove tile
+              @state = 'moving'
+              return
+
       else
         @target = @get_random_tile(3)
         @path_to @target
