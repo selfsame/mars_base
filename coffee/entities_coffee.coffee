@@ -1,10 +1,11 @@
 class Entity
   constructor: (@name='thing', @image='sprite', @pos=[0,0])->
-    @init()
+    
     @tile_pos = [parseInt(@pos[0]/window.Map.tilesize), parseInt(@pos[1]/window.Map.tilesize)]
     @debug = []
     @half_size = 16
     @no_path = false
+    @init()
   init: ->
   _update: ->
     @pos_to_tile_pos()
@@ -25,12 +26,15 @@ class Entity
       @tile_pos = [parseInt((@pos[0]+@half_size)/window.Map.tilesize), parseInt((@pos[1]+@half_size)/window.Map.tilesize)]
   destroy: ()->
     console.log 'destroying ', @
-    window.Entities.objects_hash.remove @
-    window.Entities.sentient_hash.remove @
+    window.Entities.objects_hash.remove_member @
+    window.Entities.sentient_hash.remove_member @
     if @no_path
       window.Map.set 'pathfinding', @tile_pos[0], @tile_pos[1], 0
     window.Entities.objects.remove @
     window.Entities.sentient.remove @
+    obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+    if obj_in_map
+      obj_in_map.remove @
     delete @
 
 
@@ -39,6 +43,11 @@ class Thing extends Entity
   init: ->
     window.Entities.objects.push @
     window.Entities.objects_hash.add @
+    obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+    if not obj_in_map
+      window.Map.set('objects', @tile_pos[0], @tile_pos[1], [@])
+    else 
+      obj_in_map.push @
 
 
 class Walker extends Entity
@@ -252,8 +261,11 @@ class Engineer extends Walker
 
   idle: ->
     if @remove_order
-      @remove_order.destroy()
-      @remove_order = false
+      if @n_tiles_away( @tile_pos, @remove_order.tile_pos, 2 )
+        @remove_order.destroy()
+        @remove_order = false
+      else
+
     else if @build_order
 
       if @n_tiles_away( @tile_pos, [@build_order.x, @build_order.y], 2 )
@@ -275,17 +287,35 @@ class Engineer extends Walker
           window.Floors.under_construction.remove tile
           @state = 'moving'
         else
-          for p in [[-1,0], [1,0], [0,-1], [0,1]]
-            if @path_to [p[0]+tile.x,p[1]+tile.y]
-              @build_order = tile
-              window.Floors.under_construction.remove tile
-              @state = 'moving'
-              return
+          obj_in_map = window.Map.get('objects', tile.x, tile.y)
+          if obj_in_map and obj_in_map.length
+            for obj in obj_in_map
+              if obj.no_path
+                if not obj.claimed
+                  for p in [[-1,0], [1,0], [0,-1], [0,1]]
+                    if @path_to [p[0]+tile.x,p[1]+tile.y]
+                      @remove_order = obj
+                      @state = 'moving'
+                      obj.claimed = true
+                      return
+                #hack, put the constructing tile at the end of the list
+                window.Floors.under_construction.remove tile
+                window.Floors.under_construction.push tile
+                @state = 'wander'
+                return #if we find a blocking object that is claimed, don't attempt to build
+          
+        for p in [[-1,0], [1,0], [0,-1], [0,1]]
+          if @path_to [p[0]+tile.x,p[1]+tile.y]
+            @build_order = tile
+            window.Floors.under_construction.remove tile
+            @state = 'moving'
+            return
 
       else
-        @target = @get_random_tile(3)
-        @path_to @target
-
+        @state = 'wander'
+  wander: ->
+    @target = @get_random_tile(3)
+    @path_to @target
   removing_object: ->
     x = parseInt(Math.random()*2)-1
     y = parseInt(Math.random()*2)-1
@@ -313,7 +343,7 @@ class Hash
         @data[bucket] = []
       @data[bucket].push obj
 
-  remove: (obj)->
+  remove_member: (obj)->
     if @members[obj]
       @remove @data[ @members[obj] ], obj
     delete @members[obj]

@@ -11,11 +11,11 @@
       this.name = name != null ? name : 'thing';
       this.image = image != null ? image : 'sprite';
       this.pos = pos != null ? pos : [0, 0];
-      this.init();
       this.tile_pos = [parseInt(this.pos[0] / window.Map.tilesize), parseInt(this.pos[1] / window.Map.tilesize)];
       this.debug = [];
       this.half_size = 16;
       this.no_path = false;
+      this.init();
     }
 
     Entity.prototype.init = function() {};
@@ -46,14 +46,19 @@
     };
 
     Entity.prototype.destroy = function() {
+      var obj_in_map;
       console.log('destroying ', this);
-      window.Entities.objects_hash.remove(this);
-      window.Entities.sentient_hash.remove(this);
+      window.Entities.objects_hash.remove_member(this);
+      window.Entities.sentient_hash.remove_member(this);
       if (this.no_path) {
         window.Map.set('pathfinding', this.tile_pos[0], this.tile_pos[1], 0);
       }
       window.Entities.objects.remove(this);
       window.Entities.sentient.remove(this);
+      obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
+      if (obj_in_map) {
+        obj_in_map.remove(this);
+      }
       return delete this;
     };
 
@@ -70,8 +75,15 @@
     }
 
     Thing.prototype.init = function() {
+      var obj_in_map;
       window.Entities.objects.push(this);
-      return window.Entities.objects_hash.add(this);
+      window.Entities.objects_hash.add(this);
+      obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
+      if (!obj_in_map) {
+        return window.Map.set('objects', this.tile_pos[0], this.tile_pos[1], [this]);
+      } else {
+        return obj_in_map.push(this);
+      }
     };
 
     return Thing;
@@ -325,10 +337,14 @@
     }
 
     Engineer.prototype.idle = function() {
-      var p, tile, _i, _len, _ref;
+      var obj, obj_in_map, p, tile, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
       if (this.remove_order) {
-        this.remove_order.destroy();
-        return this.remove_order = false;
+        if (this.n_tiles_away(this.tile_pos, this.remove_order.tile_pos, 2)) {
+          this.remove_order.destroy();
+          return this.remove_order = false;
+        } else {
+
+        }
       } else if (this.build_order) {
         if (this.n_tiles_away(this.tile_pos, [this.build_order.x, this.build_order.y], 2)) {
           this.build_order.build(this.delta_time * 3);
@@ -350,24 +366,52 @@
           if (this.path_to([tile.x, tile.y])) {
             this.build_order = tile;
             window.Floors.under_construction.remove(tile);
-            return this.state = 'moving';
+            this.state = 'moving';
           } else {
-            _ref = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              p = _ref[_i];
-              if (this.path_to([p[0] + tile.x, p[1] + tile.y])) {
-                this.build_order = tile;
-                window.Floors.under_construction.remove(tile);
-                this.state = 'moving';
-                return;
+            obj_in_map = window.Map.get('objects', tile.x, tile.y);
+            if (obj_in_map && obj_in_map.length) {
+              for (_i = 0, _len = obj_in_map.length; _i < _len; _i++) {
+                obj = obj_in_map[_i];
+                if (obj.no_path) {
+                  if (!obj.claimed) {
+                    _ref = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                    for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+                      p = _ref[_j];
+                      if (this.path_to([p[0] + tile.x, p[1] + tile.y])) {
+                        this.remove_order = obj;
+                        this.state = 'moving';
+                        obj.claimed = true;
+                        return;
+                      }
+                    }
+                  }
+                  window.Floors.under_construction.remove(tile);
+                  window.Floors.under_construction.push(tile);
+                  this.state = 'wander';
+                  return;
+                }
               }
             }
           }
+          _ref1 = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+          for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+            p = _ref1[_k];
+            if (this.path_to([p[0] + tile.x, p[1] + tile.y])) {
+              this.build_order = tile;
+              window.Floors.under_construction.remove(tile);
+              this.state = 'moving';
+              return;
+            }
+          }
         } else {
-          this.target = this.get_random_tile(3);
-          return this.path_to(this.target);
+          return this.state = 'wander';
         }
       }
+    };
+
+    Engineer.prototype.wander = function() {
+      this.target = this.get_random_tile(3);
+      return this.path_to(this.target);
     };
 
     Engineer.prototype.removing_object = function() {
@@ -403,7 +447,7 @@
       }
     };
 
-    Hash.prototype.remove = function(obj) {
+    Hash.prototype.remove_member = function(obj) {
       if (this.members[obj]) {
         this.remove(this.data[this.members[obj]], obj);
       }

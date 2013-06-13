@@ -20,6 +20,7 @@ window.Map = {
 
 		// create pathfinding map
 		this.create_layer('pathfinding', 0);
+		this.create_layer('objects', 0);
 
 		// Using array[y][x] so it syncs with how pathfinding works, but our get and set functions will be (x,y)
 		this.arrays['background'] = []
