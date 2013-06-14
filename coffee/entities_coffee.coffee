@@ -6,19 +6,32 @@ class Entity
     @half_size = 16
     @no_path = false
     @init()
+    @sprite_size = 32
+    @sprite_offset = [0,0]
+    @claimed = false
+    @state_que = []
+    @hidden = false
   init: ->
-  _update: ->
+  _update: (delta)->
     @pos_to_tile_pos()
     @delta_time = delta
     @total_time += delta
     @frame_count += 1
+    
     if @[@state]?
       @[@state]()
-    @draw()
-    @update()
+    if not @hidden
+      @draw()
+    @update(delta)
+  hide: ->
+    if not @hidden
+      @hidden = true
+  show: ->
+    if @hidden
+      @hidden = false
   draw: ->
     window.Draw.use_layer 'entities'
-    window.Draw.image(@image, @pos[0], @pos[1])
+    window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size)
   update: ->
 
   pos_to_tile_pos: ()->
@@ -30,8 +43,10 @@ class Entity
     window.Entities.sentient_hash.remove_member @
     if @no_path
       window.Map.set 'pathfinding', @tile_pos[0], @tile_pos[1], 0
+    console.log @ in window.Entities.sentient
     window.Entities.objects.remove @
     window.Entities.sentient.remove @
+
     obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
     if obj_in_map
       obj_in_map.remove @
@@ -48,7 +63,7 @@ class Thing extends Entity
       window.Map.set('objects', @tile_pos[0], @tile_pos[1], [@])
     else 
       obj_in_map.push @
-
+  
 
 class Walker extends Entity
   init: ->
@@ -71,6 +86,9 @@ class Walker extends Entity
     @sprite_offset = [0,0]
     window.Entities.sentient.push @
     window.Entities.sentient_hash.add @
+    @setup()
+
+  setup: ()->
 
   draw: ->
     @draw_sprite()
@@ -130,6 +148,10 @@ class Walker extends Entity
   # State functions
 
   idle: ->
+    if @state_que? and @state_que.length > 0
+      use = @state_que.pop(0)
+      @state = use
+      return
     @target = @get_random_tile(10)
     @path_to @target
 
@@ -256,10 +278,86 @@ class Walker extends Entity
     if p1[0] > p2[0]-n and p1[0] < p2[0]+n and p1[1] > p2[1]-n and p1[1] < p2[1]+n
       return true
 
-    
-class Engineer extends Walker
+
+
+
+
+
+
+class Colonist extends Walker
+  setup: ->
+    @pocket = []
+    @suit = false
+    @oxygen = 600 #naked 
+    @max_oxygen = @oxygen
+    @state = 'find_suit'
+  update: (delta)->
+
+    if @oxygen?
+      tile = window.Map.get('floor', @tile_pos[0], @tile_pos[1])
+
+      if tile and tile.built
+
+        @oxygen += 5
+      if @oxygen > @max_oxygen
+        @oxygen = @max_oxygen
+      @oxygen -= 1
+
+      if @oxygen < @max_oxygen*.9
+        window.Draw.use_layer 'view'
+        w = 32 * (@oxygen / @max_oxygen )
+        window.Draw.draw_box(16 + @pos[0]-w*.5, @pos[1]-16, w, 5, {fillStyle:'red',strokeStyle:'rgba('+32-w+','+w+','+w+',.4)',lineWidth:1})
+      if @oxygen < 0
+        @die()
+        return
+  die: ->
+    console.log 'die'
+    corpse = new Thing('Colonist', 'corpse', @pos)
+    @destroy()
+
+  find_suit: ->
+
+    for item in window.Entities.objects
+      console.log item.name
+      if item.name is 'Suit' and item.claimed is false
+        console.log 'SUIT!'
+        if @path_to item.tile_pos
+          console.log 'path to suit'
+          item.claimed = true
+          @want_item = item
+          @state_que.push 'pickup'
+          @state_que.push 'wear_suit'
+          return
+    @state = 'idle'
+  pickup: ->
+    @want_item.hide()
+    @pocket.push @want_item
+    @want_item.pos = @pos
+    console.log 'pickup', @state_que
+    @state = 'idle'
+  wear_suit: ->
+    console.log 'wear'
+    @suit = true
+    @oxygen = 6000
+    @max_oxygen = 6000
+    @image = 'engineer'
+    @state = 'idle'
+
+
+
+
+
+
+
+
+
+class Engineer extends Colonist
 
   idle: ->
+    if @state_que? and @state_que.length > 0
+      use = @state_que.pop(0)
+      @state = use
+      return
     if @remove_order
       if @n_tiles_away( @tile_pos, @remove_order.tile_pos, 2 )
         @remove_order.destroy()
@@ -419,23 +517,38 @@ window.Entities =
     @sentient_hash = new Hash(64)
     @objects_hash = new Hash(64)
 
+    cx =(window.Map.width*32)/2
+    cy = (window.Map.height*32)/2
+    crate = new Thing('Launchpad', 'launchpad', [cx, cy])
+    crate.sprite_size = 128
+    crate.sprite_offset = [-64,-64]
 
-    for i in [0..15]
-      x = parseInt(Math.random()*(window.Map.width*window.Map.tilesize))
-      y = parseInt(Math.random()*(window.Map.width*window.Map.tilesize))
-      advanced = new Engineer('Engineer', 'engineer', [x,y])
+
+    for i in [0..2]
+      for j in [0..1]
+        suit = new Thing('Suit', 'engineer', [cx+((i-2)*32), cy+((j-2)*32)])
+
+    for i in [0..7]
+      x = parseInt(Math.random()*300+(window.Map.width*window.Map.tilesize / 2 ))
+      y = parseInt(Math.random()*300+ (window.Map.width*window.Map.tilesize / 2))
+      advanced = new Engineer('Engineer', 'colonist', [x,y])
       advanced.speed = 1.5
+
       advanced.sprite_offset = [0, 0]
       advanced.sprite_size = 32
 
+    
+
 
   update: (delta)->
-    if @sentient?
-      for thing in @sentient
-        thing._update(delta)
+    
     if @objects?
       for thing in @objects
         thing._update(delta)
+    if @sentient?
+      for thing in @sentient
+        if thing isnt undefined
+          thing._update(delta)
   get_path: (x,y,x2,y2)->
       grid = new PF.Grid(window.Map.width, window.Map.height, window.Map.arrays['pathfinding'])
       try  
@@ -461,12 +574,16 @@ window.Entities =
 $(window).ready ->
   window.Draw.add_image('tracks', "./textures/tracks.png")
   window.Draw.add_image('prints', "./textures/prints.png")
-  window.Draw.add_image('testy', "./textures/astronauts/astrosheet.png")
-  window.Draw.add_image('astro2', "./textures/astronauts/astro2.png")
+  window.Draw.add_image('colonist', "./textures/astronauts/colonist.png")
+
   window.Draw.add_image('shadow', "./textures/astronauts/shadow.png")
   window.Draw.add_image('engineer', "./textures/astronauts/engineer.png")
   #objects
   window.Draw.add_image('rock', "./textures/objects/rock.png")
   window.Draw.add_image('wrench', "./textures/objects/wrench.png")
   window.Draw.add_image('launchpad', "./textures/objects/launchpad.png")
+  window.Draw.add_image('corpse', "./textures/astronauts/corpse.png")
+
+  window.Draw.add_image('crate', "./textures/objects/crate_closed.png")
+
   window.Entities.init()
