@@ -483,7 +483,7 @@
       } else if (this.build_order) {
         if (this.n_tiles_away(this.tile_pos, [this.build_order.x, this.build_order.y], 2)) {
           this.build_order.build(this.delta_time * 3);
-          if (this.build_order.built != null) {
+          if (this.build_order.built != false) {
             if (!this.build_order.is_wall()) {
               window.Map.set("pathfinding", this.x, this.y, 0);
             }
@@ -492,15 +492,15 @@
           }
         } else {
           console.log('not close enough to build');
-          window.Floors.under_construction.push(this.build_order);
+          window.Tiles.under_construction.push(this.build_order);
           return this.build_order = false;
         }
       } else {
-        if ((window.Floors.under_construction != null) && window.Floors.under_construction.length > 0) {
-          tile = window.Floors.under_construction[0];
+        if ((window.Tiles.under_construction != null) && window.Tiles.under_construction.length > 0) {
+          tile = window.Tiles.under_construction[0];
           if (this.path_to([tile.x, tile.y])) {
             this.build_order = tile;
-            window.Floors.under_construction.remove(tile);
+            window.Tiles.under_construction.remove(tile);
             this.state = 'moving';
           } else {
             obj_in_map = window.Map.get('objects', tile.x, tile.y);
@@ -520,8 +520,8 @@
                       }
                     }
                   }
-                  window.Floors.under_construction.remove(tile);
-                  window.Floors.under_construction.push(tile);
+                  window.Tiles.under_construction.remove(tile);
+                  window.Tiles.under_construction.push(tile);
                   this.state = 'wander';
                   return;
                 }
@@ -533,7 +533,7 @@
             p = _ref1[_k];
             if (this.path_to([p[0] + tile.x, p[1] + tile.y])) {
               this.build_order = tile;
-              window.Floors.under_construction.remove(tile);
+              window.Tiles.under_construction.remove(tile);
               this.state = 'moving';
               return;
             }

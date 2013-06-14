@@ -484,7 +484,7 @@ function floor_tile(x, y, state) {
 		} else if (this.state == 7) { // "WALL BUILD"
 			window.Draw.use_layer("blueprint");
 			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
-			window.Draw.image(this.wall_type, this.x * tilesize, this.y * tilesize);
+			window.Draw.image(this.wall_type, this.x * tilesize, this.y * tilesize)yeah;
 			window.Draw.image("blueprint1", this.x * tilesize, this.y * tilesize);
 		} else if (this.state == 8) { // "WALL REMOVE"
 			window.Draw.use_layer("blueprint");
@@ -518,14 +518,14 @@ function floor_tile(x, y, state) {
 			window.Draw.clear_box(this.x * tilesize, this.y * tilesize, tilesize, tilesize);
 			window.Draw.image("wall_build", this.x * tilesize, this.y * tilesize);
 		}
-		/* window.Draw.use_layer("blueprint");
+		window.Draw.use_layer("blueprint");
 		window.Draw.draw_text(this.state, this.x * tilesize + 16, this.y * tilesize + 16, {
           fillStyle: 'white',
           font: '16px courier',
 		  scale: false,
 		  rulerw: 16,
 		  use_scroll:true
-        }); */
+        });
 		
 	}
 }
@@ -627,9 +627,9 @@ window.Floors = {
 		}
 	},
 	update: function(delta) { // hackish update code, change when astronauts can interact
-		//for(i = 0; i < this.under_construction.length; i++) {
-		//	this.under_construction[i].build(delta);
-		//}
+		for(i = 0; i < this.under_construction.length; i++) {
+			this.under_construction[i].build(delta/4);
+		}
 	}
 }
 
