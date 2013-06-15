@@ -7,6 +7,8 @@ function Tile(x, y) {
 	this.goal_style = 'empty'; // what the tile will be, in view mode
 	this.state = 0;
 	
+	this.wall_style = 'empty'; // the shape of the wall tile
+	
 	this.timer = 0;
 	this.built = false;
 	window.Tiles.live_tiles.push(this);
@@ -17,10 +19,14 @@ function Tile(x, y) {
 		if (this.state == 0 && style == 'empty') {
 			this.erase();
 		}
+		if (style == 'wall') {
+			this.wall_style = this.determine_wall_style(true);
+		}
 		//this.check_neighbors();
 		this.draw();
 	}
 	
+	// remove this tile from the window.Map layer
 	Tile.prototype.erase = function() {
 		window.Map.set('tiles', this.x, this.y, 0);
 		window.Tiles.live_tiles.remove(this);
@@ -78,6 +84,34 @@ function Tile(x, y) {
 	}
 	
 	
+	// get's the unique binary value for this tile. if count_blues is true, it will count unbuilt blue tiles
+	Tile.prototype.get_bin_value = function(count_blues) {
+		var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
+		var total = 0;
+		for (var i = 0; i < neighbors.length; i++) {
+			if (neighbors[i] != 0) { // there is a tile at this neighbor
+				if ((neighbors[i].goal_style != 'wall' && neighbors[i].goal_style != 'empty') || (neighbors[i].current_style != 'wall' && neighbors[i].current_style != 'empty')) {
+					total += Math.pow(2, i + 1);
+				} else if (count_blues && neighbors[i].blue_style != 'wall') {
+					total += Math.pow(2, i + 1);
+				}
+			}
+		}
+		return total;
+	}
+	
+	Tile.prototype.determine_wall_style = function(count_blues) {
+		var bin_val = this.get_bin_value(count_blues);
+		var wall_style = window.Tiles.wall_styles[bin_val]
+		console.log(bin_val + ':  wall_ext_' + window.Tiles.wall_styles[bin_val]);
+		console.log(bin_val);
+		if (wall_style != undefined) {
+			return ('wall_ext_' + window.Tiles.wall_styles[bin_val]);
+		} else {
+			return ('wall_ext_17');
+		}
+	}
+	
 	Tile.prototype.check_neighbors = function() {
 		for (var y = -1; y < 2; y++) {
 			for (var x = -1; x < 2; x++) {
@@ -126,7 +160,7 @@ function Tile(x, y) {
 	}
 	
 	Tile.prototype.is_wall = function() {
-		return (this.current_style == 'wall_0');
+		return (this.current_style == 'wall' || this.goal_style == 'wall' || this.blue_style == 'wall');
 	}
 	
 	// draw the tile on the map
@@ -142,7 +176,11 @@ function Tile(x, y) {
 			window.Draw.use_layer("blueprints");
 			window.Draw.clear_box(x, y, tilesize, tilesize);
 			if (this.blue_style != 'empty') {
-				window.Draw.image(this.blue_style, x, y);
+				if (this.is_wall()) {
+					window.Draw.image(this.wall_style, x, y);
+				} else {
+					window.Draw.image(this.blue_style, x, y);
+				}
 				window.Draw.image("blueprint1", x, y);
 			}
 		} else if (this.state == 1) { // building
@@ -150,6 +188,9 @@ function Tile(x, y) {
 			window.Draw.clear_box(x, y, tilesize, tilesize);
 			if (this.is_wall()) {
 				window.Draw.image('wall_build', x, y);
+				window.Draw.use_layer("blueprints");
+				window.Draw.clear_box(x, y, tilesize, tilesize);
+				window.Draw.image(this.wall_style, x, y);
 			} else {
 				window.Draw.image('tile_build', x, y);
 			}
@@ -188,7 +229,11 @@ function Tile(x, y) {
 		} else if (this.state == 3) { // built
 			window.Draw.use_layer("tiles");
 			window.Draw.clear_box(x, y, tilesize, tilesize);
-			window.Draw.image(this.current_style, x, y);
+			if (this.is_wall()) {
+				window.Draw.image(this.wall_style, x, y);
+			} else {
+				window.Draw.image(this.current_style, x, y);
+			}
 			window.Draw.use_layer("blueprints");
 			window.Draw.clear_box(x, y, tilesize, tilesize);
 			if (this.blue_style == this.current_style) {
@@ -214,6 +259,118 @@ window.Tiles = {
 		this.edit_style = 'corridor';
 		this.under_construction = [];
 		this.live_tiles = [];
+		this.wall_styles = {
+			// 1
+			12: 1,
+			14: 1,
+			6: 1,
+			10: 1,
+			4: 1,
+			// 2
+			56: 2,
+			40: 2,
+			16: 2,
+			24: 2,
+			48: 2,
+			// 3
+			224: 3,
+			160: 3,
+			64: 3,
+			96: 3,
+			192: 3,
+			// 4
+			386: 4,
+			130: 4,
+			256: 4,
+			384: 4,
+			258: 4,
+			// 5
+			32: 5,
+			// 6
+			128: 6,
+			// 7
+			2: 7,
+			//8
+			8: 8,
+			// 9
+			260: 9,
+			264: 9,
+			392: 9,
+			398: 9,
+			396: 9,
+			140: 9,
+			262: 9,
+			390: 9,
+			270: 9,
+			388: 9,
+			132: 9,
+			268: 9,
+			138: 9,
+			134: 9,
+			394: 9,
+			266: 9,
+			142: 9,
+			// 10
+			28: 10,
+			20: 10,
+			18: 10,
+			38: 10,
+			62: 10,
+			54: 10,
+			50: 10,
+			30: 10,
+			60: 10,
+			22: 10,
+			36: 10,
+			52: 10,
+			42: 10,
+			26: 10,
+			46: 10,
+			44: 10,
+			58: 10,
+			// 11
+			112: 11,
+			80: 11,
+			72: 11,
+			152: 11,
+			248: 11,
+			216: 11,
+			200: 11,
+			120: 11,
+			240: 11,
+			88: 11,
+			144 : 11,
+			208: 11,
+			168: 11,
+			104: 11,
+			184: 11,
+			176: 11,
+			232: 11,
+			// 12
+			448: 12,
+			320: 12,
+			288: 12,
+			98: 12,
+			482: 12,
+			354: 12,
+			290: 12,
+			480: 12,
+			450: 12,
+			352: 12,
+			66: 12,
+			322: 12,
+			162: 12,
+			416: 12,
+			226: 12,
+			194: 12,
+			418: 12,
+			// 13
+			136: 13,
+			// 14
+			34: 14
+		}
+		
+		
 		
 		// ask for events
 		window.Events.add_listener(this);
@@ -230,6 +387,10 @@ window.Tiles = {
 		window.Draw.add_image('wall_build', "./textures/ground/wall_under_construction.png");
 		
 		// load wall images
+		for (var i = 0; i < 14; i++) {
+			window.Draw.add_image('wall_ext_' + (i+1), "./textures/walls/external/" + 'wall_ext_' + (i+1) + ".png");
+		}
+		window.Draw.add_image('wall_ext_17', "./textures/walls/external/wall_ext_m.png");
 		window.Draw.add_image('wall', "./textures/walls/external/wall_ext_m.png");
 		
 		// load blueprint images
