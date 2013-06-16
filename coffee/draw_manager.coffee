@@ -255,6 +255,33 @@ $(window).ready ->
 			if options.lineWidth > 0
 				@context.stroke()
 
+		draw_lines: (set, options={fillStyle:"transparent", strokeStyle:"rgb(113, 183, 248)", lineWidth:1})->
+			for p in set
+				p[0] += .5 
+				p[1] += .5 
+				if @layer_mode is 'view'
+					p[0] *= @zoom
+					p[1] *= @zoom
+
+
+					if not @within_view(p[0],p[1],p[0],p[1])
+						#console.log 'not in view'
+						return
+					else
+						p[0] += @scroll_x
+						p[1] += @scroll_y 
+			@context.fillStyle = options.fillStyle
+			@context.strokeStyle = options.strokeStyle
+			if options.lineWidth
+				@context.lineWidth = options.lineWidth
+			@context.beginPath()
+			@context.moveTo(p[0],p[1])
+			for p in set
+				@context.lineTo(p[0], p[1])
+			@context.closePath()
+			@context.fill()
+			@context.stroke()
+
 		draw_line: (x=0,y=0,x2=0,y2=0, options={fillStyle:"transparent", strokeStyle:"rgb(113, 183, 248)", lineWidth:1})->
 			x += .5 
 			y += .5 
@@ -270,13 +297,13 @@ $(window).ready ->
 			@context.closePath()
 			@context.stroke()
 
-		draw_text: (string, x,y, options={fillStyle:0,font:0,scale:true, rulerw:16, use_scroll: true})->
-			#if options.scale isnt false
-			x *= @zoom
-			y *= @zoom	
+		draw_text: (string, x,y, options={fillStyle:0,font:'arial',fontsize:24, scale:true, rulerw:16, use_scroll: true})->
+			if @layer_mode is 'view'
+				x *= @zoom
+				y *= @zoom	
 
-			x +=  @scroll_x 
-			y +=  @scroll_y
+				x +=  @scroll_x 
+				y +=  @scroll_y
 
 			
 
@@ -288,7 +315,10 @@ $(window).ready ->
 			if options.fillStyle
 				@context.fillStyle = options.fillStyle
 			if options.font
-				@context.font = options.font
+				
+				if @layer_mode is 'view'
+					options.fontsize *= @zoom
+				@context.font = parseInt(options.fontsize)+'px '+options.font+' '
 			@context.fillText(string, x, y)
 
 		clear_box: (x=0,y=0,w=100,h=100)->

@@ -304,6 +304,45 @@
           return this.context.stroke();
         }
       },
+      draw_lines: function(set, options) {
+        var p, _i, _j, _len, _len1;
+        if (options == null) {
+          options = {
+            fillStyle: "transparent",
+            strokeStyle: "rgb(113, 183, 248)",
+            lineWidth: 1
+          };
+        }
+        for (_i = 0, _len = set.length; _i < _len; _i++) {
+          p = set[_i];
+          p[0] += .5;
+          p[1] += .5;
+          if (this.layer_mode === 'view') {
+            p[0] *= this.zoom;
+            p[1] *= this.zoom;
+            if (!this.within_view(p[0], p[1], p[0], p[1])) {
+              return;
+            } else {
+              p[0] += this.scroll_x;
+              p[1] += this.scroll_y;
+            }
+          }
+        }
+        this.context.fillStyle = options.fillStyle;
+        this.context.strokeStyle = options.strokeStyle;
+        if (options.lineWidth) {
+          this.context.lineWidth = options.lineWidth;
+        }
+        this.context.beginPath();
+        this.context.moveTo(p[0], p[1]);
+        for (_j = 0, _len1 = set.length; _j < _len1; _j++) {
+          p = set[_j];
+          this.context.lineTo(p[0], p[1]);
+        }
+        this.context.closePath();
+        this.context.fill();
+        return this.context.stroke();
+      },
       draw_line: function(x, y, x2, y2, options) {
         if (x == null) {
           x = 0;
@@ -343,23 +382,29 @@
         if (options == null) {
           options = {
             fillStyle: 0,
-            font: 0,
+            font: 'arial',
+            fontsize: 24,
             scale: true,
             rulerw: 16,
             use_scroll: true
           };
         }
-        x *= this.zoom;
-        y *= this.zoom;
-        x += this.scroll_x;
-        y += this.scroll_y;
+        if (this.layer_mode === 'view') {
+          x *= this.zoom;
+          y *= this.zoom;
+          x += this.scroll_x;
+          y += this.scroll_y;
+        }
         x += .5;
         y -= .5;
         if (options.fillStyle) {
           this.context.fillStyle = options.fillStyle;
         }
         if (options.font) {
-          this.context.font = options.font;
+          if (this.layer_mode === 'view') {
+            options.fontsize *= this.zoom;
+          }
+          this.context.font = parseInt(options.fontsize) + 'px ' + options.font + ' ';
         }
         return this.context.fillText(string, x, y);
       },

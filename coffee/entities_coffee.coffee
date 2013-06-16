@@ -1,6 +1,17 @@
+window.phrases =
+  'help': ['help!', 'hey guys?', 'this is bad.', 'frack!', 'not good', 'oh no!']
+  'found': ['I see a $1', 'look, a $1']
+  'need': ['I need a $1', 'anybody seen a $1?']
+  'location': ['the $1 is over there', 'I saw a $1', 'look, $1', 'here is the $1']
+  'forget': ['no $1 here']
+  'greet': ['Nice to meet you, $1']
+
+
 class Entity
-  constructor: (@name='thing', @image='sprite', @pos=[0,0])->
+  constructor: (@nombre='thing', @image='sprite', @pos=[0,0])->
     
+    @draw_hooks = []
+
     @tile_pos = [parseInt(@pos[0]/window.Map.tilesize), parseInt(@pos[1]/window.Map.tilesize)]
     @debug = []
     @half_size = 16
@@ -32,6 +43,8 @@ class Entity
   draw: ->
     window.Draw.use_layer 'entities'
     window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size)
+    for hook in @draw_hooks
+      @[hook]()
   update: ->
 
   pos_to_tile_pos: ()->
@@ -63,6 +76,25 @@ class Thing extends Entity
       window.Map.set('objects', @tile_pos[0], @tile_pos[1], [@])
     else 
       obj_in_map.push @
+
+
+class Airtank extends Thing
+  use: (entity)->
+    if not @oxygen
+      @oxygen = 80000
+      @max_oxygen = 80000
+    if @oxygen > 30
+      entity.oxygen += 30
+      @oxygen -= 30
+    else
+      return true
+
+    if entity.oxygen >= entity.max_oxygen
+      return true
+
+    if @oxygen >= @max_oxygen
+      @nombre = 'empty tank'
+      @image = 'emptytanks'
   
 
 class Walker extends Entity
@@ -93,15 +125,19 @@ class Walker extends Entity
   draw: ->
     @draw_sprite()
     window.Draw.context.fillStyle = 'white'
-    #window.Draw.draw_text(@state, @pos[0], @pos[1]-18, {fillStyle: 'white', font:'16px courier'})
+    window.Draw.draw_text(@state, @pos[0]+2, @pos[1]+43, {fillStyle: 'white', font:'courier', fontsize: 8})
+
     for s, i in @debug
-      window.Draw.draw_text(s, @pos[0]+18, @pos[1]+i*18, {fillStyle: 'white', font:'16px courier'})
+      window.Draw.draw_text(s, @pos[0]+18, @pos[1]+i*11, {fillStyle: 'white', font:'courier', fontsize: 8})
     @debug = []
     if @target
       x = @target[0]*window.Map.tilesize
       y = @target[1]*window.Map.tilesize
       #window.Draw.draw_box(x, y, 32, 32, {fillStyle:'transparent',strokeStyle:'rgba(250,250,0,.4)',lineWidth:1})
+
     #window.Draw.draw_box(@tile_pos[0]*window.Map.tilesize, @tile_pos[1]*window.Map.tilesize, 32, 32, {fillStyle:'transparent',strokeStyle:'rgba(0,250,250,.4)',lineWidth:1})
+    for hook in @draw_hooks
+      @[hook]()
 
   draw_sprite: ()->
     rotation = false
@@ -281,16 +317,150 @@ class Walker extends Entity
 
 
 
+class Talker extends Walker
+  init_voice: ()->
+    console.log 'init v'
+    @voice_que = []
+    @hear_que = []
+    @draw_hooks.push 'draw_voice'
+    @wander_dist = 4
+    @conversation_timer = 0
+    @conversation_partner = false
+    @memory =
+      objects:{}
+      entities:{}
+
+
+    
+  draw_voice: ()->
+    if Math.random() < .2
+      @_process()
+    if @voice_que? and @voice_que.length > 0
+      #@debug.push @voice_que[0]
+      @voice_que[0][1] += 1
+      phrase = @voice_que[0][0]
+      phlen = phrase.length*10 + 10
+      window.Draw.use_layer('entities')
+      alpha = 1 - @voice_que[0][1]/90
+      ymod = alpha * 30 - 30
+      font = {fillStyle: 'rgba(0,0,0,'+alpha+')', strokeStyle: 'black',font:'courier', fontsize: 16}
+      if @voice_que[0][2] is 'emergency'
+        font = {fillStyle: 'rgba(255,0,0,'+alpha+')', strokeStyle: 'red',font:'Comic Sans MS', fontsize: 20}
+      window.Draw.draw_box(@pos[0], @pos[1]-20+ymod, phlen, 20, {fillStyle:'rgba(255,255,255,'+alpha+')',strokeStyle:'black',lineWidth:0})
+      window.Draw.draw_lines([[@pos[0]+4, @pos[1]+ymod], [@pos[0]+5+4, @pos[1]+7+ymod],[@pos[0]+10+4, @pos[1]+ymod]], {strokeStyle:'transparent',lineWidth:0})
+      window.Draw.draw_text(phrase,@pos[0]+5, @pos[1]-5+ymod, font)
+      if @voice_que[0][1] > 90
+        @voice_que = @voice_que.splice(1,@voice_que.length)
+      if @voice_que.length > 4
+        @voice_que = @voice_que.splice(1,@voice_que.length)
+      
+  converse: ()->
+
+    if @conversation_partner
+      @conversation_timer += 1
+      target = new Vector(@conversation_partner.pos[0],@conversation_partner.pos[1],0)
+      me = new Vector(@pos[0],@pos[1],0)
+
+      @vector = Vector.lerp(@vector, target.subtract(me), @turn_speed)
+    if @conversation_timer > 200
+      @conversation_partner = false
+      @conversation_timer = 0
+      @state = 'idle'
+
+  get_phrase: (key)->
+    if window.phrases[key]?
+      set = window.phrases[key]
+
+      choice = set[parseInt(Math.random()*set.length)]
+      if choice?
+        return choice #choice
+
+  say: (key, arg1=false, arg2=false)->
+    phrase = @get_phrase(key)
+    if phrase
+      if @voice_que.length < 1
+        if key is 'help'
+          @voice_que.push [phrase.replace(/[$][1]/g, arg1), 0, 'emergency']
+        else
+          @voice_que.push [phrase.replace(/[$][1]/g, arg1), 0]
+        for guy in window.Entities.sentient
+          if guy isnt @ and guy.hear
+            guy.hear(@, key, arg1, arg2)
 
 
 
-class Colonist extends Walker
+  hear: (entity, key, arg1=false, arg2=false)->
+    @hear_que.push [entity, key, arg1, arg2]
+    
+
+  _process: ()->
+    for talk in @hear_que
+
+      entity = talk[0]
+      key = talk[1]
+      arg1 = talk[2]
+      arg2 = talk[3]
+      needs = []
+      blocked = []
+      if key is 'forget'
+        if arg1 and arg2
+          @_forget arg1, arg2
+      if key is 'need'
+        if arg1
+          if arg1 not in needs
+            needs.push arg1
+          
+      if key is 'location'
+        if arg2
+          if not @memory.objects[arg1]
+            @memory.objects[arg1] = [arg2]
+          if not arg2 in @memory.objects[arg1]
+            @memory.objects[arg1].push arg2
+        blocked.push arg1
+
+      if key is 'greet'
+        if arg1 and arg1 is @.nombre
+          @conversation_partner = entity
+          @state_que = []
+          @state = 'converse'
+          @say 'greet', entity.nombre
+
+      for need in needs
+        if need not in blocked
+          if @memory.objects[need] and @memory.objects[need].length > 0
+              for mem in @memory.objects[need]
+                r = window.Map.get('objects', mem[0], mem[1])
+                found = false
+                if r and r.length > 0
+                  for obj in r
+                    if obj.nombre is need
+                      found = true
+                      @say 'location', need, @memory.objects[need][0]
+                      @hear_que = []
+                      return
+                    else
+                      @_forget need, mem 
+      @hear_que = []
+
+    
+
+
+
+
+
+
+
+
+class Colonist extends Talker
   setup: ->
     @pocket = []
     @suit = false
-    @oxygen = 600 #naked 
+    @oxygen = 1200 #naked 
     @max_oxygen = @oxygen
-    @state = 'find_suit'
+    @state = 'idle'
+    @init_voice()
+    @goal_actions =
+      oxygen: ['']
   update: (delta)->
 
     if @oxygen?
@@ -306,42 +476,154 @@ class Colonist extends Walker
       if @oxygen < @max_oxygen*.9
         window.Draw.use_layer 'view'
         w = 32 * (@oxygen / @max_oxygen )
-        window.Draw.draw_box(16 + @pos[0]-w*.5, @pos[1]-16, w, 5, {fillStyle:'red',strokeStyle:'rgba('+32-w+','+w+','+w+',.4)',lineWidth:1})
+        window.Draw.draw_box(16 + @pos[0]-w*.5, @pos[1]+30, w, 5, {fillStyle:'red',strokeStyle:'rgba('+32-w+','+w+','+w+',.4)',lineWidth:0})
+      
+      
+
       if @oxygen < 0
         @die()
         return
   die: ->
-    console.log 'die'
-    corpse = new Thing('Colonist', 'corpse', @pos)
+
+    corpse = new Thing('a corpse', 'corpse', @pos)
     @destroy()
 
-  find_suit: ->
+  pause: ->
 
-    for item in window.Entities.objects
-      console.log item.name
-      if item.name is 'Suit' and item.claimed is false
-        console.log 'SUIT!'
-        if @path_to item.tile_pos
-          console.log 'path to suit'
-          item.claimed = true
-          @want_item = item
-          @state_que.push 'pickup'
-          @state_que.push 'wear_suit'
+
+  idle: ->
+    #finish que of states
+    if @state_que? and @state_que.length > 0
+
+      use = @state_que[0]
+      @state_que = @state_que.slice(1,@state_que.length)
+      @state = use
+      return
+
+    # handle emergencies
+    if not @suit
+      @want = 'suit'
+      @state_que.push 'find_object'
+      @state_que.push 'pickup'
+      @state_que.push 'wear_suit'
+      return
+    if @oxygen < @max_oxygen*.9
+
+      if @oxygen < 260
+        @state = 'asphyxiation'
+        return
+      
+      if @oxygen < @max_oxygen*.8
+        @want = 'airtanks'
+        @state_que.push 'find_object'
+        @state_que.push 'use_object'
+        return
+    #figure out what to do
+    @state = 'work'
+
+  asphyxiation: ->
+    @say 'help'
+
+  use_object: ->
+    r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+    found = false
+    if r and r.length > 0
+      for obj in r
+        if obj.nombre is @want
+          
+          found = true
+          if obj.use
+            if obj.use @ #return true if use cycle complete, bad logic
+              @state = 'idle'
+              @_forget @want, @tile_pos
+              return
+            else
+              return
+      if not found
+        @_forget @want, @tile_pos
+        @state_que = []
+        @state = 'idle'
+    @state_que = []
+    @state = 'idle'
+
+
+  find_object: ->
+
+    if @memory.objects[@want]? and @memory.objects[@want].length > 0
+      for loc in @memory.objects[@want]
+        if @path_to loc
+          console.log @path
+          @state_que =  ['moving'].concat @state_que
+          @state = 'idle'
           return
-    @state = 'idle'
+    @say 'need', @want
+    @state_que = []
+    @state = 'inventory'
   pickup: ->
-    @want_item.hide()
-    @pocket.push @want_item
-    @want_item.pos = @pos
-    console.log 'pickup', @state_que
-    @state = 'idle'
+
+    r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+    found = false
+    
+    if r and r.length > 0
+
+      for obj in r
+        if obj.nombre is @want
+          console.log 'pickup', obj.nombre
+          @_forget @want, @tile_pos
+          @say 'forget', @want, @tile_pos
+          found = true       
+          r.remove obj
+          obj.hide()
+          @pocket.push obj
+          obj.pos = @pos
+          @want = false
+          @state = 'idle'
+
+          return
+
+    if not found
+      @state_que = []
+      @state = 'idle'
+      if @_forget @want, @tile_pos
+        @say 'forget', @want, @tile_pos
+        @want = false
+        return
+
+  _forget: (nombre, pos)->
+    if @memory.objects[nombre]
+      for loc in @memory.objects[nombre]
+            if loc[0] is pos[0] and loc[1] is pos[1]
+              @memory.objects[nombre].remove loc
+              return true
+      
+      
   wear_suit: ->
-    console.log 'wear'
+
     @suit = true
     @oxygen = 6000
     @max_oxygen = 6000
     @image = 'engineer'
     @state = 'idle'
+  work: ->
+    @state = 'break'
+  break: ->
+    if Math.random() < .6
+      if Math.random() < .3
+        @wander_dist = 10
+        @state = 'wander'
+      else
+        @path_to [parseInt(window.Map.width/2+(Math.random()*6)-3), parseInt(window.Map.height/2+(Math.random()*6)-3)]
+    else
+      near = window.Entities.sentient_hash.get_within @pos, 80
+      if near
+        for guy in near
+          if not @memory.entities[guy.nombre]
+            if guy.state in ['idle','wait','break']
+              @memory.entities[guy.nombre] = true
+              @say 'greet', guy.nombre
+              @conversation_partner = guy
+              @state = 'converse'
+              return
 
 
 
@@ -353,11 +635,8 @@ class Colonist extends Walker
 
 class Engineer extends Colonist
 
-  idle: ->
-    if @state_que? and @state_que.length > 0
-      use = @state_que.pop(0)
-      @state = use
-      return
+  work: ->
+
     if @remove_order
       if @n_tiles_away( @tile_pos, @remove_order.tile_pos, 2 )
         @remove_order.destroy()
@@ -368,21 +647,21 @@ class Engineer extends Colonist
 
       if @n_tiles_away( @tile_pos, [@build_order.x, @build_order.y], 2 )
         @build_order.build(@delta_time*3)
-        if @build_order.built?
+        if @build_order.built
           if not @build_order.is_wall()
             window.Map.set("pathfinding", this.x, this.y, 0)
           console.log 'tile built'
           @build_order = false
       else
         console.log 'not close enough to build'
-        window.Floors.under_construction.push @build_order
+        window.Tiles.under_construction.push @build_order
         @build_order = false
     else
-      if window.Floors.under_construction? and window.Floors.under_construction.length > 0
-        tile = window.Floors.under_construction[0]
+      if window.Tiles and window.Tiles.under_construction and window.Tiles.under_construction.length > 0
+        tile = window.Tiles.under_construction[0]
         if @path_to [tile.x,tile.y]
           @build_order = tile
-          window.Floors.under_construction.remove tile
+          window.Tiles.under_construction.remove tile
           @state = 'moving'
         else
           obj_in_map = window.Map.get('objects', tile.x, tile.y)
@@ -397,22 +676,42 @@ class Engineer extends Colonist
                       obj.claimed = true
                       return
                 #hack, put the constructing tile at the end of the list
-                window.Floors.under_construction.remove tile
-                window.Floors.under_construction.push tile
+                window.Tiles.under_construction.remove tile
+                window.Tiles.under_construction.push tile
                 @state = 'wander'
                 return #if we find a blocking object that is claimed, don't attempt to build
           
         for p in [[-1,0], [1,0], [0,-1], [0,1]]
           if @path_to [p[0]+tile.x,p[1]+tile.y]
             @build_order = tile
-            window.Floors.under_construction.remove tile
+            window.Tiles.under_construction.remove tile
             @state = 'moving'
             return
 
       else
-        @state = 'wander'
+        if Math.random() < .3
+          @state = 'inventory'
+        else
+          @state = 'break'
+
+  inventory: ->
+    for i in [-2..2]
+      for j in [-2..2]
+        objs = window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
+        if objs
+          for obj in objs
+              pos = [obj.tile_pos[0], obj.tile_pos[1]]
+              if @memory.objects[obj.nombre]
+                @memory.objects[obj.nombre].push pos
+
+                
+              else
+                @memory.objects[obj.nombre] = [pos]
+
+    @state = 'wander'
+
   wander: ->
-    @target = @get_random_tile(3)
+    @target = @get_random_tile(@wander_dist)
     @path_to @target
   removing_object: ->
     x = parseInt(Math.random()*2)-1
@@ -487,6 +786,8 @@ class Hash
   get_within: (pos, dist)->
     bucket = @pos_to_bucket pos
     b_radius = Math.floor(dist / @size)
+    if b_radius is 0
+      b_radius = 1
     results = []
     for i in [bucket[0]-b_radius .. bucket[0]+b_radius]
       for j in [bucket[1]-b_radius .. bucket[1]+b_radius]
@@ -508,6 +809,8 @@ window.Entities =
       Entity: Entity
       Walker: Walker
       Thing: Thing
+      Engineer: Engineer
+      Airtank: Airtank
 
     @path_finder = new PF.JumpPointFinder()
     #@path_finder = new PF.AStarFinder()
@@ -516,28 +819,7 @@ window.Entities =
 
     @sentient_hash = new Hash(64)
     @objects_hash = new Hash(64)
-
-    cx =(window.Map.width*32)/2
-    cy = (window.Map.height*32)/2
-    crate = new Thing('Launchpad', 'launchpad', [cx, cy])
-    crate.sprite_size = 128
-    crate.sprite_offset = [-64,-64]
-
-
-    for i in [0..2]
-      for j in [0..1]
-        suit = new Thing('Suit', 'engineer', [cx+((i-2)*32), cy+((j-2)*32)])
-
-    for i in [0..7]
-      x = parseInt(Math.random()*300+(window.Map.width*window.Map.tilesize / 2 ))
-      y = parseInt(Math.random()*300+ (window.Map.width*window.Map.tilesize / 2))
-      advanced = new Engineer('Engineer', 'colonist', [x,y])
-      advanced.speed = 1.5
-
-      advanced.sprite_offset = [0, 0]
-      advanced.sprite_size = 32
-
-    
+ 
 
 
   update: (delta)->
@@ -585,5 +867,12 @@ $(window).ready ->
   window.Draw.add_image('corpse', "./textures/astronauts/corpse.png")
 
   window.Draw.add_image('crate', "./textures/objects/crate_closed.png")
+
+
+  window.Draw.add_image('airtanks', "./textures/objects/airtanks.png")
+  window.Draw.add_image('emptytanks', "./textures/objects/emptytanks.png")
+  window.Draw.add_image('solarpanel', "./textures/objects/solarpanel.png")
+  window.Draw.add_image('wrench', "./textures/objects/wrench.png")
+  
 
   window.Entities.init()

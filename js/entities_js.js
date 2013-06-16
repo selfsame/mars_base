@@ -30,7 +30,7 @@ $(window).ready(function() {
 
   var i, _i;
   for (i = _i = 0; _i <= 200; i = ++_i) {
-    rock = new Rock('Just a rock', 'rock', [parseInt(Math.random()*window.Map.width)*window.Map.tilesize, parseInt(Math.random()*window.Map.height)*window.Map.tilesize]);
+    rock = new Rock('a rock', 'rock', [parseInt(Math.random()*window.Map.width)*window.Map.tilesize, parseInt(Math.random()*window.Map.height)*window.Map.tilesize]);
     rock.setup();
   }
   

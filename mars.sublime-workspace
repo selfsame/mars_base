@@ -4,12 +4,32 @@
 		"selected_items":
 		[
 			[
-				"tile",
-				"tile_under_mouse"
+				"sprite",
+				"sprite_offset"
+			],
+			[
+				"Ent",
+				"Entities"
+			],
+			[
+				"vect",
+				"vect_to_target"
+			],
+			[
+				"is",
+				"is_wall"
+			],
+			[
+				"pos_to",
+				"pos_to_tile_pos"
 			],
 			[
 				"get",
-				"get_random_tile"
+				"get_within"
+			],
+			[
+				"tile",
+				"tile_under_mouse"
 			],
 			[
 				"convert_unit",
@@ -494,54 +514,17 @@
 			[
 				"att",
 				"attached"
-			],
-			[
-				"deta",
-				"detached"
-			],
-			[
-				"font",
-				"font-family"
-			],
-			[
-				"bor",
-				"border-width"
-			],
-			[
-				"bord",
-				"border-style"
-			],
-			[
-				"input",
-				"input_panel"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "coffee/entities_coffee.coffee",
-			"settings":
-			{
-				"buffer_size": 2493,
-				"line_ending": "Windows"
-			}
-		},
-		{
 			"file": "js/entities_js.js",
 			"settings":
 			{
-				"buffer_size": 440,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "js/libs/vector.js",
-			"settings":
-			{
-				"buffer_size": 3735,
-				"line_ending": "Windows",
-				"name": "function Vector(x, y, z) {"
+				"buffer_size": 998,
+				"line_ending": "Windows"
 			}
 		},
 		{
@@ -556,7 +539,7 @@
 			"file": "game.html",
 			"settings":
 			{
-				"buffer_size": 1097,
+				"buffer_size": 1101,
 				"line_ending": "Windows"
 			}
 		},
@@ -564,7 +547,7 @@
 			"file": "js/map_manager.js",
 			"settings":
 			{
-				"buffer_size": 3983,
+				"buffer_size": 3632,
 				"line_ending": "Windows"
 			}
 		},
@@ -572,7 +555,7 @@
 			"file": "js/events.js",
 			"settings":
 			{
-				"buffer_size": 2689,
+				"buffer_size": 2872,
 				"line_ending": "Windows"
 			}
 		},
@@ -580,15 +563,31 @@
 			"file": "coffee/draw_manager.coffee",
 			"settings":
 			{
-				"buffer_size": 6606,
+				"buffer_size": 7798,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "js/room_manager.js",
+			"file": "coffee/entities_coffee.coffee",
 			"settings":
 			{
-				"buffer_size": 4407,
+				"buffer_size": 16360,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/utils.js",
+			"settings":
+			{
+				"buffer_size": 2396,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "js/floor_manager.js",
+			"settings":
+			{
+				"buffer_size": 23441,
 				"line_ending": "Windows"
 			}
 		}
@@ -617,8 +616,10 @@
 	},
 	"file_history":
 	[
-		"/C/Users/jplur/Desktop/mars_base/js/room_manager.js",
 		"/C/Users/jplur/Desktop/mars_base/js/entities_coffee.js",
+		"/C/Users/jplur/Desktop/mars_base/js/libs/vector.js",
+		"/C/Users/jplur/Desktop/mars_base/js/room_manager.js",
+		"/C/Users/jplur/Desktop/mars_base/coffee/entities_coffee.coffee",
 		"/C/Users/jplur/Desktop/mars_base/old/coffee/mapper.coffee",
 		"/C/Users/jplur/Desktop/mars_base/mars_base.sublime-workspace",
 		"/C/xampp/htdocs/pagelayer/coffee/rulers.coffee",
@@ -742,9 +743,7 @@
 		"/C/Users/jplur/Desktop/selfsame/content/tinymce/index.html",
 		"/C/Users/jplur/Desktop/7190_blender-r47198-vpaint-pyconsole-mods.7z",
 		"/C/Users/jplur/Desktop/selfsame/content/draw/error_log",
-		"/C/Users/jplur/Desktop/selfsame/content/draw.html",
-		"/D/My Pictures/.comments/dancez.xml",
-		"/C/Users/jplur/Desktop/selfsame/temp/.htaccess"
+		"/C/Users/jplur/Desktop/selfsame/content/draw.html"
 	],
 	"find":
 	{
@@ -763,6 +762,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"check_clear",
+			"@target",
+			"tile_pos",
 			"tile_under",
 			"window.Map",
 			"console",
@@ -887,10 +889,7 @@
 			"global",
 			"color",
 			"color'",
-			"off_limits",
-			"opacity",
-			"recalc_outliner",
-			"hierarchy"
+			"off_limits"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -923,96 +922,39 @@
 	"groups":
 	[
 		{
-			"selected": 5,
+			"selected": 7,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "coffee/entities_coffee.coffee",
+					"file": "js/entities_js.js",
 					"settings":
 					{
-						"buffer_size": 2493,
+						"buffer_size": 998,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1484,
-								1484
+								775,
+								775
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/CoffeeScript.tmLanguage",
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 602.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "js/entities_js.js",
-					"settings":
-					{
-						"buffer_size": 440,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								440,
-								440
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "js/libs/vector.js",
-					"settings":
-					{
-						"buffer_size": 3735,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1930,
-								1930
-							]
-						],
-						"settings":
-						{
-							"auto_name": "function Vector(x, y, z) {",
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
 					"file": "old/coffee/pathfinding.coffee",
 					"settings":
 					{
@@ -1039,19 +981,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 2,
 					"file": "game.html",
 					"settings":
 					{
-						"buffer_size": 1097,
+						"buffer_size": 1101,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								712,
-								712
+								494,
+								494
 							]
 						],
 						"settings":
@@ -1066,46 +1008,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 3,
 					"file": "js/map_manager.js",
 					"settings":
 					{
-						"buffer_size": 3983,
+						"buffer_size": 3632,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1668,
-								1668
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "js/events.js",
-					"settings":
-					{
-						"buffer_size": 2689,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1368,
-								1368
+								965,
+								965
 							]
 						],
 						"settings":
@@ -1120,46 +1035,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 7,
-					"file": "coffee/draw_manager.coffee",
+					"buffer": 4,
+					"file": "js/events.js",
 					"settings":
 					{
-						"buffer_size": 6606,
+						"buffer_size": 2872,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								353,
-								353
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/CoffeeScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 188.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "js/room_manager.js",
-					"settings":
-					{
-						"buffer_size": 4407,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								860,
-								860
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1168,7 +1056,117 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
+						"translation.y": 546.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "coffee/draw_manager.coffee",
+					"settings":
+					{
+						"buffer_size": 7798,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4950,
+								4950
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CoffeeScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
 						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "coffee/entities_coffee.coffee",
+					"settings":
+					{
+						"buffer_size": 16360,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								8325,
+								8325
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CoffeeScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3965.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "js/utils.js",
+					"settings":
+					{
+						"buffer_size": 2396,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "js/floor_manager.js",
+					"settings":
+					{
+						"buffer_size": 23441,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4327,
+								4327
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1620.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1221,7 +1219,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 170.0
+		"height": 94.0
 	},
 	"replace":
 	{
