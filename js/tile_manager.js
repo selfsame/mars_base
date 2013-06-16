@@ -40,20 +40,33 @@ function Tile(x, y) {
 		if (this.state == 1) { // building
 			if (this.timer >= 800) {
 				this.timer = 0;
+				this.built = true;
 				window.Tiles.under_construction.remove(this);
 				this.state = 3;
 				this.current_style = this.goal_style;
 				this.draw();
-				this.built = true;
+				if (this.current_style == 'wall') { // if this is a wall, update neighbor shadows
+					var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
+					for (var i = 0; i < neighbors.length; i++) {
+						if (neighbors[i] != 0) { // a tile exists
+							if (!(neighbors[i].current_style == 'wall' || neighbors[i].goal_style == 'wall')) { // it's not a wall
+								neighbors[i].draw_shadows(); // draw some shadows on it!
+								console.log("drawing shadows on a neighbor");
+							}
+						}
+					}
+				}
 			}
 		} else if (this.state == 2) { // removing
 			if (this.timer >= 1000) {
 				if (this.goal_style == 'empty') { // deleting completely
 					this.state = 0;
 					this.erase();
+					this.current_style = 'empty';
 					this.draw();
 				} else { // turning into a different tile
 					this.timer = 0;
+					this.current_style = 'empty';
 					this.state = 1;
 					this.draw();
 				}
@@ -107,46 +120,9 @@ function Tile(x, y) {
 		console.log(bin_val);
 		if (wall_style != undefined) {
 			return ('wall_ext_' + window.Tiles.wall_styles[bin_val]);
-		} else {
+		} else {b
 			return ('wall_ext_17');
 		}
-	}
-	
-	Tile.prototype.check_neighbors = function() {
-		for (var y = -1; y < 2; y++) {
-			for (var x = -1; x < 2; x++) {
-				var neighbor = window.Map.get('tiles', this.x + x, this.y + y);
-				//alert(neighbor);
-				if (this.state == 0) { // blueprint only
-					if (this.blue_style != 'empty') {
-						if (neighbor == 0) {
-							neighbor = new Tile(this.x + x, this.y + y);
-							//window.Map.set('tiles', this.x + x, this.y + y);
-						}
-						if (neighbor.state == 0 && neighbor.blue_style == 'empty') {
-							neighbor.blue_style = 'wall';
-							neighbor.draw();
-						}					
-					} else {
-						if (neighbor != 0) {
-							if (neighbor.state == 0 && neighbor.blue_style == 'wall') {
-								neighbor.blue_style = 'empty'
-								neighbor.draw();
-							}
-						}
-					}
-				} else if (this.state == 1) {
-				
-				} else if (this.state == 2) {
-				
-				} else if (this.state == 3) {
-				
-				} else if (this.state == 4) {
-				
-				}
-			}
-		}
-		
 	}
 	
 	// has this tile reached it's goal?
@@ -160,97 +136,180 @@ function Tile(x, y) {
 	}
 	
 	Tile.prototype.is_wall = function() {
-		return (this.current_style == 'wall' || this.goal_style == 'wall' || this.blue_style == 'wall');
+		return (this.state == 3 && this.current_style == 'wall');
 	}
 	
 	// draw the tile on the map
 	Tile.prototype.draw = function() {
 		
-		tilesize = window.Map.tilesize;
+		var tilesize = window.Map.tilesize;
 		var x = this.x * tilesize;
 		var y = this.y * tilesize;
-		
-		if (this.state == 0) { // blueprint
-			window.Draw.use_layer("tiles");
-			window.Draw.clear_box(x, y, tilesize, tilesize);
-			window.Draw.use_layer("blueprints");
-			window.Draw.clear_box(x, y, tilesize, tilesize);
-			if (this.blue_style != 'empty') {
-				if (this.is_wall()) {
-					window.Draw.image(this.wall_style, x, y);
-				} else {
-					window.Draw.image(this.blue_style, x, y);
-				}
-				window.Draw.image("blueprint1", x, y);
-			}
-		} else if (this.state == 1) { // building
-			window.Draw.use_layer("tiles");
-			window.Draw.clear_box(x, y, tilesize, tilesize);
-			if (this.is_wall()) {
-				window.Draw.image('wall_build', x, y);
+		if (this.state == 0) { // a blueprint only
+			if (this.blue_style == 'wall') {
 				window.Draw.use_layer("blueprints");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
 				window.Draw.image(this.wall_style, x, y);
+				window.Draw.image("blueprint1", x, y);
+			} else if (this.blue_style == 'empty') {
+				window.Draw.use_layer("blueprints");
+				window.Draw.clear_box(x, y, tilesize, tilesize);
 			} else {
-				window.Draw.image('tile_build', x, y);
-			}
-			window.Draw.use_layer("blueprints");
-			window.Draw.clear_box(x, y, tilesize, tilesize);
-			if (this.blue_style == 'empty') {
-				window.Draw.image(this.current_style, x, y);
-				window.Draw.image("blueprint3", x, y);
-			} else if (this.blue_style != this.goal_style) {
+				window.Draw.use_layer("blueprints");
+				window.Draw.clear_box(x, y, tilesize, tilesize);
 				window.Draw.image(this.blue_style, x, y);
 				window.Draw.image("blueprint1", x, y);
-			} else {
-				window.Draw.image(this.blue_style, x, y);
-				window.Draw.image("blueprint4", x, y);
 			}
-		} else if (this.state == 2) { // removing
 			window.Draw.use_layer("tiles");
 			window.Draw.clear_box(x, y, tilesize, tilesize);
-			if (this.is_wall()) {
-				window.Draw.image('wall_build', x, y);
-			} else {
-				window.Draw.image('tile_build', x, y);
-			}
-			window.Draw.use_layer("blueprints");
-			window.Draw.clear_box(x, y, tilesize, tilesize);
-			if (this.blue_style != 'empty') {
-				window.Draw.image(this.blue_style, x, y);
-				if (this.blue_style == this.goal_style) {
-					window.Draw.image('blueprint4', x, y);
+		} else if (this.state == 1) { // building something
+			if (this.goal_style == 'wall') {
+				window.Draw.use_layer("tiles");
+				window.Draw.clear_box(x, y, tilesize, tilesize);
+				window.Draw.image("wall_build", x, y);
+				if (this.blue_style != this.goal_style) { // the blueprint wants something different than the current construction
+					window.Draw.use_layer("blueprints");
+					window.Draw.clear_box(x, y, tilesize, tilesize);
+					window.Draw.image(this.blue_style, x, y);
+					window.Draw.image("blueprint1", x, y);
 				} else {
-					window.Draw.image('blueprint1', x, y);
+					window.Draw.use_layer("blueprints");
+					window.Draw.clear_box(x, y, tilesize, tilesize);
+					window.Draw.image(this.wall_style, x, y);
+					window.Draw.image("blueprint4", x, y);
 				}
 			} else {
-				window.Draw.image('blueprint3', x, y);
+				window.Draw.use_layer("tiles");
+				window.Draw.clear_box(x, y, tilesize, tilesize);
+				window.Draw.image("tile_build", x, y);
+				if (this.blue_style != this.goal_style) { // the blueprint wants something different than the current construction
+					window.Draw.use_layer("blueprints");
+					window.Draw.clear_box(x, y, tilesize, tilesize);
+					window.Draw.image(this.blue_style, x, y);
+					window.Draw.image("blueprint1", x, y);
+				} else {
+					window.Draw.use_layer("blueprints");
+					window.Draw.clear_box(x, y, tilesize, tilesize);
+					window.Draw.image(this.blue_style, x, y);
+					window.Draw.image("blueprint4", x, y);
+				}
 			}
-		} else if (this.state == 3) { // built
-			window.Draw.use_layer("tiles");
-			window.Draw.clear_box(x, y, tilesize, tilesize);
-			if (this.is_wall()) {
+		} else if (this.state == 2) { // removing something
+			if (this.current_style == 'wall') {
+				window.Draw.use_layer("tiles");
+				window.Draw.clear_box(x, y, tilesize, tilesize);
+				window.Draw.image("wall_build", x, y);
+				if (this.goal_style == 'empty') { // tile is being removed completely
+					window.Draw.use_layer("blueprints");
+					window.Draw.clear_box(x, y, tilesize, tilesize);
+					window.Draw.image("blueprint3", x, y);
+				} else { // tile is being changed
+					window.Draw.use_layer("blueprints");
+					window.Draw.clear_box(x, y, tilesize, tilesize);
+					window.Draw.image(this.goal_style, x, y);
+					window.Draw.image("blueprint1", x, y);
+				}
+			} else {
+				window.Draw.use_layer("tiles");
+				window.Draw.clear_box(x, y, tilesize, tilesize);
+				window.Draw.image("tile_build", x, y);
+				if (this.goal_style == 'empty') { // tile is being removed completely
+					window.Draw.use_layer("blueprints");
+					window.Draw.clear_box(x, y, tilesize, tilesize);
+					window.Draw.image("blueprint3", x, y);
+				} else { // tile is being changed
+					window.Draw.use_layer("blueprints");
+					window.Draw.clear_box(x, y, tilesize, tilesize);
+					window.Draw.image(this.goal_style, x, y);
+					window.Draw.image("blueprint1", x, y);
+				}
+			}
+		} else if (this.state == 3) { // tile is built
+			if (this.current_style == 'wall') {
+				window.Draw.use_layer("tiles");
+				window.Draw.clear_box(x, y, tilesize, tilesize);
 				window.Draw.image(this.wall_style, x, y);
+				if (this.blue_style != this.goal_style) { // the blueprint wants something different than what is built
+					if (this.blue_style == 'empty') { // the blueprints want it to be removed
+						window.Draw.use_layer("blueprints");
+						window.Draw.clear_box(x, y, tilesize, tilesize);
+						window.Draw.image(this.wall_style, x, y);
+						window.Draw.image("blueprint3", x, y);
+					} else {
+						window.Draw.use_layer("blueprints");
+						window.Draw.clear_box(x, y, tilesize, tilesize);
+						window.Draw.image(this.blue_style, x, y);
+						window.Draw.image("blueprint1", x, y);
+					}
+				} else {
+					window.Draw.use_layer("blueprints");
+					window.Draw.clear_box(x, y, tilesize, tilesize);
+					window.Draw.image(this.wall_style, x, y);
+					window.Draw.image("blueprint4", x, y);
+				}
 			} else {
+				window.Draw.use_layer("tiles");
+				window.Draw.clear_box(x, y, tilesize, tilesize);
 				window.Draw.image(this.current_style, x, y);
+				if (this.blue_style != this.goal_style) { // the blueprint wants something different than what is built
+					if (this.blue_style == 'empty') { // the blueprints want it to be removed
+						window.Draw.use_layer("blueprints");
+						window.Draw.clear_box(x, y, tilesize, tilesize);
+						window.Draw.image(this.current_style, x, y);
+						window.Draw.image("blueprint3", x, y);
+					} else {
+						window.Draw.use_layer("blueprints");
+						window.Draw.clear_box(x, y, tilesize, tilesize);
+						window.Draw.image(this.blue_style, x, y);
+						window.Draw.image("blueprint1", x, y);
+					}
+				} else {
+					window.Draw.use_layer("blueprints");
+					window.Draw.clear_box(x, y, tilesize, tilesize);
+					window.Draw.image(this.wall_style, x, y);
+					window.Draw.image("blueprint4", x, y);
+				}
 			}
-			window.Draw.use_layer("blueprints");
-			window.Draw.clear_box(x, y, tilesize, tilesize);
-			if (this.blue_style == this.current_style) {
-				window.Draw.image(this.blue_style, x, y);
-				window.Draw.image("blueprint4", x, y);
-			} else if (this.blue_style == 'empty') {
-				window.Draw.image("blueprint3", x, y);
-			} else {
-				window.Draw.image(this.blue_style, x, y);
-				window.Draw.image("blueprint1", x, y);
-			}
-		} else if (this.state == 4) { // invalid
-			window.Draw.use_layer("blueprints");
-			window.Draw.clear_box(x, y, tilesize, tilesize);
-			window.Draw.image("blueprint2", x, y);
 		}
 	}
+	
+	Tile.prototype.draw_shadows = function() {
+		var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
+		var tilesize = window.Map.tilesize;
+		var x = this.x * tilesize;
+		var y = this.y * tilesize;
+		window.Draw.use_layer("wall_shadows");
+		window.Draw.clear_box(x, y, tilesize, tilesize);
+		
+		// check top
+		if (neighbors[1] != 0) {
+			if (neighbors[1].is_wall()) {
+				window.Draw.image('shadow_1', x, y);
+			}
+		}
+		
+		// check right
+		if (neighbors[3] != 0) {
+			if (neighbors[3].is_wall()) {
+				window.Draw.image('shadow_4', x, y);
+			}
+		}
+		
+		// check left
+		if (neighbors[5] != 0) {
+			if (neighbors[5].is_wall()) {
+				window.Draw.image('shadow_3', x, y);
+			}
+		}
+		
+		// check bottom
+		if (neighbors[7] != 0) {
+			if (neighbors[7].is_wall()) {
+				window.Draw.image('shadow_2', x, y);
+			}
+		}
+		
+	}	
 }
 
 window.Tiles = {
@@ -368,7 +427,7 @@ window.Tiles = {
 			136: 13,
 			// 14
 			34: 14
-		}
+		};
 		
 		
 		
@@ -390,8 +449,13 @@ window.Tiles = {
 		for (var i = 0; i < 14; i++) {
 			window.Draw.add_image('wall_ext_' + (i+1), "./textures/walls/external/" + 'wall_ext_' + (i+1) + ".png");
 		}
-		window.Draw.add_image('wall_ext_17', "./textures/walls/external/wall_ext_m.png");
+		window.Draw.add_image('wall_base_17', "./textures/walls/external/wall_ext_17.png");
 		window.Draw.add_image('wall', "./textures/walls/external/wall_ext_m.png");
+		
+		// load shadow images
+		for (var i = 0; i < 8; i++) {
+			window.Draw.add_image('shadow_' + (i+1), "./textures/walls/shadows/" + 'shad_' + (i+1) + ".png");
+		}
 		
 		// load blueprint images
 		window.Draw.add_image('blueprint1', "./textures/ground/blueprint_build.png");
@@ -404,6 +468,7 @@ window.Tiles = {
 		
 		// create draw layers
 		window.Draw.create_layer('tiles', true);
+		window.Draw.create_layer('wall_shadows', true);
 		window.Draw.create_layer('blueprints', true);
 	},
 	confirm_blueprints: function() { // confirm all blueprints
@@ -436,11 +501,13 @@ window.Tiles = {
 			if (this.edit_mode) {
 				this.edit_mode = false;
 				console.log("Switching view mode to no-edit!");
+				window.Draw.show_layer("wall_shadows");
 				window.Draw.hide_layer("blueprints");
 			} else {
 				this.edit_mode = true;
 				console.log("Switching view mode to edit!");
 				window.Draw.show_layer("blueprints");
+				window.Draw.hide_layer("wall_shadows");
 			}
 		}
 	},
@@ -463,7 +530,7 @@ window.Tiles = {
 	},
 	update: function(delta) { // hackish update code, change when astronauts can interact
 		for(i = 0; i < this.under_construction.length; i++) {
-			//this.under_construction[i].build(delta/10);
+			//this.under_construction[i].build(delta/2);
 		}
 	}
 }
