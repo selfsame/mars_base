@@ -47,6 +47,7 @@ function Tile(x, y) {
 				this.draw();
 				if (this.current_style == 'wall') { // if this is a wall, update neighbor shadows
 					var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
+					window.Map.set('pathfinding', this.x, this.y, 1);
 					for (var i = 0; i < neighbors.length; i++) {
 						if (neighbors[i] != 0) { // a tile exists
 							if (!(neighbors[i].current_style == 'wall' || neighbors[i].goal_style == 'wall')) { // it's not a wall
@@ -55,6 +56,8 @@ function Tile(x, y) {
 							}
 						}
 					}
+				} else {
+					window.Map.set('pathfinding', this.x, this.y, 0);
 				}
 			}
 		} else if (this.state == 2) { // removing
@@ -63,6 +66,7 @@ function Tile(x, y) {
 					this.state = 0;
 					this.erase();
 					this.current_style = 'empty';
+					window.Map.set('pathfinding', this.x, this.y, 0);
 					this.draw();
 				} else { // turning into a different tile
 					this.timer = 0;
@@ -82,11 +86,13 @@ function Tile(x, y) {
 			
 			if (this.state == 0) {
 				this.state = 1;
+				window.Map.set('pathfinding', this.x, this.y, 0);
 				window.Tiles.under_construction.push(this);
 			} else if (this.state == 1) {
 				this.state = 2;
 			} else if (this.state == 3) {
 				this.state = 2;
+				window.Map.set('pathfinding', this.x, this.y, 0);
 				window.Tiles.under_construction.push(this);
 			}
 			this.draw();
@@ -119,9 +125,9 @@ function Tile(x, y) {
 		console.log(bin_val + ':  wall_ext_' + window.Tiles.wall_styles[bin_val]);
 		console.log(bin_val);
 		if (wall_style != undefined) {
-			return ('wall_ext_' + window.Tiles.wall_styles[bin_val]);
-		} else {b
-			return ('wall_ext_17');
+			return ('wall_base_' + window.Tiles.wall_styles[bin_val]);
+		} else {
+			return ('wall_base_17');
 		}
 	}
 	
@@ -280,34 +286,68 @@ function Tile(x, y) {
 		var y = this.y * tilesize;
 		window.Draw.use_layer("wall_shadows");
 		window.Draw.clear_box(x, y, tilesize, tilesize);
+		var walls = [];
+		for (i = 0; i < neighbors.length; i++) {
+			if (neighbors[i] != 0) {
+				if (neighbors[i].is_wall()) {
+					walls.push(true);
+				} else {
+					walls.push(false);
+				}
+			} else {
+				walls.push(false);
+			}
+			
+		}
 		
 		// check top
-		if (neighbors[1] != 0) {
-			if (neighbors[1].is_wall()) {
-				window.Draw.image('shadow_1', x, y);
-			}
+		if (walls[1]) {
+			window.Draw.image('shadow_1', x, y);
 		}
 		
 		// check right
-		if (neighbors[3] != 0) {
-			if (neighbors[3].is_wall()) {
-				window.Draw.image('shadow_4', x, y);
-			}
-		}
-		
-		// check left
-		if (neighbors[5] != 0) {
-			if (neighbors[5].is_wall()) {
-				window.Draw.image('shadow_3', x, y);
-			}
+		if (walls[3]) {
+			window.Draw.image('shadow_4', x, y);
 		}
 		
 		// check bottom
-		if (neighbors[7] != 0) {
-			if (neighbors[7].is_wall()) {
-				window.Draw.image('shadow_2', x, y);
-			}
+		if (walls[5]) {
+			window.Draw.image('shadow_3', x, y);
 		}
+		
+		// check left
+		if (walls[7]) {
+			window.Draw.image('shadow_2', x, y);
+		}
+		
+		// top and right
+		if (walls[1] && walls[3]) {
+			window.Draw.image('shadow_9', x, y);
+		} else if (!walls[1] && !walls[3] && walls[2]) {
+			window.Draw.image('shadow_8', x, y);
+		}
+		
+		// right and bottom
+		if (walls[3] && walls[5]) {
+			window.Draw.image('shadow_10', x, y);
+		} else if (!walls[3] && !walls[5] && walls[4]) {
+			window.Draw.image('shadow_5', x, y);
+		}
+		
+		// bottom and left
+		if (walls[5] && walls[7]) {
+			window.Draw.image('shadow_11', x, y);
+		} else if (!walls[5] && !walls[7] && walls[6]) {
+			window.Draw.image('shadow_6', x, y);
+		}
+		
+		// left and top
+		if (walls[7] && walls[1]) {
+			window.Draw.image('shadow_12', x, y);
+		} else if (!walls[7] && !walls[1] && walls[0]) {
+			window.Draw.image('shadow_7', x, y);
+		}
+		
 		
 	}	
 }
@@ -447,13 +487,13 @@ window.Tiles = {
 		
 		// load wall images
 		for (var i = 0; i < 14; i++) {
-			window.Draw.add_image('wall_ext_' + (i+1), "./textures/walls/external/" + 'wall_ext_' + (i+1) + ".png");
+			window.Draw.add_image('wall_base_' + (i+1), "./textures/walls/external/" + 'wall_base_' + (i+1) + ".png");
 		}
-		window.Draw.add_image('wall_base_17', "./textures/walls/external/wall_ext_17.png");
+		window.Draw.add_image('wall_base_17', "./textures/walls/external/wall_base_17.png");
 		window.Draw.add_image('wall', "./textures/walls/external/wall_ext_m.png");
 		
 		// load shadow images
-		for (var i = 0; i < 8; i++) {
+		for (var i = 0; i < 12; i++) {
 			window.Draw.add_image('shadow_' + (i+1), "./textures/walls/shadows/" + 'shad_' + (i+1) + ".png");
 		}
 		
