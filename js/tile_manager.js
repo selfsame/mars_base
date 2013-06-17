@@ -7,6 +7,7 @@ function Tile(x, y) {
 	this.goal_style = 'empty'; // what the tile will be, in view mode
 	this.state = 0;
 	
+	this.blue_wall_style = 'empty' // shape of the wall in edit mode
 	this.wall_style = 'empty'; // the shape of the wall tile
 	
 	this.timer = 0;
@@ -20,10 +21,34 @@ function Tile(x, y) {
 			this.erase();
 		}
 		if (style == 'wall') {
-			this.wall_style = this.determine_wall_style(true);
+			this.blue_wall_style = this.determine_wall_style(true);
+			if (this.blue_wall_style == 'empty') {
+				this.blue_style = 'empty';
+				this.erase();
+			}
+		} else if (style == 'empty') {
+			this.get_walls();
+			this.set_blueprint('wall');
+		} else {
+			this.get_walls();
 		}
-		//this.check_neighbors();
 		this.draw();
+	}
+	
+	// build walls around a tile
+	Tile.prototype.get_walls = function() {
+		for (var x = 0; x < 3; x++) {
+			for (var y = 0; y < 3; y++) {
+				var neighbor = window.Map.get('tiles', this.x + x - 1, this.y + y - 1);
+				if (neighbor == 0) { // nothing exists at this neighbors
+					neighbor = new Tile (this.x + x - 1, this.y + y - 1);
+					window.Map.set('tiles', neighbor.x, neighbor.y, neighbor);
+					neighbor.set_blueprint('wall');
+				} else if (neighbor.blue_style == 'wall') { // there is a wall here already
+					neighbor.set_blueprint('wall');
+				}
+			}
+		}
 	}
 	
 	// remove this tile from the window.Map layer
@@ -62,6 +87,18 @@ function Tile(x, y) {
 			}
 		} else if (this.state == 2) { // removing
 			if (this.timer >= 1000) {
+				if (this.current_style == 'wall') { // if this is a wall, update neighbor shadows
+					var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
+					window.Map.set('pathfinding', this.x, this.y, 1);
+					for (var i = 0; i < neighbors.length; i++) {
+						if (neighbors[i] != 0) { // a tile exists
+							if (!(neighbors[i].current_style == 'wall' || neighbors[i].goal_style == 'wall')) { // it's not a wall
+								neighbors[i].draw_shadows(); // draw some shadows on it!
+								console.log("drawing shadows on a neighbor");
+							}
+						}
+					}
+				}
 				if (this.goal_style == 'empty') { // deleting completely
 					this.state = 0;
 					this.erase();
@@ -72,6 +109,7 @@ function Tile(x, y) {
 					this.timer = 0;
 					this.current_style = 'empty';
 					this.state = 1;
+					this.draw_shadows();
 					this.draw();
 				}
 			}
@@ -86,17 +124,24 @@ function Tile(x, y) {
 			
 			if (this.state == 0) {
 				this.state = 1;
+				if (this.blue_style == 'wall') {
+					this.wall_style = this.blue_wall_style;
+				}
 				window.Map.set('pathfinding', this.x, this.y, 0);
 				window.Tiles.under_construction.push(this);
 			} else if (this.state == 1) {
 				this.state = 2;
-			} else if (this.state == 3) {
+			} else if (this.state == 3) { // already built
 				this.state = 2;
 				window.Map.set('pathfinding', this.x, this.y, 0);
 				window.Tiles.under_construction.push(this);
 			}
 			this.draw();
 			return true;
+		} else if (this.blue_wall_style != this.wall_style) { // they are both wall
+			this.wall_style = this.blue_wall_style;
+			this.draw();
+			return false;
 		} else {
 			return false; // no action is needed
 		}
@@ -111,7 +156,7 @@ function Tile(x, y) {
 			if (neighbors[i] != 0) { // there is a tile at this neighbor
 				if ((neighbors[i].goal_style != 'wall' && neighbors[i].goal_style != 'empty') || (neighbors[i].current_style != 'wall' && neighbors[i].current_style != 'empty')) {
 					total += Math.pow(2, i + 1);
-				} else if (count_blues && neighbors[i].blue_style != 'wall') {
+				} else if (count_blues && neighbors[i].blue_style != 'wall' && neighbors[i].blue_style != 'empty') {
 					total += Math.pow(2, i + 1);
 				}
 			}
@@ -126,14 +171,11 @@ function Tile(x, y) {
 		console.log(bin_val);
 		if (wall_style != undefined) {
 			return ('wall_base_' + window.Tiles.wall_styles[bin_val]);
+		} else if ( bin_val == 0 ) { // no neighbors
+			return ('empty'); // should be empty
 		} else {
 			return ('wall_base_17');
 		}
-	}
-	
-	// has this tile reached it's goal?
-	Tile.prototype.reached_goal = function() {
-		return (this.state_que.length == 1);
 	}
 	
 	// check if the ground is clear of any obstacles
@@ -155,10 +197,12 @@ function Tile(x, y) {
 			if (this.blue_style == 'wall') {
 				window.Draw.use_layer("blueprints");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
-				window.Draw.image(this.wall_style, x, y);
+				window.Draw.image(this.blue_wall_style, x, y);
 				window.Draw.image("blueprint1", x, y);
 			} else if (this.blue_style == 'empty') {
 				window.Draw.use_layer("blueprints");
+				window.Draw.clear_box(x, y, tilesize, tilesize);
+				window.Draw.use_layer("wall_shadows");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
 			} else {
 				window.Draw.use_layer("blueprints");
@@ -247,10 +291,10 @@ function Tile(x, y) {
 						window.Draw.image(this.blue_style, x, y);
 						window.Draw.image("blueprint1", x, y);
 					}
-				} else {
+				} else { // both goal and blueprint are walls
 					window.Draw.use_layer("blueprints");
 					window.Draw.clear_box(x, y, tilesize, tilesize);
-					window.Draw.image(this.wall_style, x, y);
+					window.Draw.image(this.blue_wall_style, x, y);
 					window.Draw.image("blueprint4", x, y);
 				}
 			} else {
@@ -570,7 +614,7 @@ window.Tiles = {
 	},
 	update: function(delta) { // hackish update code, change when astronauts can interact
 		for(i = 0; i < this.under_construction.length; i++) {
-			//this.under_construction[i].build(delta/2);
+			// this.under_construction[i].build(delta/2);
 		}
 	}
 }
