@@ -73,32 +73,15 @@ function Tile(x, y) {
 				if (this.current_style == 'wall') { // if this is a wall, update neighbor shadows
 					var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
 					window.Map.set('pathfinding', this.x, this.y, 1);
-					for (var i = 0; i < neighbors.length; i++) {
-						if (neighbors[i] != 0) { // a tile exists
-							if (!(neighbors[i].current_style == 'wall' || neighbors[i].goal_style == 'wall')) { // it's not a wall
-								neighbors[i].draw_shadows(); // draw some shadows on it!
-								console.log("drawing shadows on a neighbor");
-							}
-						}
-					}
+					this.draw_neighbor_shadows();
 				} else {
+					this.draw_shadows();
 					window.Map.set('pathfinding', this.x, this.y, 0);
 				}
 			}
 		} else if (this.state == 2) { // removing
 			if (this.timer >= 1000) {
-				if (this.current_style == 'wall') { // if this is a wall, update neighbor shadows
-					var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
-					window.Map.set('pathfinding', this.x, this.y, 1);
-					for (var i = 0; i < neighbors.length; i++) {
-						if (neighbors[i] != 0) { // a tile exists
-							if (!(neighbors[i].current_style == 'wall' || neighbors[i].goal_style == 'wall')) { // it's not a wall
-								neighbors[i].draw_shadows(); // draw some shadows on it!
-								console.log("drawing shadows on a neighbor");
-							}
-						}
-					}
-				}
+				this.draw_neighbor_shadows();
 				if (this.goal_style == 'empty') { // deleting completely
 					this.state = 0;
 					this.erase();
@@ -133,20 +116,32 @@ function Tile(x, y) {
 				this.state = 2;
 			} else if (this.state == 3) { // already built
 				this.state = 2;
+				this.draw_neighbor_shadows();
 				window.Map.set('pathfinding', this.x, this.y, 0);
 				window.Tiles.under_construction.push(this);
 			}
 			this.draw();
 			return true;
-		} else if (this.blue_wall_style != this.wall_style) { // they are both wall
-			this.wall_style = this.blue_wall_style;
-			this.draw();
-			return false;
+		} else if (this.blue_style == 'wall') { 
+			if (this.blue_wall_style != this.wall_style) { // they are both wall
+				this.wall_style = this.blue_wall_style;
+				this.draw();
+				return false;
+			}
 		} else {
 			return false; // no action is needed
 		}
 	}
 	
+	// update the neighbors' shadows
+	Tile.prototype.draw_neighbor_shadows = function() {
+		var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
+		for (var i = 0; i < neighbors.length; i++) {
+			if (neighbors[i] != 0) { // a tile exists
+				neighbors[i].draw_shadows(); // draw some shadows on it!
+			}
+		}
+	}
 	
 	// get's the unique binary value for this tile. if count_blues is true, it will count unbuilt blue tiles
 	Tile.prototype.get_bin_value = function(count_blues) {
@@ -167,8 +162,8 @@ function Tile(x, y) {
 	Tile.prototype.determine_wall_style = function(count_blues) {
 		var bin_val = this.get_bin_value(count_blues);
 		var wall_style = window.Tiles.wall_styles[bin_val]
-		console.log(bin_val + ':  wall_ext_' + window.Tiles.wall_styles[bin_val]);
-		console.log(bin_val);
+		//console.log(bin_val + ':  wall_ext_' + window.Tiles.wall_styles[bin_val]);
+		//console.log(bin_val);
 		if (wall_style != undefined) {
 			return ('wall_base_' + window.Tiles.wall_styles[bin_val]);
 		} else if ( bin_val == 0 ) { // no neighbors
@@ -225,7 +220,7 @@ function Tile(x, y) {
 				} else {
 					window.Draw.use_layer("blueprints");
 					window.Draw.clear_box(x, y, tilesize, tilesize);
-					window.Draw.image(this.wall_style, x, y);
+					window.Draw.image(this.blue_wall_style, x, y);
 					window.Draw.image("blueprint4", x, y);
 				}
 			} else {
@@ -235,7 +230,11 @@ function Tile(x, y) {
 				if (this.blue_style != this.goal_style) { // the blueprint wants something different than the current construction
 					window.Draw.use_layer("blueprints");
 					window.Draw.clear_box(x, y, tilesize, tilesize);
-					window.Draw.image(this.blue_style, x, y);
+					if (this.blue_style == 'wall') {
+						window.Draw.image(this.blue_wall_style, x, y);
+					} else {
+						window.Draw.image(this.blue_style, x, y);
+					}
 					window.Draw.image("blueprint1", x, y);
 				} else {
 					window.Draw.use_layer("blueprints");
@@ -270,7 +269,11 @@ function Tile(x, y) {
 				} else { // tile is being changed
 					window.Draw.use_layer("blueprints");
 					window.Draw.clear_box(x, y, tilesize, tilesize);
-					window.Draw.image(this.goal_style, x, y);
+					if (this.goal_style == 'wall') {
+						window.Draw.image(this.wall_style, x, y);
+					} else {
+						window.Draw.image(this.goal_style, x, y);
+					}
 					window.Draw.image("blueprint1", x, y);
 				}
 			}
@@ -307,6 +310,11 @@ function Tile(x, y) {
 						window.Draw.clear_box(x, y, tilesize, tilesize);
 						window.Draw.image(this.current_style, x, y);
 						window.Draw.image("blueprint3", x, y);
+					} else if (this.blue_style == 'wall') {
+						window.Draw.use_layer("blueprints");
+						window.Draw.clear_box(x, y, tilesize, tilesize);
+						window.Draw.image(this.blue_wall_style, x, y);
+						window.Draw.image("blueprint3", x, y);
 					} else {
 						window.Draw.use_layer("blueprints");
 						window.Draw.clear_box(x, y, tilesize, tilesize);
@@ -316,7 +324,7 @@ function Tile(x, y) {
 				} else {
 					window.Draw.use_layer("blueprints");
 					window.Draw.clear_box(x, y, tilesize, tilesize);
-					window.Draw.image(this.wall_style, x, y);
+					window.Draw.image(this.blue_style, x, y);
 					window.Draw.image("blueprint4", x, y);
 				}
 			}
@@ -324,75 +332,78 @@ function Tile(x, y) {
 	}
 	
 	Tile.prototype.draw_shadows = function() {
-		var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
-		var tilesize = window.Map.tilesize;
-		var x = this.x * tilesize;
-		var y = this.y * tilesize;
-		window.Draw.use_layer("wall_shadows");
-		window.Draw.clear_box(x, y, tilesize, tilesize);
-		var walls = [];
-		for (i = 0; i < neighbors.length; i++) {
-			if (neighbors[i] != 0) {
-				if (neighbors[i].is_wall()) {
-					walls.push(true);
+		if (this.current_style == 'wall' || this.goal_style == 'wall' || this.current_style == 'empty') {
+			window.Draw.use_layer("wall_shadows");
+			window.Draw.clear_box(x, y, tilesize, tilesize);
+		} else {
+			var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
+			var tilesize = window.Map.tilesize;
+			var x = this.x * tilesize;
+			var y = this.y * tilesize;
+			window.Draw.use_layer("wall_shadows");
+			window.Draw.clear_box(x, y, tilesize, tilesize);
+			var walls = [];
+			for (i = 0; i < neighbors.length; i++) {
+				if (neighbors[i] != 0) {
+					if (neighbors[i].is_wall()) {
+						walls.push(true);
+					} else {
+						walls.push(false);
+					}
 				} else {
 					walls.push(false);
 				}
-			} else {
-				walls.push(false);
+				
 			}
 			
+			// check top
+			if (walls[1]) {
+				window.Draw.image('shadow_1', x, y);
+			}
+			
+			// check right
+			if (walls[3]) {
+				window.Draw.image('shadow_4', x, y);
+			}
+			
+			// check bottom
+			if (walls[5]) {
+				window.Draw.image('shadow_3', x, y);
+			}
+			
+			// check left
+			if (walls[7]) {
+				window.Draw.image('shadow_2', x, y);
+			}
+			
+			// top and right
+			if (walls[1] && walls[3]) {
+				window.Draw.image('shadow_9', x, y);
+			} else if (!walls[1] && !walls[3] && walls[2]) {
+				window.Draw.image('shadow_8', x, y);
+			}
+			
+			// right and bottom
+			if (walls[3] && walls[5]) {
+				window.Draw.image('shadow_10', x, y);
+			} else if (!walls[3] && !walls[5] && walls[4]) {
+				window.Draw.image('shadow_5', x, y);
+			}
+			
+			// bottom and left
+			if (walls[5] && walls[7]) {
+				window.Draw.image('shadow_11', x, y);
+			} else if (!walls[5] && !walls[7] && walls[6]) {
+				window.Draw.image('shadow_6', x, y);
+			}
+			
+			// left and top
+			if (walls[7] && walls[1]) {
+				window.Draw.image('shadow_12', x, y);
+			} else if (!walls[7] && !walls[1] && walls[0]) {
+				window.Draw.image('shadow_7', x, y);
+			}
 		}
-		
-		// check top
-		if (walls[1]) {
-			window.Draw.image('shadow_1', x, y);
-		}
-		
-		// check right
-		if (walls[3]) {
-			window.Draw.image('shadow_4', x, y);
-		}
-		
-		// check bottom
-		if (walls[5]) {
-			window.Draw.image('shadow_3', x, y);
-		}
-		
-		// check left
-		if (walls[7]) {
-			window.Draw.image('shadow_2', x, y);
-		}
-		
-		// top and right
-		if (walls[1] && walls[3]) {
-			window.Draw.image('shadow_9', x, y);
-		} else if (!walls[1] && !walls[3] && walls[2]) {
-			window.Draw.image('shadow_8', x, y);
-		}
-		
-		// right and bottom
-		if (walls[3] && walls[5]) {
-			window.Draw.image('shadow_10', x, y);
-		} else if (!walls[3] && !walls[5] && walls[4]) {
-			window.Draw.image('shadow_5', x, y);
-		}
-		
-		// bottom and left
-		if (walls[5] && walls[7]) {
-			window.Draw.image('shadow_11', x, y);
-		} else if (!walls[5] && !walls[7] && walls[6]) {
-			window.Draw.image('shadow_6', x, y);
-		}
-		
-		// left and top
-		if (walls[7] && walls[1]) {
-			window.Draw.image('shadow_12', x, y);
-		} else if (!walls[7] && !walls[1] && walls[0]) {
-			window.Draw.image('shadow_7', x, y);
-		}
-		
-		
 	}	
 }
 
