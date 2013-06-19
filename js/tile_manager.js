@@ -34,6 +34,7 @@ function Tile(x, y) {
 					this.set_blueprint('wall');
 					this.get_walls();
 				} else {
+					this.get_walls();
 					this.blue_style = 'wall';
 				}
 			} else {
