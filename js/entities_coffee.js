@@ -11,7 +11,9 @@
     'need': ['I need a $1', 'anybody seen a $1?'],
     'location': ['the $1 is over there', 'I saw a $1', 'look, $1', 'here is the $1'],
     'forget': ['no $1 here'],
-    'greet': ['Nice to meet you, $1']
+    'greet': ['Nice to meet you, $1'],
+    'sup': ['what are you up to?', "what's up?", 'hey $1'],
+    'follow': ['follow me', 'come, $1', 'I need a hand']
   };
 
   Entity = (function() {
@@ -498,14 +500,25 @@
     };
 
     Talker.prototype.converse = function() {
-      var me, target;
+      var follow_target, me, target;
       if (this.conversation_partner) {
         this.conversation_timer += 1;
         target = new Vector(this.conversation_partner.pos[0], this.conversation_partner.pos[1], 0);
         me = new Vector(this.pos[0], this.pos[1], 0);
-        this.vector = Vector.lerp(this.vector, target.subtract(me), this.turn_speed);
+        this.vector = Vector.lerp(this.vector, target.subtract(me), .001);
       }
-      if (this.conversation_timer > 200) {
+      if (this.conversation_timer > 150) {
+        if (Math.random() < .5 && !this.follow_target) {
+          follow_target = this.conversation_partner;
+          follow_target.follow_target = this;
+          follow_target.state = 'follow';
+          follow_target.follow_timer = 800;
+          this.say('follow', follow_target.nombre);
+          this.conversation_partner = false;
+          this.conversation_timer = 0;
+          this.state = 'wander';
+          return;
+        }
         this.conversation_partner = false;
         this.conversation_timer = 0;
         return this.state = 'idle';
@@ -531,25 +544,29 @@
       if (arg2 == null) {
         arg2 = false;
       }
+      this.debug.push(this.voice_que.length);
+      if (this.memory.objects.suit != null) {
+        this.debug.push(this.memory.objects.suit.length);
+      }
       phrase = this.get_phrase(key);
       if (phrase) {
-        if (this.voice_que.length < 1) {
+        if (this.voice_que.length < 5) {
           if (key === 'help') {
-            this.voice_que.push([phrase.replace(/[$][1]/g, arg1), 0, 'emergency']);
+            return this.voice_que.push([phrase.replace(/[$][1]/g, arg1), 0, 'emergency']);
           } else {
             this.voice_que.push([phrase.replace(/[$][1]/g, arg1), 0]);
-          }
-          _ref = window.Entities.sentient;
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            guy = _ref[_i];
-            if (guy !== this && guy.hear) {
-              _results.push(guy.hear(this, key, arg1, arg2));
-            } else {
-              _results.push(void 0);
+            _ref = window.Entities.sentient;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              guy = _ref[_i];
+              if (guy !== this && guy.hear) {
+                _results.push(guy.hear(this, key, arg1, arg2));
+              } else {
+                _results.push(void 0);
+              }
             }
+            return _results;
           }
-          return _results;
         }
       }
     };
@@ -565,7 +582,7 @@
     };
 
     Talker.prototype._process = function() {
-      var arg1, arg2, blocked, entity, found, key, mem, need, needs, obj, r, talk, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
+      var arg1, arg2, blocked, entity, found, key, mem, need, obj, r, talk, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
       _ref = this.hear_que;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         talk = _ref[_i];
@@ -573,7 +590,9 @@
         key = talk[1];
         arg1 = talk[2];
         arg2 = talk[3];
-        needs = [];
+        if (!this.needs) {
+          this.needs = [];
+        }
         blocked = [];
         if (key === 'forget') {
           if (arg1 && arg2) {
@@ -582,21 +601,27 @@
         }
         if (key === 'need') {
           if (arg1) {
-            if (__indexOf.call(needs, arg1) < 0) {
-              needs.push(arg1);
+            if (__indexOf.call(this.needs, arg1) < 0) {
+              this.needs.push(arg1);
             }
           }
         }
         if (key === 'location') {
-          if (arg2) {
+          if (arg1) {
             if (!this.memory.objects[arg1]) {
               this.memory.objects[arg1] = [arg2];
+              blocked.push(arg1);
             }
-            if (_ref1 = !arg2, __indexOf.call(this.memory.objects[arg1], _ref1) >= 0) {
-              this.memory.objects[arg1].push(arg2);
+            _ref1 = this.memory.objects[arg1];
+            for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+              mem = _ref1[_j];
+              if (!(arg2[0] === mem[0] && arg2[1] === mem[1])) {
+                console.log('learned a location');
+                this.memory.objects[arg1].push(arg2);
+                blocked.push(arg1);
+              }
             }
           }
-          blocked.push(arg1);
         }
         if (key === 'greet') {
           if (arg1 && arg1 === this.nombre) {
@@ -606,21 +631,23 @@
             this.say('greet', entity.nombre);
           }
         }
-        for (_j = 0, _len1 = needs.length; _j < _len1; _j++) {
-          need = needs[_j];
+        _ref2 = this.needs;
+        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+          need = _ref2[_k];
           if (__indexOf.call(blocked, need) < 0) {
             if (this.memory.objects[need] && this.memory.objects[need].length > 0) {
-              _ref2 = this.memory.objects[need];
-              for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-                mem = _ref2[_k];
+              _ref3 = this.memory.objects[need];
+              for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+                mem = _ref3[_l];
                 r = window.Map.get('objects', mem[0], mem[1]);
                 found = false;
                 if (r && r.length > 0) {
-                  for (_l = 0, _len3 = r.length; _l < _len3; _l++) {
-                    obj = r[_l];
+                  for (_m = 0, _len4 = r.length; _m < _len4; _m++) {
+                    obj = r[_m];
                     if (obj.nombre === need) {
                       found = true;
                       this.say('location', need, this.memory.objects[need][0]);
+                      this.needs.remove(need);
                       this.hear_que = [];
                       return;
                     } else {
@@ -684,6 +711,15 @@
         }
         if (this.oxygen < 0) {
           this.die();
+          return;
+        }
+      }
+      if (this.follow_target) {
+        this.debug.push(this.nombre + ' / ' + this.follow_target.nombre);
+        this.follow_timer -= 1;
+        if (this.follow_timer <= 0) {
+          this.follow_target = false;
+          return this.follow_timer = 150;
         }
       }
     };
@@ -698,6 +734,7 @@
 
     Colonist.prototype.idle = function() {
       var use;
+      this.mood = 'busy';
       if ((this.state_que != null) && this.state_que.length > 0) {
         use = this.state_que[0];
         this.state_que = this.state_que.slice(1, this.state_que.length);
@@ -723,7 +760,21 @@
           return;
         }
       }
+      if (this.follow_target && (this.follow_timer != null) && this.follow_timer > 0) {
+        this.state = 'follow';
+        return;
+      }
+      this.mood = 'bored';
       return this.state = 'work';
+    };
+
+    Colonist.prototype.follow = function() {
+      if (!(this.follow_timer != null)) {
+        this.follow_timer = 150;
+      }
+      if (this.follow_target) {
+        return this.path_to(this.follow_target.tile_pos);
+      }
     };
 
     Colonist.prototype.asphyxiation = function() {
@@ -761,8 +812,15 @@
     };
 
     Colonist.prototype.find_object = function() {
-      var loc, _i, _len, _ref;
+      var list, loc, _i, _len, _ref;
       if ((this.memory.objects[this.want] != null) && this.memory.objects[this.want].length > 0) {
+        list = this.memory.objects[this.want];
+        if (Math.random() < .33) {
+          list = list.sort();
+        }
+        if (Math.random() < .33) {
+          list = list.reverse();
+        }
         _ref = this.memory.objects[this.want];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           loc = _ref[_i];
@@ -803,7 +861,7 @@
       }
       if (!found) {
         this.state_que = [];
-        this.state = 'idle';
+        this.state = 'inventory';
         if (this._forget(this.want, this.tile_pos)) {
           this.say('forget', this.want, this.tile_pos);
           this.want = false;
@@ -851,13 +909,22 @@
         if (near) {
           for (_i = 0, _len = near.length; _i < _len; _i++) {
             guy = near[_i];
-            if (!this.memory.entities[guy.nombre]) {
-              if ((_ref = guy.state) === 'idle' || _ref === 'wait' || _ref === 'break') {
-                this.memory.entities[guy.nombre] = true;
-                this.say('greet', guy.nombre);
-                this.conversation_partner = guy;
-                this.state = 'converse';
-                return;
+            if (guy !== this) {
+              if (((_ref = guy.state) === 'idle' || _ref === 'wait' || _ref === 'break') && (guy.mood != null) && guy.mood === 'bored') {
+                if (new Vector(guy.pos[0], guy.pos[1], 0).subtract(new Vector(this.pos[0], this.pos[1], 0)).length() < 40) {
+                  if (!this.memory.entities[guy.nombre]) {
+                    this.memory.entities[guy.nombre] = true;
+                    this.say('greet', guy.nombre);
+                    this.conversation_partner = guy;
+                    this.state = 'converse';
+                    return;
+                  } else {
+                    this.say('sup', guy.nombre);
+                    this.conversation_partner = guy;
+                    this.state = 'converse';
+                    return;
+                  }
+                }
               }
             }
           }
@@ -957,7 +1024,7 @@
     };
 
     Engineer.prototype.inventory = function() {
-      var i, j, obj, objs, pos, _i, _j, _k, _len;
+      var i, j, l, obj, objs, pos, _i, _j, _k, _len;
       for (i = _i = -2; _i <= 2; i = ++_i) {
         for (j = _j = -2; _j <= 2; j = ++_j) {
           objs = window.Map.get('objects', this.tile_pos[0] + i, this.tile_pos[1] + j);
@@ -966,7 +1033,9 @@
               obj = objs[_k];
               pos = [obj.tile_pos[0], obj.tile_pos[1]];
               if (this.memory.objects[obj.nombre]) {
-                this.memory.objects[obj.nombre].push(pos);
+                l = this.memory.objects[obj.nombre];
+                l = l.slice(l.length - 4, l.length);
+                l.push(pos);
               } else {
                 this.memory.objects[obj.nombre] = [pos];
               }

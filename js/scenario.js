@@ -17,15 +17,15 @@
     airtanks = new E.Airtank('airtanks', 'airtanks', [cx - (3 * 32), cy + (-1 * 32)]);
     wrench = new E.Thing('wrench', 'wrench', [cx - (4 * 32), cy + (0 * 32)]);
     solarpanel = new E.Thing('solarpanel', 'solarpanel', [cx - (2 * 32), cy - (8 * 32)]);
-    for (i = _i = 0; _i <= 2; i = ++_i) {
+    for (i = _i = 0; _i <= 3; i = ++_i) {
       for (j = _j = 0; _j <= 1; j = ++_j) {
         suit = new E.Thing('suit', 'engineer', [cx + ((i - 2) * 32), cy + ((j - 2) * 32)]);
       }
     }
     _results = [];
     for (i = _k = 0; _k <= 7; i = ++_k) {
-      x = parseInt(Math.random() * 300 + (window.Map.width * window.Map.tilesize / 2) - 150);
-      y = parseInt(Math.random() * 300 + (window.Map.width * window.Map.tilesize / 2) - 150);
+      x = parseInt(Math.random() * 600 + (window.Map.width * window.Map.tilesize / 2) - 300);
+      y = parseInt(Math.random() * 600 + (window.Map.width * window.Map.tilesize / 2) - 300);
       name = names[parseInt(Math.random() * names.length)];
       advanced = new E.Engineer(name, 'colonist', [x, y]);
       advanced.speed = 1.5;
