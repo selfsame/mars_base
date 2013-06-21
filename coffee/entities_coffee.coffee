@@ -395,7 +395,7 @@ class Talker extends Walker
       @debug.push @memory.objects.suit.length
     phrase = @get_phrase(key)
     if phrase
-      if @voice_que.length < 5
+      if @voice_que.length < 2
         if key is 'help'
           @voice_que.push [phrase.replace(/[$][1]/g, arg1), 0, 'emergency']
         else
@@ -484,7 +484,15 @@ class Colonist extends Talker
     @init_voice()
     @goal_actions =
       oxygen: ['']
+    @walk_frame = 0
   update: (delta)->
+    if @vvv
+      len = @vvv.length()
+      if len > .2
+
+        @walk_frame += len*.25
+        if @walk_frame > 12
+          @walk_frame = 0
 
     if @oxygen?
       tile = window.Map.get('floor', @tile_pos[0], @tile_pos[1])
@@ -512,9 +520,33 @@ class Colonist extends Talker
       if @follow_timer <= 0
         @follow_target = false
         @follow_timer = 150
+
+  draw_sprite: ()->
+    
+    offset = [parseInt(@walk_frame)%4,parseInt(parseInt(@walk_frame)/4)]
+
+    rotation = false
+    if @vector and @rotate_sprite
+      rotation = Math.atan2(@vector.y, @vector.x)
+      rotation += Math.PI/2
+      #rotation -= (2*Math.PI)/4
+      #rotation = -rotation
+    if @footprint_img
+      if @draw_prints
+        @draw_prints = 0
+        window.Draw.use_layer 'background'
+        window.Draw.image(@footprint_img, @pos[0], @pos[1], 32, 32, rotation)
+
+    window.Draw.use_layer 'entities'
+    
+    window.Draw.sub_image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @sprite_size, offset, rotation)
+
+
   die: ->
 
     corpse = new Thing('a corpse', 'corpse', @pos)
+    corpse.sprite_size = 64
+    corpse.sprite_offset = [-32,-32]
     @destroy()
 
   pause: ->
@@ -650,7 +682,7 @@ class Colonist extends Talker
     @suit = true
     @oxygen = 6000
     @max_oxygen = 6000
-    @image = 'engineer'
+    @image = 'suitwalk'
     @state = 'idle'
   work: ->
     @state = 'break'
@@ -750,15 +782,15 @@ class Engineer extends Colonist
           @state = 'break'
 
   inventory: ->
-    for i in [-2..2]
-      for j in [-2..2]
+    for i in [-3..3]
+      for j in [-3..3]
         objs = window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
         if objs
           for obj in objs
               pos = [obj.tile_pos[0], obj.tile_pos[1]]
               if @memory.objects[obj.nombre]
                 l = @memory.objects[obj.nombre]
-                l = l.slice(l.length-4, l.length)
+                #l = l.slice(l.length-15, l.length)
                 l.push pos
 
 
@@ -932,5 +964,8 @@ $(window).ready ->
   window.Draw.add_image('solarpanel', "./textures/objects/solarpanel.png")
   window.Draw.add_image('wrench', "./textures/objects/wrench.png")
   
+
+  window.Draw.add_image('barewalk', "./textures/astronauts/colonist_bare_walk.png")
+  window.Draw.add_image('suitwalk', "./textures/astronauts/colonist_suit_walk.png")
 
   window.Entities.init()

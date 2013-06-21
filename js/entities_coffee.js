@@ -550,7 +550,7 @@
       }
       phrase = this.get_phrase(key);
       if (phrase) {
-        if (this.voice_que.length < 5) {
+        if (this.voice_que.length < 2) {
           if (key === 'help') {
             return this.voice_que.push([phrase.replace(/[$][1]/g, arg1), 0, 'emergency']);
           } else {
@@ -684,13 +684,23 @@
       this.max_oxygen = this.oxygen;
       this.state = 'idle';
       this.init_voice();
-      return this.goal_actions = {
+      this.goal_actions = {
         oxygen: ['']
       };
+      return this.walk_frame = 0;
     };
 
     Colonist.prototype.update = function(delta) {
-      var tile, w;
+      var len, tile, w;
+      if (this.vvv) {
+        len = this.vvv.length();
+        if (len > .2) {
+          this.walk_frame += len * .25;
+          if (this.walk_frame > 12) {
+            this.walk_frame = 0;
+          }
+        }
+      }
       if (this.oxygen != null) {
         tile = window.Map.get('floor', this.tile_pos[0], this.tile_pos[1]);
         if (tile && tile.built) {
@@ -724,9 +734,30 @@
       }
     };
 
+    Colonist.prototype.draw_sprite = function() {
+      var offset, rotation;
+      offset = [parseInt(this.walk_frame) % 4, parseInt(parseInt(this.walk_frame) / 4)];
+      rotation = false;
+      if (this.vector && this.rotate_sprite) {
+        rotation = Math.atan2(this.vector.y, this.vector.x);
+        rotation += Math.PI / 2;
+      }
+      if (this.footprint_img) {
+        if (this.draw_prints) {
+          this.draw_prints = 0;
+          window.Draw.use_layer('background');
+          window.Draw.image(this.footprint_img, this.pos[0], this.pos[1], 32, 32, rotation);
+        }
+      }
+      window.Draw.use_layer('entities');
+      return window.Draw.sub_image(this.image, this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0], this.sprite_size, this.sprite_size, this.sprite_size, offset, rotation);
+    };
+
     Colonist.prototype.die = function() {
       var corpse;
       corpse = new Thing('a corpse', 'corpse', this.pos);
+      corpse.sprite_size = 64;
+      corpse.sprite_offset = [-32, -32];
       return this.destroy();
     };
 
@@ -887,7 +918,7 @@
       this.suit = true;
       this.oxygen = 6000;
       this.max_oxygen = 6000;
-      this.image = 'engineer';
+      this.image = 'suitwalk';
       return this.state = 'idle';
     };
 
@@ -1025,8 +1056,8 @@
 
     Engineer.prototype.inventory = function() {
       var i, j, l, obj, objs, pos, _i, _j, _k, _len;
-      for (i = _i = -2; _i <= 2; i = ++_i) {
-        for (j = _j = -2; _j <= 2; j = ++_j) {
+      for (i = _i = -3; _i <= 3; i = ++_i) {
+        for (j = _j = -3; _j <= 3; j = ++_j) {
           objs = window.Map.get('objects', this.tile_pos[0] + i, this.tile_pos[1] + j);
           if (objs) {
             for (_k = 0, _len = objs.length; _k < _len; _k++) {
@@ -1034,7 +1065,6 @@
               pos = [obj.tile_pos[0], obj.tile_pos[1]];
               if (this.memory.objects[obj.nombre]) {
                 l = this.memory.objects[obj.nombre];
-                l = l.slice(l.length - 4, l.length);
                 l.push(pos);
               } else {
                 this.memory.objects[obj.nombre] = [pos];
@@ -1245,6 +1275,8 @@
     window.Draw.add_image('emptytanks', "./textures/objects/emptytanks.png");
     window.Draw.add_image('solarpanel', "./textures/objects/solarpanel.png");
     window.Draw.add_image('wrench', "./textures/objects/wrench.png");
+    window.Draw.add_image('barewalk', "./textures/astronauts/colonist_bare_walk.png");
+    window.Draw.add_image('suitwalk', "./textures/astronauts/colonist_suit_walk.png");
     return window.Entities.init();
   });
 

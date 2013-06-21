@@ -27,7 +27,7 @@
       x = parseInt(Math.random() * 600 + (window.Map.width * window.Map.tilesize / 2) - 300);
       y = parseInt(Math.random() * 600 + (window.Map.width * window.Map.tilesize / 2) - 300);
       name = names[parseInt(Math.random() * names.length)];
-      advanced = new E.Engineer(name, 'colonist', [x, y]);
+      advanced = new E.Engineer(name, 'barewalk', [x, y]);
       advanced.speed = 1.5;
       advanced.sprite_offset = [0, 0];
       _results.push(advanced.sprite_size = 32);
