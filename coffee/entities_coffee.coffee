@@ -5,6 +5,8 @@ window.phrases =
   'location': ['the $1 is over there', 'I saw a $1', 'look, $1', 'here is the $1']
   'forget': ['no $1 here']
   'greet': ['Nice to meet you, $1']
+  'sup': ['what are you up to?', "what's up?", 'hey $1']
+  'follow':['follow me', 'come, $1', 'I need a hand']
 
 
 class Entity
@@ -361,8 +363,20 @@ class Talker extends Walker
       target = new Vector(@conversation_partner.pos[0],@conversation_partner.pos[1],0)
       me = new Vector(@pos[0],@pos[1],0)
 
-      @vector = Vector.lerp(@vector, target.subtract(me), @turn_speed)
-    if @conversation_timer > 200
+      @vector = Vector.lerp(@vector, target.subtract(me), .001)
+    if @conversation_timer > 150
+      if Math.random() < .5 and not @follow_target
+
+        follow_target = @conversation_partner
+
+        follow_target.follow_target = @
+        follow_target.state = 'follow'
+        follow_target.follow_timer = 800
+        @say 'follow', follow_target.nombre
+        @conversation_partner = false
+        @conversation_timer = 0
+        @state = 'wander'
+        return
       @conversation_partner = false
       @conversation_timer = 0
       @state = 'idle'
@@ -376,16 +390,19 @@ class Talker extends Walker
         return choice #choice
 
   say: (key, arg1=false, arg2=false)->
+    @debug.push @voice_que.length
+    if @memory.objects.suit?
+      @debug.push @memory.objects.suit.length
     phrase = @get_phrase(key)
     if phrase
-      if @voice_que.length < 1
+      if @voice_que.length < 2
         if key is 'help'
           @voice_que.push [phrase.replace(/[$][1]/g, arg1), 0, 'emergency']
         else
           @voice_que.push [phrase.replace(/[$][1]/g, arg1), 0]
-        for guy in window.Entities.sentient
-          if guy isnt @ and guy.hear
-            guy.hear(@, key, arg1, arg2)
+          for guy in window.Entities.sentient
+            if guy isnt @ and guy.hear
+              guy.hear(@, key, arg1, arg2)
 
 
 
@@ -400,32 +417,37 @@ class Talker extends Walker
       key = talk[1]
       arg1 = talk[2]
       arg2 = talk[3]
-      needs = []
+      if not @needs
+        @needs = []
+
       blocked = []
       if key is 'forget'
         if arg1 and arg2
           @_forget arg1, arg2
       if key is 'need'
         if arg1
-          if arg1 not in needs
-            needs.push arg1
+          if arg1 not in @needs
+            @needs.push arg1
           
       if key is 'location'
-        if arg2
+        if arg1
           if not @memory.objects[arg1]
             @memory.objects[arg1] = [arg2]
-          if not arg2 in @memory.objects[arg1]
-            @memory.objects[arg1].push arg2
-        blocked.push arg1
+            blocked.push arg1
+          for mem in @memory.objects[arg1]
+            if not (arg2[0] is mem[0] and arg2[1] is mem[1])
+              console.log 'learned a location'
+              @memory.objects[arg1].push arg2
+              blocked.push arg1
 
       if key is 'greet'
-        if arg1 and arg1 is @.nombre
+        if arg1 and arg1 is @nombre
           @conversation_partner = entity
           @state_que = []
           @state = 'converse'
           @say 'greet', entity.nombre
 
-      for need in needs
+      for need in @needs
         if need not in blocked
           if @memory.objects[need] and @memory.objects[need].length > 0
               for mem in @memory.objects[need]
@@ -436,6 +458,7 @@ class Talker extends Walker
                     if obj.nombre is need
                       found = true
                       @say 'location', need, @memory.objects[need][0]
+                      @needs.remove need
                       @hear_que = []
                       return
                     else
@@ -461,7 +484,15 @@ class Colonist extends Talker
     @init_voice()
     @goal_actions =
       oxygen: ['']
+    @walk_frame = 0
   update: (delta)->
+    if @vvv
+      len = @vvv.length()
+      if len > .2
+
+        @walk_frame += len*.25
+        if @walk_frame > 12
+          @walk_frame = 0
 
     if @oxygen?
       tile = window.Map.get('floor', @tile_pos[0], @tile_pos[1])
@@ -483,9 +514,39 @@ class Colonist extends Talker
       if @oxygen < 0
         @die()
         return
+    if @follow_target
+      @debug.push @nombre+' / '+ @follow_target.nombre
+      @follow_timer -= 1
+      if @follow_timer <= 0
+        @follow_target = false
+        @follow_timer = 150
+
+  draw_sprite: ()->
+    
+    offset = [parseInt(@walk_frame)%4,parseInt(parseInt(@walk_frame)/4)]
+
+    rotation = false
+    if @vector and @rotate_sprite
+      rotation = Math.atan2(@vector.y, @vector.x)
+      rotation += Math.PI/2
+      #rotation -= (2*Math.PI)/4
+      #rotation = -rotation
+    if @footprint_img
+      if @draw_prints
+        @draw_prints = 0
+        window.Draw.use_layer 'background'
+        window.Draw.image(@footprint_img, @pos[0], @pos[1], 32, 32, rotation)
+
+    window.Draw.use_layer 'entities'
+    
+    window.Draw.sub_image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @sprite_size, offset, rotation)
+
+
   die: ->
 
     corpse = new Thing('a corpse', 'corpse', @pos)
+    corpse.sprite_size = 64
+    corpse.sprite_offset = [-32,-32]
     @destroy()
 
   pause: ->
@@ -493,6 +554,7 @@ class Colonist extends Talker
 
   idle: ->
     #finish que of states
+    @mood = 'busy'
     if @state_que? and @state_que.length > 0
 
       use = @state_que[0]
@@ -518,8 +580,21 @@ class Colonist extends Talker
         @state_que.push 'find_object'
         @state_que.push 'use_object'
         return
+    if @follow_target and @follow_timer? and @follow_timer > 0
+      @state = 'follow'
+      return
     #figure out what to do
+    @mood = 'bored'
     @state = 'work'
+
+
+  follow: ->
+    if not @follow_timer?
+      @follow_timer = 150
+    if @follow_target
+      @path_to @follow_target.tile_pos
+    
+      
 
   asphyxiation: ->
     @say 'help'
@@ -550,6 +625,11 @@ class Colonist extends Talker
   find_object: ->
 
     if @memory.objects[@want]? and @memory.objects[@want].length > 0
+      list = @memory.objects[@want]
+      if Math.random() < .33
+        list = list.sort()
+      if Math.random() < .33
+        list = list.reverse()
       for loc in @memory.objects[@want]
         if @path_to loc
           console.log @path
@@ -583,7 +663,7 @@ class Colonist extends Talker
 
     if not found
       @state_que = []
-      @state = 'idle'
+      @state = 'inventory'
       if @_forget @want, @tile_pos
         @say 'forget', @want, @tile_pos
         @want = false
@@ -602,7 +682,7 @@ class Colonist extends Talker
     @suit = true
     @oxygen = 6000
     @max_oxygen = 6000
-    @image = 'engineer'
+    @image = 'suitwalk'
     @state = 'idle'
   work: ->
     @state = 'break'
@@ -617,13 +697,20 @@ class Colonist extends Talker
       near = window.Entities.sentient_hash.get_within @pos, 80
       if near
         for guy in near
-          if not @memory.entities[guy.nombre]
-            if guy.state in ['idle','wait','break']
-              @memory.entities[guy.nombre] = true
-              @say 'greet', guy.nombre
-              @conversation_partner = guy
-              @state = 'converse'
-              return
+          if guy isnt @
+            if guy.state in ['idle','wait','break'] and guy.mood? and guy.mood is 'bored'
+              if new Vector(guy.pos[0], guy.pos[1], 0).subtract( new Vector(@pos[0], @pos[1], 0) ).length() < 40
+                if not @memory.entities[guy.nombre]
+                  @memory.entities[guy.nombre] = true
+                  @say 'greet', guy.nombre
+                  @conversation_partner = guy
+                  @state = 'converse'
+                  return
+                else
+                  @say 'sup', guy.nombre
+                  @conversation_partner = guy
+                  @state = 'converse'
+                  return
 
 
 
@@ -695,14 +782,17 @@ class Engineer extends Colonist
           @state = 'break'
 
   inventory: ->
-    for i in [-2..2]
-      for j in [-2..2]
+    for i in [-3..3]
+      for j in [-3..3]
         objs = window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
         if objs
           for obj in objs
               pos = [obj.tile_pos[0], obj.tile_pos[1]]
               if @memory.objects[obj.nombre]
-                @memory.objects[obj.nombre].push pos
+                l = @memory.objects[obj.nombre]
+                #l = l.slice(l.length-15, l.length)
+                l.push pos
+
 
                 
               else
@@ -874,5 +964,8 @@ $(window).ready ->
   window.Draw.add_image('solarpanel', "./textures/objects/solarpanel.png")
   window.Draw.add_image('wrench', "./textures/objects/wrench.png")
   
+
+  window.Draw.add_image('barewalk', "./textures/astronauts/colonist_bare_walk.png")
+  window.Draw.add_image('suitwalk', "./textures/astronauts/colonist_suit_walk.png")
 
   window.Entities.init()

@@ -325,7 +325,7 @@ $(window).ready ->
 			@context.clearRect(x,y,w,h)
 
 
-		sub_image: (imgname, x,y, w, h, clipsize=32, offset=[0,0])->
+		sub_image: (imgname, x,y, w, h, clipsize=32, offset=[0,0], rotation=false)->
 
 
 			if @layer_mode is 'view'
@@ -344,7 +344,15 @@ $(window).ready ->
 			if @images[imgname]
 				sx = offset[0]*clipsize
 				sy = offset[1]*clipsize
-				@context.drawImage(@images[imgname],sx,sy, clipsize, clipsize, x, y, w, h )
+				if rotation
+					@context.save()
+					@context.translate(x+(w/2), y+(h/2) )
+					@context.rotate(rotation)
+	
+					@context.drawImage(@images[imgname],sx,sy, clipsize, clipsize, -(w/2),-(h/2), w, h )
+					@context.restore()
+				else
+					@context.drawImage(@images[imgname],sx,sy, clipsize, clipsize, x, y, w, h )
 
 
 

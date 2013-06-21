@@ -40,15 +40,15 @@ $(window).ready ->
 
 
 
-  for i in [0..2]
+  for i in [0..3]
     for j in [0..1]
       suit = new E.Thing('suit', 'engineer', [cx+((i-2)*32), cy+((j-2)*32)])
 
   for i in [0..7]
-    x = parseInt(Math.random()*300+(window.Map.width*window.Map.tilesize / 2 )-150)
-    y = parseInt(Math.random()*300+ (window.Map.width*window.Map.tilesize / 2)-150)
+    x = parseInt(Math.random()*600+(window.Map.width*window.Map.tilesize / 2 )-300)
+    y = parseInt(Math.random()*600+ (window.Map.width*window.Map.tilesize / 2)-300)
     name = names[parseInt(Math.random()*names.length)]
-    advanced = new E.Engineer(name, 'colonist', [x,y])
+    advanced = new E.Engineer(name, 'barewalk', [x,y])
     advanced.speed = 1.5
 
     advanced.sprite_offset = [0, 0]

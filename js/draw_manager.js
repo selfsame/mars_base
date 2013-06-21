@@ -423,13 +423,16 @@
         }
         return this.context.clearRect(x, y, w, h);
       },
-      sub_image: function(imgname, x, y, w, h, clipsize, offset) {
+      sub_image: function(imgname, x, y, w, h, clipsize, offset, rotation) {
         var sx, sy;
         if (clipsize == null) {
           clipsize = 32;
         }
         if (offset == null) {
           offset = [0, 0];
+        }
+        if (rotation == null) {
+          rotation = false;
         }
         if (this.layer_mode === 'view') {
           x *= this.zoom;
@@ -446,7 +449,15 @@
         if (this.images[imgname]) {
           sx = offset[0] * clipsize;
           sy = offset[1] * clipsize;
-          return this.context.drawImage(this.images[imgname], sx, sy, clipsize, clipsize, x, y, w, h);
+          if (rotation) {
+            this.context.save();
+            this.context.translate(x + (w / 2), y + (h / 2));
+            this.context.rotate(rotation);
+            this.context.drawImage(this.images[imgname], sx, sy, clipsize, clipsize, -(w / 2), -(h / 2), w, h);
+            return this.context.restore();
+          } else {
+            return this.context.drawImage(this.images[imgname], sx, sy, clipsize, clipsize, x, y, w, h);
+          }
         }
       }
     };
