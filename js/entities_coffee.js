@@ -617,6 +617,7 @@
               mem = _ref1[_j];
               if (!(arg2[0] === mem[0] && arg2[1] === mem[1])) {
                 console.log('learned a location');
+                this.memory.objects[arg1] = this.memory.objects[arg1].slice(-10, this.memory.objects[arg1].length);
                 this.memory.objects[arg1].push(arg2);
                 blocked.push(arg1);
               }
