@@ -437,6 +437,7 @@ class Talker extends Walker
           for mem in @memory.objects[arg1]
             if not (arg2[0] is mem[0] and arg2[1] is mem[1])
               console.log 'learned a location'
+              @memory.objects[arg1] = @memory.objects[arg1].slice(-10,@memory.objects[arg1].length)
               @memory.objects[arg1].push arg2
               blocked.push arg1
 
