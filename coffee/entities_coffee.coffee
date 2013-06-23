@@ -80,6 +80,18 @@ class Thing extends Entity
       obj_in_map.push @
 
 
+class Launchpad extends Thing
+  init: ->
+    window.Entities.objects.push @
+    window.Entities.objects_hash.add @
+    for i in [-1..2]
+      for j in [-1..2]
+        obj_in_map = window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
+        if not obj_in_map
+          window.Map.set('objects', @tile_pos[0]+i, @tile_pos[1]+j, [@])
+        else 
+          obj_in_map.push @
+
 class Airtank extends Thing
   use: (entity)->
     if not @oxygen
@@ -904,6 +916,7 @@ window.Entities =
       Thing: Thing
       Engineer: Engineer
       Airtank: Airtank
+      Launchpad: Launchpad
 
     @path_finder = new PF.JumpPointFinder()
     #@path_finder = new PF.AStarFinder()
