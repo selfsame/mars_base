@@ -30,10 +30,15 @@ $(window).ready( function(){
 			$(this).data('active', false);
 			$(this).parent().find('.ui_menu_dropdown').animate({'height':'0px', opacity:.2},500);
 			window.Tiles.edit_mode = false;
+			window.Draw.show_layer("wall_shadows");
+			window.Draw.hide_layer("blueprints");
 		} else {
 			$(this).data('active', true);
 			$(this).parent().find('.ui_menu_dropdown').animate({'height':'500px', opacity:1.0},500);
 			window.Tiles.edit_mode = true;
+			window.Draw.hide_layer("wall_shadows");
+			window.Draw.show_layer("blueprints");
+			
 		}
 
 		$(this).parent().find('.ui_menu_option').each(function(){
@@ -43,4 +48,18 @@ $(window).ready( function(){
 		});
 		
 	});
+	menu.append( '<div id="confirm_build" class="ui_menu_option"><p class="">CONFIRM</p><img src="./textures/UI/confirm.png"></div>' );
+	$('#confirm_build').click(function(e){
+
+		window.Tiles.confirm_blueprints()
+		m_button.click();
+	});
+
+	menu.append( '<div id="cancel_build" class="ui_menu_option"><p class="">CANCEL</p><img src="./textures/UI/cancel.png"></div>' );
+	$('#cancel_build').click(function(e){
+
+		window.Tiles.cancel_blueprints()
+		m_button.click();
+	});
+
 });

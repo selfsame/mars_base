@@ -544,10 +544,12 @@ class Colonist extends Talker
 
 
   die: ->
-
-    corpse = new Thing('a corpse', 'corpse', @pos)
-    corpse.sprite_size = 64
-    corpse.sprite_offset = [-32,-32]
+    if @suit
+      corpse = new Thing('a corpse', 'suitcorpse', @pos)
+    else
+      corpse = new Thing('a corpse', 'corpse', @pos)
+    corpse.sprite_size = 48
+    corpse.sprite_offset = [-24,-24]
     @destroy()
 
   pause: ->
@@ -956,7 +958,7 @@ $(window).ready ->
   window.Draw.add_image('wrench', "./textures/objects/wrench.png")
   window.Draw.add_image('launchpad', "./textures/objects/launchpad.png")
   window.Draw.add_image('corpse', "./textures/astronauts/corpse.png")
-
+  window.Draw.add_image('suitcorpse', "./textures/astronauts/colonist_suit_dead.png") 
   window.Draw.add_image('crate', "./textures/objects/crate_closed.png")
 
 
