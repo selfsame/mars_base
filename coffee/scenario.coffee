@@ -28,7 +28,7 @@ $(window).ready ->
   cx =(window.Map.width*32)/2
   cy = (window.Map.height*32)/2
 
-  launchpad = new E.Thing('Launchpad', 'launchpad', [cx, cy])
+  launchpad = new E.Launchpad('Launchpad', 'launchpad', [cx, cy])
   launchpad.sprite_size = 128
   launchpad.sprite_offset = [-64,-64]
 
