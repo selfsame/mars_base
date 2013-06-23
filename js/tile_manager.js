@@ -657,7 +657,7 @@ window.Tiles = {
 		} else if (e.keyCode == 82) { // r
 			this.edit_style = 'empty';
 		}
-		console.log("keycode: " + e.keyCode);
+		//console.log("keycode: " + e.keyCode);
 	},
 	mousedown: function(e){
 		if (this.edit_mode) {
