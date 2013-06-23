@@ -48,10 +48,18 @@ $(window).ready( function(){
 		});
 		
 	});
-	menu.append( '<div id="confirm_build" class="ui_menu_option"><p class="">CONFIRM</p></div>' );
+	menu.append( '<div id="confirm_build" class="ui_menu_option"><p class="">CONFIRM</p><img src="./textures/UI/confirm.png"></div>' );
 	$('#confirm_build').click(function(e){
 
 		window.Tiles.confirm_blueprints()
 		m_button.click();
 	});
+
+	menu.append( '<div id="cancel_build" class="ui_menu_option"><p class="">CANCEL</p><img src="./textures/UI/cancel.png"></div>' );
+	$('#cancel_build').click(function(e){
+
+		window.Tiles.cancel_blueprints()
+		m_button.click();
+	});
+
 });
