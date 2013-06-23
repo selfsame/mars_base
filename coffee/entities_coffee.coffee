@@ -24,6 +24,7 @@ class Entity
     @claimed = false
     @state_que = []
     @hidden = false
+    @block_build = false
   init: ->
   _update: (delta)->
     @pos_to_tile_pos()
@@ -82,6 +83,7 @@ class Thing extends Entity
 
 class Launchpad extends Thing
   init: ->
+    @block_build = true
     window.Entities.objects.push @
     window.Entities.objects_hash.add @
     for i in [-1..2]

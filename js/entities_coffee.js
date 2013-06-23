@@ -35,6 +35,7 @@
       this.claimed = false;
       this.state_que = [];
       this.hidden = false;
+      this.block_build = false;
     }
 
     Entity.prototype.init = function() {};
@@ -146,6 +147,7 @@
 
     Launchpad.prototype.init = function() {
       var i, j, obj_in_map, _i, _results;
+      this.block_build = true;
       window.Entities.objects.push(this);
       window.Entities.objects_hash.add(this);
       _results = [];
