@@ -216,11 +216,15 @@ function Tile(x, y) {
 		var mid = window.Map.get("objects", this.x, this.y);
 		var others = window.Map.get_neighbors("objects", this.x, this.y);
 		if (mid != 0) {
-			return false;
+			if (mid.block_build) {
+				return false;
+			}
 		}
 		for (var i = 0; i < others.length; i++) {
 			if (others[i] != 0) {
-				return false;
+				if (others[i].block_build) {
+					return false;
+				}
 			}
 		}
 		return true;
@@ -618,7 +622,7 @@ window.Tiles = {
 	},
 	
 	keydown: function(e){
-		alert(e.keyCode);
+		//alert(e.keyCode);
 		if (e.keyCode == 49) { // 1
 			this.edit_style = "corridor";
 			this.edit_obj = 'crate_closed';

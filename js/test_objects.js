@@ -66,9 +66,10 @@ $(window).ready(function() {
 		}
 		
 		obj_crate.prototype.draw() {
-			if (this.placed
-			
-			
+			if (this.placed) {
+			} else {
+				window.Draw
+			}
 		}
 		
 		
