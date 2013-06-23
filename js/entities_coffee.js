@@ -703,8 +703,8 @@
         }
       }
       if (this.oxygen != null) {
-        tile = window.Map.get('floor', this.tile_pos[0], this.tile_pos[1]);
-        if (tile && tile.built) {
+        tile = window.Map.get('tiles', this.tile_pos[0], this.tile_pos[1]);
+        if (tile && tile !== 0) {
           this.oxygen += 5;
         }
         if (this.oxygen > this.max_oxygen) {

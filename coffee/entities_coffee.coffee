@@ -496,9 +496,9 @@ class Colonist extends Talker
           @walk_frame = 0
 
     if @oxygen?
-      tile = window.Map.get('floor', @tile_pos[0], @tile_pos[1])
+      tile = window.Map.get('tiles', @tile_pos[0], @tile_pos[1])
 
-      if tile and tile.built
+      if tile and tile isnt 0
 
         @oxygen += 5
       if @oxygen > @max_oxygen
