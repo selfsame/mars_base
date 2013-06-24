@@ -147,6 +147,8 @@
 
     Door.prototype.init = function() {
       var obj_in_map;
+      this.drawn = false;
+      this.open = 0;
       window.Entities.objects.push(this);
       window.Entities.objects_hash.add(this);
       obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
@@ -162,9 +164,23 @@
 
     Door.prototype.draw = function() {
       var hook, _i, _len, _ref, _results;
+      this.open -= 1;
+      if (this.open < 0) {
+        this.open = 0;
+      }
       if (!this.drawn) {
-        this.drawn = true;
         window.Draw.use_layer('tiles');
+        window.Draw.clear_box(this.pos[0], this.pos[1], 32, 32);
+        window.Draw.image('supply', this.pos[0], this.pos[1], 32, 32);
+        if (this.image === 'door_h') {
+          window.Draw.image('corridor', this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0] + 11, (this.sprite_size - 1) - this.open, 10, {
+            fillStyle: 'red'
+          });
+        } else {
+          window.Draw.image('corridor', this.pos[0] + this.sprite_offset[0] + 11, this.pos[1] + this.sprite_offset[0], 10, (this.sprite_size - 1) - this.open, {
+            fillStyle: 'red'
+          });
+        }
         window.Draw.image(this.image, this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0], this.sprite_size, this.sprite_size);
       }
       _ref = this.draw_hooks;
@@ -174,6 +190,13 @@
         _results.push(this[hook]());
       }
       return _results;
+    };
+
+    Door.prototype.visited = function() {
+      this.open += 2;
+      if (this.open > 32) {
+        return this.open = 32;
+      }
     };
 
     return Door;
@@ -196,11 +219,11 @@
       window.Entities.objects.push(this);
       window.Entities.objects_hash.add(this);
       _results = [];
-      for (i = _i = -1; _i <= 2; i = ++_i) {
+      for (i = _i = -2; _i <= 3; i = ++_i) {
         _results.push((function() {
           var _j, _results1;
           _results1 = [];
-          for (j = _j = -1; _j <= 2; j = ++_j) {
+          for (j = _j = -2; _j <= 3; j = ++_j) {
             obj_in_map = window.Map.get('objects', this.tile_pos[0] + i, this.tile_pos[1] + j);
             if (!obj_in_map) {
               _results1.push(window.Map.set('objects', this.tile_pos[0] + i, this.tile_pos[1] + j, [this]));
@@ -287,8 +310,24 @@
 
     Walker.prototype.setup = function() {};
 
+    Walker.prototype._get_objects_here = function() {
+      var map;
+      map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
+      if (map && map.length) {
+        return map;
+      }
+      return [];
+    };
+
     Walker.prototype.draw = function() {
-      var hook, i, s, x, y, _i, _j, _len, _len1, _ref, _ref1, _results;
+      var hook, i, s, thing, x, y, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _results;
+      _ref = this._get_objects_here();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        thing = _ref[_i];
+        if (thing.visited) {
+          thing.visited();
+        }
+      }
       this.draw_sprite();
       window.Draw.context.fillStyle = 'white';
       window.Draw.draw_text(this.state, this.pos[0] + 2, this.pos[1] + 43, {
@@ -296,9 +335,9 @@
         font: 'courier',
         fontsize: 8
       });
-      _ref = this.debug;
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        s = _ref[i];
+      _ref1 = this.debug;
+      for (i = _j = 0, _len1 = _ref1.length; _j < _len1; i = ++_j) {
+        s = _ref1[i];
         window.Draw.draw_text(s, this.pos[0] + 18, this.pos[1] + i * 11, {
           fillStyle: 'white',
           font: 'courier',
@@ -310,10 +349,10 @@
         x = this.target[0] * window.Map.tilesize;
         y = this.target[1] * window.Map.tilesize;
       }
-      _ref1 = this.draw_hooks;
+      _ref2 = this.draw_hooks;
       _results = [];
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        hook = _ref1[_j];
+      for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+        hook = _ref2[_k];
         _results.push(this[hook]());
       }
       return _results;
@@ -456,8 +495,8 @@
       if ((avoid != null) && (avoid !== false && avoid !== (void 0)) && (avoid.x != null)) {
         l = avoid.length();
         if (l > 1) {
-          if (l > 6) {
-            avoid = avoid.unit().multiply(6);
+          if (l > 10) {
+            avoid = avoid.unit().multiply(10);
           }
           this.pos[0] += avoid.x;
           this.pos[1] += avoid.y;
@@ -489,7 +528,7 @@
         }
       }
       if (count > 0) {
-        v = v.divide(count).multiply(.11);
+        v = v.divide(count).multiply(.15);
         return v;
       }
       return false;

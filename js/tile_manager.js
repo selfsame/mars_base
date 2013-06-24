@@ -214,19 +214,19 @@ function Tile(x, y) {
 	// check if the ground is clear of any obstacles
 	Tile.prototype.check_clear = function() {
 		var mid = window.Map.get("objects", this.x, this.y);
-		var others = window.Map.get_neighbors("objects", this.x, this.y);
+		//var others = window.Map.get_neighbors("objects", this.x, this.y);
 		if (mid != 0) {
-			if (!mid.block_build) {
+			if (mid.block_build == true) {
 				return false;
 			}
 		}
-		for (var i = 0; i < others.length; i++) {
-			if (others[i] != 0) {
-				if (!others[i].block_build) {
-					return false;
-				}
-			}
-		}
+		//for (var i = 0; i < others.length; i++) {
+		//	if (others[i] != 0) {
+		//		if (!others[i].block_build) {
+		//			return false;
+		//		}
+		//	}
+		//}
 		return true;
 	}
 	
@@ -693,6 +693,6 @@ window.Tiles = {
 
 $(window).ready( function() {
 	window.Tiles.init();
-	//window.Map.layers['wall_shadows'].css('z-index',99999);
+	window.Draw.persistant_layers['wall_shadows'].css('z-index',99999);
 });
 

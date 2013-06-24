@@ -83,6 +83,9 @@ class Thing extends Entity
 
 class Door extends Thing
   init: ->
+    @drawn = false
+    @open = 0
+
     window.Entities.objects.push @
     window.Entities.objects_hash.add @
     obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
@@ -95,20 +98,34 @@ class Door extends Thing
     window.Draw.clear_box(@pos[0], @pos[1], 32, 32);
     window.Map.set('pathfinding', @tile_pos[0], @tile_pos[1], 0)
   draw: ->
+    @open -= 1
+    if @open < 0
+      @open = 0
     if not @drawn
-      @drawn = true
+      #@drawn = true
       window.Draw.use_layer 'tiles'
-      window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size)
+      window.Draw.clear_box(@pos[0], @pos[1], 32, 32);
+      window.Draw.image('supply',@pos[0], @pos[1], 32, 32);
+      if @image is 'door_h'
+        window.Draw.image('corridor', @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0]+11, (@sprite_size-1)-@open, 10, {fillStyle:'red'})
+      else
+        window.Draw.image('corridor', @pos[0]+@sprite_offset[0]+11, @pos[1]+@sprite_offset[0], 10, (@sprite_size-1)-@open, {fillStyle:'red'})
+
+      window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], (@sprite_size), @sprite_size)
     for hook in @draw_hooks
       @[hook]()
+  visited: ()->
+    @open += 2
+    if @open > 32
+      @open = 32
 
 class Launchpad extends Thing
   init: ->
     @block_build = true
     window.Entities.objects.push @
     window.Entities.objects_hash.add @
-    for i in [-1..2]
-      for j in [-1..2]
+    for i in [-2..3]
+      for j in [-2..3]
         obj_in_map = window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
         if not obj_in_map
           window.Map.set('objects', @tile_pos[0]+i, @tile_pos[1]+j, [@])
@@ -159,7 +176,16 @@ class Walker extends Entity
 
   setup: ()->
 
+  _get_objects_here: ()->
+    map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+    if map and map.length
+      return map
+    return []
+
   draw: ->
+    for thing in @_get_objects_here()
+      if thing.visited
+        thing.visited()
     @draw_sprite()
     window.Draw.context.fillStyle = 'white'
     window.Draw.draw_text(@state, @pos[0]+2, @pos[1]+43, {fillStyle: 'white', font:'courier', fontsize: 8})
@@ -299,8 +325,8 @@ class Walker extends Entity
       l = avoid.length()
       
       if l > 1 
-        if l > 6
-          avoid = avoid.unit().multiply(6)
+        if l > 10
+          avoid = avoid.unit().multiply(10)
         @pos[0] += avoid.x
         @pos[1] += avoid.y 
         window.Entities.sentient_hash.update_member @
@@ -334,7 +360,7 @@ class Walker extends Entity
           n_v = n_v.unit().multiply(32/nl)
           v = v.add( n_v )
     if count > 0
-      v = v.divide(count).multiply(.11)
+      v = v.divide(count).multiply(.15)
       return v
     return false
 
