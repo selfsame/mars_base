@@ -48,6 +48,7 @@ $(window).ready(function() {
 	})(Thing);
 	
 	
+	// a very simple crate object to test the placement
 	obj_crate = (function(_super) {
 
 		__extends(obj_crate, _super);
