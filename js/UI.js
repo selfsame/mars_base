@@ -1,10 +1,11 @@
-build = '<div class="ui_button"><p class="group2">Build<br></p><div id="menu" class="ui_menu_dropdown"></div></div>'
+build = '<div id="build" class="ui_button"><p class="group2">Build<br></p><div id="menu" class="ui_menu_dropdown"></div></div>'
 
+place = '<div id="place" class="ui_button"><p class="group2">Place object<br></p><div id="menu" class="ui_menu_dropdown"></div></div>'
 
 $(window).ready( function(){	
 	$('#UI_overlay').append( build );
 	var menu = $('#UI_overlay').find('#menu');
-	var m_button = $('#UI_overlay').find('.ui_button').children().first();
+	var m_button = $('#build').children().first();
 	var thing, _i, _len;
 	var stuff = ["corridor","supply","greenhouse","commons","laboratory","medical","power"];
 
@@ -34,7 +35,7 @@ $(window).ready( function(){
 			window.Draw.hide_layer("blueprints");
 		} else {
 			$(this).data('active', true);
-			$(this).parent().find('.ui_menu_dropdown').animate({'height':'500px', opacity:1.0},500);
+			$(this).parent().find('.ui_menu_dropdown').animate({'height':'420px', opacity:1.0},500);
 			window.Tiles.edit_mode = true;
 			window.Draw.hide_layer("wall_shadows");
 			window.Draw.show_layer("blueprints");
@@ -52,14 +53,57 @@ $(window).ready( function(){
 	$('#confirm_build').click(function(e){
 
 		window.Tiles.confirm_blueprints()
-		m_button.click();
+		$('#build').children().first().click();
 	});
 
 	menu.append( '<div id="cancel_build" class="ui_menu_option"><p class="">CANCEL</p><img src="./textures/UI/cancel.png"></div>' );
 	$('#cancel_build').click(function(e){
 
 		window.Tiles.cancel_blueprints()
-		m_button.click();
+		$('#build').children().first().click();
 	});
+
+
+
+
+
+
+	$('#UI_overlay').append( place );
+	var menu = $('#place').find('#menu');
+	var m_button = $('#place').children().first();
+	var thing, _i, _len;
+	var stuff = ["corridor","supply","greenhouse","commons","laboratory","medical","power"];
+
+	var option = $('<div class="ui_menu_option"><p class="">Door</p><img src="./textures/objects/door_h.png"></div>');
+	option.attr('value', 'Door');
+
+
+	option.click(function(e){
+		window.Placer.type = $(this).attr('value');
+		$(this).addClass('active');
+
+	});
+	menu.append(option);
+
+	m_button.click(function(e){
+		console.log('click');
+		if ( $(this).data('active') ){
+			$(this).data('active', false);
+			window.Placer.build_mode = false;
+			$(this).parent().find('.ui_menu_dropdown').animate({'height':'0px', opacity:.2},500);
+
+		} else {
+			$(this).data('active', true);
+			window.Placer.build_mode = true;
+			$(this).parent().find('.ui_menu_dropdown').animate({'height':'70px', opacity:1.0},500);
+
+			
+		}
+	
+	});
+
+	
+
+
 
 });

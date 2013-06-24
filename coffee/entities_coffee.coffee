@@ -81,6 +81,27 @@ class Thing extends Entity
       obj_in_map.push @
 
 
+class Door extends Thing
+  init: ->
+    window.Entities.objects.push @
+    window.Entities.objects_hash.add @
+    obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+    if not obj_in_map
+      window.Map.set('objects', @tile_pos[0], @tile_pos[1], [@])
+    else 
+      obj_in_map.push @
+
+    window.Draw.use_layer('tiles')
+    window.Draw.clear_box(@pos[0], @pos[1], 32, 32);
+    window.Map.set('pathfinding', @tile_pos[0], @tile_pos[1], 0)
+  draw: ->
+    if not @drawn
+      @drawn = true
+      window.Draw.use_layer 'tiles'
+      window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size)
+    for hook in @draw_hooks
+      @[hook]()
+
 class Launchpad extends Thing
   init: ->
     @block_build = true
@@ -466,18 +487,19 @@ class Talker extends Walker
         if need not in blocked
           if @memory.objects[need] and @memory.objects[need].length > 0
               for mem in @memory.objects[need]
-                r = window.Map.get('objects', mem[0], mem[1])
-                found = false
-                if r and r.length > 0
-                  for obj in r
-                    if obj.nombre is need
-                      found = true
-                      @say 'location', need, @memory.objects[need][0]
-                      @needs.remove need
-                      @hear_que = []
-                      return
-                    else
-                      @_forget need, mem 
+                if mem and mem.length
+                  r = window.Map.get('objects', mem[0], mem[1])
+                  found = false
+                  if r and r.length > 0
+                    for obj in r
+                      if obj.nombre is need
+                        found = true
+                        @say 'location', need, @memory.objects[need][0]
+                        @needs.remove need
+                        @hear_que = []
+                        return
+                      else
+                        @_forget need, mem 
       @hear_que = []
 
     
@@ -815,7 +837,7 @@ class Engineer extends Colonist
               else
                 @memory.objects[obj.nombre] = [pos]
 
-    @state = 'wander'
+    @state = 'break'
 
   wander: ->
     @target = @get_random_tile(@wander_dist)
@@ -919,8 +941,9 @@ window.Entities =
       Engineer: Engineer
       Airtank: Airtank
       Launchpad: Launchpad
+      Door: Door
 
-    @path_finder = new PF.JumpPointFinder()
+    @path_finder = new PF.JumpPointFinder({allowDiagonal: false, dontCrossCorners:true})
     #@path_finder = new PF.AStarFinder()
     @sentient = []
     @objects = []
@@ -985,5 +1008,8 @@ $(window).ready ->
 
   window.Draw.add_image('barewalk', "./textures/astronauts/colonist_bare_walk.png")
   window.Draw.add_image('suitwalk', "./textures/astronauts/colonist_suit_walk.png")
+
+  window.Draw.add_image('door_h', "./textures/objects/door_h.png")
+  window.Draw.add_image('door_v', "./textures/objects/door_v.png")
 
   window.Entities.init()
