@@ -1,80 +1,21 @@
 $(window).ready(function() {
+
+	window.Draw.add_image('crate_open', "./textures/objects/crate_open.png");
+	window.Draw.add_image('crate_closed', "./textures/objects/crate_closed.png");
+
+	Crate = window.Entities.add_class('Crate', 'Placeable');
 	
+	Crate.prototype._open = function(){
+		this.image = 'crate_open';
+	};
+	Crate.prototype._close = function(){
+		this.image = 'crate_closed';
+	};
 	
-	obj_placeable = (function(_super) {
+	var i, _i;
+	for (i = _i = 0; _i <= 6; i = ++_i) {
+		crate = new Crate('Crate', 'crate_closed', [parseInt(Math.random()*window.Map.width)*window.Map.tilesize, parseInt(Math.random()*window.Map.height)*window.Map.tilesize]);
 
-		__extends(obj_placeable, _super);
+	}
 
-		function obj_placeable() {
-		  return obj_placeable.__super__.constructor.apply(this, arguments);
-		}
-
-		obj_placeable.setup = function() {
-			this.path_array = []; // how this object affects the pathing array
-			this.sprite_img = '';
-			this.x = -1;
-			this.y = -1;
-			this.placed = false;
-		}
-		
-		// is the object in a suitable locaiton to be built?
-		// should be overwritten by subclasses
-		obj_placeable.prototype.blueprint_check = function() {
-			return false;
-		}
-		
-		obj_placeable.prototype.update_location(x, y) {
-			if (this.x != x && this.y != y) {
-				this.x = x;
-				this.y = y;
-				this.draw();
-			}
-		}
-		
-		obj_placeable.prototype.place(x, y) {
-			this.x = x;
-			this.y = y;
-			this.placed = true;
-			this.init();
-			this.draw();
-		}
-		
-		// overwrite
-		obj_placeable.prototype.draw() {
-			return;			
-		}
-		
-		return obj_placeable;
-	})(Thing);
-	
-	
-	// a very simple crate object to test the placement
-	obj_crate = (function(_super) {
-
-		__extends(obj_crate, _super);
-
-		function obj_crate() {
-		  return obj_crate.__super__.constructor.apply(this, arguments);
-		}
-
-		obj_crate.setup = function() {
-			this.path_array = [1]; // how this object affects the pathing array
-			this.sprite_img = 'crate_closed';
-		}
-		
-		obj_crate.prototype.blueprint_check = function() {
-			return window.Maps.get("objects", this.x, this.y) == 0;
-		}
-		
-		obj_crate.prototype.draw() {
-			if (this.placed) {
-			} else {
-				window.Draw
-			}
-		}
-		
-		
-		return obj_crate;
-	})(Thing);
-	
 });

@@ -6,6 +6,7 @@
       this.build_mode = false;
       this.type = false;
       this.valid = false;
+      this.available = {};
       return window.Events.add_listener(this);
     },
     update: function(delta) {
@@ -24,6 +25,13 @@
         });
       }
     },
+    register: function(object) {
+      if (!this.available[object.nombre]) {
+        return this.available[object.nombre] = [this];
+      } else {
+        return this.available[object.nombre].push(this);
+      }
+    },
     mousemove: function(e) {
       var bottom, left, pos, right, top;
       if (this.build_mode && this.type) {
@@ -40,6 +48,26 @@
           return this.valid = false;
         }
       }
+    },
+    update_menu: function() {
+      var key, obj, option, _results;
+      $('#place').find('#menu').html('');
+      _results = [];
+      for (key in this.available) {
+        if (this.available[key].length > 0) {
+          obj = this.available[key][0];
+          option = $('<div class="ui_menu_option"><p class="">' + key + '</p><img src="' + window.Draw.images[obj.image] + '"></div>');
+          option.attr('value', key);
+          option.click(function(e) {
+            $(this).parent().children().removeClass('active');
+            return $(this).addClass('active');
+          });
+          _results.push($('#place').find('#menu').append(option));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
     },
     mouseup: function(e) {
       var pos, temp;

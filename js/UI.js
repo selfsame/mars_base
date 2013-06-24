@@ -74,16 +74,7 @@ $(window).ready( function(){
 	var thing, _i, _len;
 	var stuff = ["corridor","supply","greenhouse","commons","laboratory","medical","power"];
 
-	var option = $('<div class="ui_menu_option"><p class="">Door</p><img src="./textures/objects/door_h.png"></div>');
-	option.attr('value', 'Door');
-
-
-	option.click(function(e){
-		window.Placer.type = $(this).attr('value');
-		$(this).addClass('active');
-
-	});
-	menu.append(option);
+	
 
 	m_button.click(function(e){
 		console.log('click');
@@ -91,11 +82,18 @@ $(window).ready( function(){
 			$(this).data('active', false);
 			window.Placer.build_mode = false;
 			$(this).parent().find('.ui_menu_dropdown').animate({'height':'0px', opacity:.2},500);
+			window.Placer.update_menu();
 
 		} else {
 			$(this).data('active', true);
 			window.Placer.build_mode = true;
-			$(this).parent().find('.ui_menu_dropdown').animate({'height':'70px', opacity:1.0},500);
+			window.Placer.update_menu();
+			drop = $(this).parent().find('.ui_menu_dropdown');
+			drop.css('height','auto');
+			height = drop.height()
+			drop.css('height','0px');
+			$(this).parent().find('.ui_menu_dropdown').animate({'height':height, opacity:1.0},500);
+			
 
 			
 		}

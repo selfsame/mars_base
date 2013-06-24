@@ -19,6 +19,7 @@ class Entity
     @half_size = 16
     @no_path = false
     @init()
+    @init_2()
     @sprite_size = 32
     @sprite_offset = [0,0]
     @claimed = false
@@ -26,6 +27,7 @@ class Entity
     @hidden = false
     @block_build = false
   init: ->
+  init_2: ->
   _update: (delta)->
     @pos_to_tile_pos()
     @delta_time = delta
@@ -79,9 +81,14 @@ class Thing extends Entity
       window.Map.set('objects', @tile_pos[0], @tile_pos[1], [@])
     else 
       obj_in_map.push @
+    @init_2()
 
+class Placeable extends Thing
+  init_2: ()->
+    @placed = false
+    window.Placer.register @
 
-class Door extends Thing
+class Door extends Placeable
   init: ->
     @drawn = false
     @open = 0
@@ -132,7 +139,7 @@ class Launchpad extends Thing
         else 
           obj_in_map.push @
 
-class Airtank extends Thing
+class Airtank extends Placeable
   use: (entity)->
     if not @oxygen
       @oxygen = 80000
@@ -611,7 +618,7 @@ class Colonist extends Talker
     else
       corpse = new Thing('a corpse', 'corpse', @pos)
     corpse.sprite_size = 48
-    corpse.sprite_offset = [-24,-24]
+    corpse.sprite_offset = [0,0]
     @destroy()
 
   pause: ->
@@ -962,6 +969,7 @@ window.Entities =
     window.Events.add_listener( @ )
     @classes =
       Entity: Entity
+      Placeable: Placeable
       Walker: Walker
       Thing: Thing
       Engineer: Engineer
@@ -1030,6 +1038,7 @@ $(window).ready ->
   window.Draw.add_image('emptytanks', "./textures/objects/emptytanks.png")
   window.Draw.add_image('solarpanel', "./textures/objects/solarpanel.png")
   window.Draw.add_image('wrench', "./textures/objects/wrench.png")
+  window.Draw.add_image('door', "./textures/objects/door.png")
   
 
   window.Draw.add_image('barewalk', "./textures/astronauts/colonist_bare_walk.png")

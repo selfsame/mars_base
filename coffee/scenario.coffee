@@ -32,12 +32,19 @@ $(window).ready ->
   launchpad.sprite_size = 128
   launchpad.sprite_offset = [-64,-64]
 
-  crate = new E.Thing('crate', 'crate', [cx+(4*32), cy+(4*32)])
-  airtanks = new E.Airtank('airtanks', 'airtanks', [cx-(1*32), cy+(2*32)])
-  airtanks = new E.Airtank('airtanks', 'airtanks', [cx-(3*32), cy+(-1*32)])
+
+
   wrench = new E.Thing('wrench', 'wrench', [cx-(4*32), cy+(0*32)])
   solarpanel = new E.Thing('solarpanel', 'solarpanel', [cx-(2*32), cy-(8*32)])
 
+
+  for i in [5..8]
+    for j in [0..1]
+      door = new E.Placeable('door', 'door', [cx+((i-2)*32), cy+((j-2)*32)])
+
+  for i in [5..8]
+    for j in [5..5]
+      door = new E.Airtank('airtanks', 'airtanks', [cx+((i-2)*32), cy+((j-2)*32)])
 
 
   for i in [0..3]
@@ -55,3 +62,4 @@ $(window).ready ->
     advanced.sprite_size = 32
 
     
+

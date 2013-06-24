@@ -6,6 +6,7 @@ window.Placer =
     @build_mode = false
     @type = false
     @valid = false
+    @available = {}
     window.Events.add_listener(@)
 
   update: (delta)->
@@ -17,6 +18,11 @@ window.Placer =
         color = "rgba(255, 20, 10,.5)"
       window.Draw.draw_box(pos[0],pos[1],window.Map.tilesize,window.Map.tilesize, {fillStyle:color, strokeStyle:color, lineWidth:2})
       
+  register: (object)->
+    if not @available[object.nombre]
+      @available[object.nombre] = [@]
+    else
+      @available[object.nombre].push @
 
   mousemove: (e)->
     if @build_mode and @type
@@ -32,6 +38,21 @@ window.Placer =
         @valid = 'door_v'
       else
         @valid = false
+
+  update_menu: ()->
+    $('#place').find('#menu').html ''
+    for key of @available
+      if @available[key].length > 0
+        obj = @available[key][0]
+        option = $('<div class="ui_menu_option"><p class="">'+key+'</p><img src="'+window.Draw.images[obj.image]+'"></div>')
+        option.attr('value', key)
+
+
+        option.click (e)->
+          $(this).parent().children().removeClass 'active'
+          $(this).addClass 'active'
+
+        $('#place').find('#menu').append(option)
 
   mouseup: (e)->
     if @build_mode and @type
