@@ -66,6 +66,7 @@ $(window).ready ->
     pos_to_tile_pos: ()->
       if @pos?
         @tile_pos = [parseInt((@pos[0]+@half_size)/window.Map.tilesize), parseInt((@pos[1]+@half_size)/window.Map.tilesize)]
+
     destroy: ()->
       console.log 'destroying ', @
       window.Entities.objects_hash.remove_member @
@@ -85,6 +86,11 @@ $(window).ready ->
   class Thing extends Entity
 
     init: ->
+      @attach_to_map()
+      @init_2()
+
+    attach_to_map: ()->
+      @show()
       window.Entities.objects.push @
       window.Entities.objects_hash.add @
       obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
@@ -92,7 +98,15 @@ $(window).ready ->
         window.Map.set('objects', @tile_pos[0], @tile_pos[1], [@])
       else 
         obj_in_map.push @
-      @init_2()
+
+    detach_from_map: ()->
+      @hide()
+      window.Entities.objects.remove @
+      window.Entities.objects_hash.remove_member @
+      obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+      if obj_in_map and obj_in_map.length > 0
+        obj_in_map.remove @
+
 
   class Placeable extends Thing
     init_2: ()->
@@ -104,13 +118,7 @@ $(window).ready ->
       @drawn = false
       @open = 0
 
-      window.Entities.objects.push @
-      window.Entities.objects_hash.add @
-      obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
-      if not obj_in_map
-        window.Map.set('objects', @tile_pos[0], @tile_pos[1], [@])
-      else 
-        obj_in_map.push @
+      @attach_to_map()
 
       window.Draw.use_layer('objects')
       window.Draw.clear_box(@pos[0], @pos[1], 32, 32);
@@ -141,15 +149,7 @@ $(window).ready ->
     init: ->
       @persistant_draw = false
       @block_build = true
-      window.Entities.objects.push @
-      window.Entities.objects_hash.add @
-      for i in [-2..3]
-        for j in [-2..3]
-          obj_in_map = window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
-          if not obj_in_map
-            window.Map.set('objects', @tile_pos[0]+i, @tile_pos[1]+j, [@])
-          else 
-            obj_in_map.push @
+      @attach_to_map()
 
 
   class Airtank extends Placeable

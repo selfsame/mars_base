@@ -139,16 +139,32 @@
       }
 
       Thing.prototype.init = function() {
+        this.attach_to_map();
+        return this.init_2();
+      };
+
+      Thing.prototype.attach_to_map = function() {
         var obj_in_map;
+        this.show();
         window.Entities.objects.push(this);
         window.Entities.objects_hash.add(this);
         obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
         if (!obj_in_map) {
-          window.Map.set('objects', this.tile_pos[0], this.tile_pos[1], [this]);
+          return window.Map.set('objects', this.tile_pos[0], this.tile_pos[1], [this]);
         } else {
-          obj_in_map.push(this);
+          return obj_in_map.push(this);
         }
-        return this.init_2();
+      };
+
+      Thing.prototype.detach_from_map = function() {
+        var obj_in_map;
+        this.hide();
+        window.Entities.objects.remove(this);
+        window.Entities.objects_hash.remove_member(this);
+        obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
+        if (obj_in_map && obj_in_map.length > 0) {
+          return obj_in_map.remove(this);
+        }
       };
 
       return Thing;
@@ -179,17 +195,9 @@
       }
 
       Door.prototype.init = function() {
-        var obj_in_map;
         this.drawn = false;
         this.open = 0;
-        window.Entities.objects.push(this);
-        window.Entities.objects_hash.add(this);
-        obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
-        if (!obj_in_map) {
-          window.Map.set('objects', this.tile_pos[0], this.tile_pos[1], [this]);
-        } else {
-          obj_in_map.push(this);
-        }
+        this.attach_to_map();
         window.Draw.use_layer('objects');
         window.Draw.clear_box(this.pos[0], this.pos[1], 32, 32);
         return window.Map.set('pathfinding', this.tile_pos[0], this.tile_pos[1], 0);
@@ -244,28 +252,9 @@
       }
 
       Launchpad.prototype.init = function() {
-        var i, j, obj_in_map, _i, _results;
         this.persistant_draw = false;
         this.block_build = true;
-        window.Entities.objects.push(this);
-        window.Entities.objects_hash.add(this);
-        _results = [];
-        for (i = _i = -2; _i <= 3; i = ++_i) {
-          _results.push((function() {
-            var _j, _results1;
-            _results1 = [];
-            for (j = _j = -2; _j <= 3; j = ++_j) {
-              obj_in_map = window.Map.get('objects', this.tile_pos[0] + i, this.tile_pos[1] + j);
-              if (!obj_in_map) {
-                _results1.push(window.Map.set('objects', this.tile_pos[0] + i, this.tile_pos[1] + j, [this]));
-              } else {
-                _results1.push(obj_in_map.push(this));
-              }
-            }
-            return _results1;
-          }).call(this));
-        }
-        return _results;
+        return this.attach_to_map();
       };
 
       return Launchpad;

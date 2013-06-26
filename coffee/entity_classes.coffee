@@ -239,7 +239,7 @@ $(window).ready ->
 
     find_unclaimed_object: (nombre)->
       found = false
-      distance = 250
+      distance = 2000
 
       local = window.Entities.objects_hash.get_within( [@pos[0], @pos[1]], distance )
       if local
@@ -257,7 +257,6 @@ $(window).ready ->
 
   class Talker extends Walker
     init_voice: ()->
-      console.log 'init v'
       @voice_que = []
       @hear_que = []
       @draw_hooks.push 'draw_voice'
@@ -383,7 +382,7 @@ $(window).ready ->
             @state_que = []
             @state = 'converse'
             @say 'greet', entity.nombre
-
+        ###
         for need in @needs
           if need not in blocked
             if @memory.objects[need] and @memory.objects[need].length > 0
@@ -401,6 +400,7 @@ $(window).ready ->
                           return
                         else
                           @forget need, mem 
+        ###
         @hear_que = []
 
   class Colonist extends Talker
@@ -409,10 +409,11 @@ $(window).ready ->
       @suit = false
       @oxygen = 1200 #naked 
       @max_oxygen = @oxygen
+      @want = false
+      @job = false #used for complex state ques, will help with handling fail/success scenarios
       @state = 'idle'
       @init_voice()
-      @goal_actions =
-        oxygen: ['']
+
       @walk_frame = 0
     update: (delta)->
       if @vvv
@@ -490,9 +491,12 @@ $(window).ready ->
     drop: (type)->
       for obj in @pocket
         if obj.nombre is type
-          obj.show()
-          obj.pos = [@pos[0], @pos[1]]
+          obj.attach_to_map()
           @pocket.remove obj
+          if obj.claimed
+            obj.claimed = false
+          if @claim
+            @claim = false
           return
 
     _idle: ->
@@ -508,6 +512,7 @@ $(window).ready ->
       # handle emergencies
       if not @suit
         @want = 'suit'
+        @job = 'find_suit'
         @state_que.push 'find_object'
         @state_que.push 'pickup'
         @state_que.push 'wear_suit'
@@ -522,6 +527,7 @@ $(window).ready ->
           @want = 'airtanks'
           @state_que.push 'find_object'
           @state_que.push 'use_object'
+          @job = 'refill_oxygen'
           return
       if @follow_target and @follow_timer? and @follow_timer > 0
         @state = 'follow'
@@ -604,8 +610,7 @@ $(window).ready ->
             @forget @want, @tile_pos
             @say 'forget', @want, @tile_pos
             found = true       
-            r.remove obj
-            obj.hide()
+            obj.detach_from_map()
             @pocket.push obj
             obj.pos = @pos
             @want = false

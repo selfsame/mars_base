@@ -38,8 +38,10 @@
     };
 
     Hash.prototype.remove_member = function(obj) {
+      var bucket;
       if (this.members[obj.EID]) {
-        this.remove(this.data[this.members[obj.EID]], obj.EID);
+        bucket = this.members[obj.EID];
+        this.remove(this.data[this.members[obj.EID]], obj);
       }
       return delete this.members[obj.EID];
     };
@@ -91,8 +93,11 @@
       return false;
     };
 
-    Hash.prototype.get_within = function(pos, dist) {
-      var b_radius, bucket, i, j, results, _i, _j, _ref, _ref1, _ref2, _ref3;
+    Hash.prototype.get_within = function(pos, dist, filter) {
+      var b_radius, bucket, i, j, obj, results, _i, _j, _k, _len, _ref, _ref1, _ref2, _ref3, _ref4;
+      if (filter == null) {
+        filter = false;
+      }
       bucket = this.pos_to_bucket(pos);
       b_radius = Math.floor(dist / this.size);
       if (b_radius === 0) {
@@ -102,7 +107,17 @@
       for (i = _i = _ref = bucket[0] - b_radius, _ref1 = bucket[0] + b_radius; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
         for (j = _j = _ref2 = bucket[1] - b_radius, _ref3 = bucket[1] + b_radius; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
           if (this.data[[i, j]] != null) {
-            results = results.concat(this.data[[i, j]]);
+            if (filter) {
+              _ref4 = this.data[[i, j]];
+              for (_k = 0, _len = _ref4.length; _k < _len; _k++) {
+                obj = _ref4[_k];
+                if (obj.nombre === filter) {
+                  results.push(obj);
+                }
+              }
+            } else {
+              results = results.concat(this.data[[i, j]]);
+            }
           }
         }
       }

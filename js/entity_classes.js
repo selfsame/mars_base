@@ -293,7 +293,7 @@
       Walker.prototype.find_unclaimed_object = function(nombre) {
         var distance, found, local, obj, path, _i, _len;
         found = false;
-        distance = 250;
+        distance = 2000;
         local = window.Entities.objects_hash.get_within([this.pos[0], this.pos[1]], distance);
         if (local) {
           for (_i = 0, _len = local.length; _i < _len; _i++) {
@@ -326,7 +326,6 @@
       }
 
       Talker.prototype.init_voice = function() {
-        console.log('init v');
         this.voice_que = [];
         this.hear_que = [];
         this.draw_hooks.push('draw_voice');
@@ -467,8 +466,9 @@
       };
 
       Talker.prototype._process = function() {
-        var arg1, arg2, blocked, entity, found, key, mem, need, obj, r, talk, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
+        var arg1, arg2, blocked, entity, key, mem, talk, _i, _j, _len, _len1, _ref, _ref1, _results;
         _ref = this.hear_que;
+        _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           talk = _ref[_i];
           entity = talk[0];
@@ -517,38 +517,29 @@
               this.say('greet', entity.nombre);
             }
           }
-          _ref2 = this.needs;
-          for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-            need = _ref2[_k];
-            if (__indexOf.call(blocked, need) < 0) {
-              if (this.memory.objects[need] && this.memory.objects[need].length > 0) {
-                _ref3 = this.memory.objects[need];
-                for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-                  mem = _ref3[_l];
-                  if (mem && mem.length) {
-                    r = window.Map.get('objects', mem[0], mem[1]);
-                    found = false;
-                    if (r && r.length > 0) {
-                      for (_m = 0, _len4 = r.length; _m < _len4; _m++) {
-                        obj = r[_m];
-                        if (obj.nombre === need) {
-                          found = true;
-                          this.say('location', need, this.memory.objects[need][0]);
-                          this.needs.remove(need);
-                          this.hear_que = [];
-                          return;
-                        } else {
-                          this.forget(need, mem);
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-          this.hear_que = [];
+          /*
+                  for need in @needs
+                    if need not in blocked
+                      if @memory.objects[need] and @memory.objects[need].length > 0
+                          for mem in @memory.objects[need]
+                            if mem and mem.length
+                              r = window.Map.get('objects', mem[0], mem[1])
+                              found = false
+                              if r and r.length > 0
+                                for obj in r
+                                  if obj.nombre is need
+                                    found = true
+                                    @say 'location', need, @memory.objects[need][0]
+                                    @needs.remove need
+                                    @hear_que = []
+                                    return
+                                  else
+                                    @forget need, mem
+          */
+
+          _results.push(this.hear_que = []);
         }
+        return _results;
       };
 
       return Talker;
@@ -567,11 +558,10 @@
         this.suit = false;
         this.oxygen = 1200;
         this.max_oxygen = this.oxygen;
+        this.want = false;
+        this.job = false;
         this.state = 'idle';
         this.init_voice();
-        this.goal_actions = {
-          oxygen: ['']
-        };
         return this.walk_frame = 0;
       };
 
@@ -670,9 +660,14 @@
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           obj = _ref[_i];
           if (obj.nombre === type) {
-            obj.show();
-            obj.pos = [this.pos[0], this.pos[1]];
+            obj.attach_to_map();
             this.pocket.remove(obj);
+            if (obj.claimed) {
+              obj.claimed = false;
+            }
+            if (this.claim) {
+              this.claim = false;
+            }
             return;
           }
         }
@@ -689,6 +684,7 @@
         }
         if (!this.suit) {
           this.want = 'suit';
+          this.job = 'find_suit';
           this.state_que.push('find_object');
           this.state_que.push('pickup');
           this.state_que.push('wear_suit');
@@ -703,6 +699,7 @@
             this.want = 'airtanks';
             this.state_que.push('find_object');
             this.state_que.push('use_object');
+            this.job = 'refill_oxygen';
             return;
           }
         }
@@ -800,8 +797,7 @@
               this.forget(this.want, this.tile_pos);
               this.say('forget', this.want, this.tile_pos);
               found = true;
-              r.remove(obj);
-              obj.hide();
+              obj.detach_from_map();
               this.pocket.push(obj);
               obj.pos = this.pos;
               this.want = false;

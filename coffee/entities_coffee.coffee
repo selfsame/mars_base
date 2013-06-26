@@ -18,9 +18,12 @@ class Hash extends Hack
       console.log 'cant add to hash: ', obj
 
   remove_member: (obj)->
+
     if @members[obj.EID]
-      @remove @data[ @members[obj.EID] ], obj.EID
+      bucket = @members[obj.EID]
+      @remove @data[ @members[obj.EID] ], obj
     delete @members[obj.EID]
+
 
   pos_to_bucket: (pos)->
     bucket = [parseInt(pos[0] / @size), parseInt(pos[0] / @size)]
@@ -60,7 +63,7 @@ class Hash extends Hack
 
   # lookup functions
 
-  get_within: (pos, dist)->
+  get_within: (pos, dist, filter=false)->
     bucket = @pos_to_bucket pos
     b_radius = Math.floor(dist / @size)
     #console.log 'within:    bucket=', bucket
@@ -71,7 +74,12 @@ class Hash extends Hack
     for i in [bucket[0]-b_radius .. bucket[0]+b_radius]
       for j in [bucket[1]-b_radius .. bucket[1]+b_radius]
         if @data[[i,j]]?
-          results = results.concat @data[[i,j]]
+          if filter
+            for obj in @data[[i,j]]
+              if obj.nombre is filter
+                results.push obj
+          else
+            results = results.concat @data[[i,j]]
     if results.length > 0
       return results
     else
