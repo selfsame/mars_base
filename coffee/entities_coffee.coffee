@@ -704,13 +704,15 @@ class Colonist extends Talker
         list = list.reverse()
       for loc in @memory.objects[@want]
         if @path_to loc
-          console.log @path
+
           @state_que =  ['moving'].concat @state_que
+          @_found_obj = @want
           @state = 'idle'
           return
     @say 'need', @want
     @state_que = []
     @state = 'inventory'
+    @_found_obj = false
   pickup: ->
 
     r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
@@ -747,6 +749,14 @@ class Colonist extends Talker
             if loc[0] is pos[0] and loc[1] is pos[1]
               @memory.objects[nombre].remove loc
               return true
+
+  _drop: (type)->
+    for obj in @pocket
+      if obj.nombre is type
+        obj.show()
+        obj.pos = [@pos[0], @pos[1]]
+        @pocket.remove obj
+        return
       
       
   wear_suit: ->
@@ -846,12 +856,42 @@ class Engineer extends Colonist
             window.Tiles.under_construction.remove tile
             @state = 'moving'
             return
+      else if window.Placer.jobs.length > 0
+        @place_order = window.Placer.jobs.pop()
+        @want = @place_order[0]
+        console.log 'got place job'
+        @state_que = ['find_object','place_find', 'pickup', 'place_pickup']
+        @state = 'idle'
 
       else
         if Math.random() < .3
           @state = 'inventory'
         else
           @state = 'break'
+
+  place_find: ->
+    if not @_found_obj
+      if @place_order
+        window.Placer.jobs.push @place_order
+        @place_order = false
+    @state = 'idle'
+
+  place_pickup: ->
+    p = @place_order[1]
+    if @path_to [p[0],p[1]]
+      @state_que = ['moving', 'place_place']
+    else
+      @state_que = []
+      if @place_order
+        window.Placer.jobs.push @place_order
+        @place_order = false
+      @state = 'idle'
+
+  place_place: ->
+    if @place_order
+      @_drop(@place_order[0])
+      @build_que = []
+      @state = 'idle'
 
   inventory: ->
     for i in [-3..3]

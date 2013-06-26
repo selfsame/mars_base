@@ -67,6 +67,9 @@ window.Events = {
 	mouseup: function(e){
 		this.delegate('mouseup',[e]);
 	},
+	click: function(e){
+		this.delegate('click',[e]);
+	},
 	mousewheel: function(e){
 		this.delegate('mousewheel',[e]);
 	},

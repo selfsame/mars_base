@@ -1009,8 +1009,8 @@
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           loc = _ref[_i];
           if (this.path_to(loc)) {
-            console.log(this.path);
             this.state_que = ['moving'].concat(this.state_que);
+            this._found_obj = this.want;
             this.state = 'idle';
             return;
           }
@@ -1018,7 +1018,8 @@
       }
       this.say('need', this.want);
       this.state_que = [];
-      return this.state = 'inventory';
+      this.state = 'inventory';
+      return this._found_obj = false;
     };
 
     Colonist.prototype.pickup = function() {
@@ -1063,6 +1064,20 @@
             this.memory.objects[nombre].remove(loc);
             return true;
           }
+        }
+      }
+    };
+
+    Colonist.prototype._drop = function(type) {
+      var obj, _i, _len, _ref;
+      _ref = this.pocket;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        obj = _ref[_i];
+        if (obj.nombre === type) {
+          obj.show();
+          obj.pos = [this.pos[0], this.pos[1]];
+          this.pocket.remove(obj);
+          return;
         }
       }
     };
@@ -1197,6 +1212,12 @@
               return;
             }
           }
+        } else if (window.Placer.jobs.length > 0) {
+          this.place_order = window.Placer.jobs.pop();
+          this.want = this.place_order[0];
+          console.log('got place job');
+          this.state_que = ['find_object', 'place_find', 'pickup', 'place_pickup'];
+          return this.state = 'idle';
         } else {
           if (Math.random() < .3) {
             return this.state = 'inventory';
@@ -1204,6 +1225,39 @@
             return this.state = 'break';
           }
         }
+      }
+    };
+
+    Engineer.prototype.place_find = function() {
+      if (!this._found_obj) {
+        if (this.place_order) {
+          window.Placer.jobs.push(this.place_order);
+          this.place_order = false;
+        }
+      }
+      return this.state = 'idle';
+    };
+
+    Engineer.prototype.place_pickup = function() {
+      var p;
+      p = this.place_order[1];
+      if (this.path_to([p[0], p[1]])) {
+        return this.state_que = ['moving', 'place_place'];
+      } else {
+        this.state_que = [];
+        if (this.place_order) {
+          window.Placer.jobs.push(this.place_order);
+          this.place_order = false;
+        }
+        return this.state = 'idle';
+      }
+    };
+
+    Engineer.prototype.place_place = function() {
+      if (this.place_order) {
+        this._drop(this.place_order[0]);
+        this.build_que = [];
+        return this.state = 'idle';
       }
     };
 
