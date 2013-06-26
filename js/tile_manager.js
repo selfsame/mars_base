@@ -453,6 +453,7 @@ window.Tiles = {
 		this.edit_obj = 'crate';
 		this.edit_style = 'corridor';
 		this.wall_set = 'chunky 2';
+		this.shad_set = 'chunky';
 		this.under_construction = [];
 		this.live_tiles = [];
 		this.wall_styles = {
@@ -807,7 +808,7 @@ window.Tiles = {
 		
 		// load shadow images
 		for (var i = 0; i < 12; i++) {
-			window.Draw.add_image('shadow_' + (i+1), "./textures/walls/shadows/" + 'shad_' + (i+1) + ".png");
+			window.Draw.add_image('shadow_' + (i+1), "./textures/walls/shadows/" + this.shad_set + '/shad_' + (i+1) + ".png");
 		}
 		
 		// load blueprint images
