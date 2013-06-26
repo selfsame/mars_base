@@ -21,6 +21,11 @@ $(window).ready ->
 			$(window).resize ->
 				window.Draw.resize()
 
+			$('#scroll').css
+				'-moz-transform': 'scale('+@zoom+')'
+				'-webkit-transform': 'scale('+@zoom+')'
+				'-o-transform': 'scale('+@zoom+')'
+
 		create_layer: (name, persistant=false)->
 			canvas = $('<canvas>')
 			if persistant
@@ -31,7 +36,7 @@ $(window).ready ->
 			else
 				canvas.attr('width', @view_w)
 				canvas.attr('height', @view_h)
-				$('#game_area').append canvas
+				$('#background_clip').append canvas
 				@view_layers[name] = canvas
 
 

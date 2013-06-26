@@ -15,6 +15,13 @@
     }
   };
 
+  window.unique_id_counter = 0;
+
+  window.get_unique_id = function() {
+    window.unique_id_counter += 1;
+    return window.unique_id_counter;
+  };
+
   window.util = {
     considered: 0,
     last_click: 0,

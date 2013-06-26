@@ -15,8 +15,13 @@
         this.scroll_x = 0;
         this.scroll_y = 0;
         this.zoom = 1.0;
-        return $(window).resize(function() {
+        $(window).resize(function() {
           return window.Draw.resize();
+        });
+        return $('#scroll').css({
+          '-moz-transform': 'scale(' + this.zoom + ')',
+          '-webkit-transform': 'scale(' + this.zoom + ')',
+          '-o-transform': 'scale(' + this.zoom + ')'
         });
       },
       create_layer: function(name, persistant) {
@@ -33,7 +38,7 @@
         } else {
           canvas.attr('width', this.view_w);
           canvas.attr('height', this.view_h);
-          $('#game_area').append(canvas);
+          $('#background_clip').append(canvas);
           return this.view_layers[name] = canvas;
         }
       },

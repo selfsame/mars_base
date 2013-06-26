@@ -48,7 +48,7 @@ $(window).ready ->
 
 
   for i in [0..3]
-    for j in [0..1]
+    for j in [-3..-2]
       suit = new E.Thing('suit', 'engineer', [cx+((i-2)*32), cy+((j-2)*32)])
 
   for i in [0..7]

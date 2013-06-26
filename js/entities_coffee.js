@@ -25,21 +25,23 @@
 
     Hash.prototype.add = function(obj) {
       var bucket;
-      if (!this.members[obj]) {
+      if (!this.members[obj.EID]) {
         bucket = this.pos_to_bucket(obj.pos);
-        this.members[obj] = bucket;
+        this.members[obj.EID] = bucket;
         if (!this.data[bucket]) {
           this.data[bucket] = [];
         }
         return this.data[bucket].push(obj);
+      } else {
+        return console.log('cant add to hash: ', obj);
       }
     };
 
     Hash.prototype.remove_member = function(obj) {
-      if (this.members[obj]) {
-        this.remove(this.data[this.members[obj]], obj);
+      if (this.members[obj.EID]) {
+        this.remove(this.data[this.members[obj.EID]], obj.EID);
       }
-      return delete this.members[obj];
+      return delete this.members[obj.EID];
     };
 
     Hash.prototype.pos_to_bucket = function(pos) {
@@ -54,18 +56,18 @@
       if (__indexOf.call(this.data[bucket], obj) < 0) {
         this.data[bucket].push(obj);
       }
-      return this.members[obj] = bucket;
+      return this.members[obj.EID] = bucket;
     };
 
     Hash.prototype.update_member = function(obj) {
       var bucket, without;
-      if (this.members[obj] != null) {
+      if (this.members[obj.EID] != null) {
         bucket = this.pos_to_bucket(obj.pos);
-        if (!this.compare(this.members[obj], bucket)) {
-          if (this.data[this.members[obj]]) {
-            without = this.remove(this.data[this.members[obj]], obj);
+        if (!this.compare(this.members[obj.EID], bucket)) {
+          if (this.data[this.members[obj.EID]]) {
+            without = this.remove(this.data[this.members[obj.EID]], obj);
             if (without) {
-              this.data[this.members[obj]] = without;
+              this.data[this.members[obj.EID]] = without;
             }
             return this.put_in_data(obj, bucket);
           }
@@ -129,7 +131,8 @@
       this.objects = [];
       this.sentient_hash = new Hash(64);
       this.objects_hash = new Hash(64);
-      return window.Draw.create_layer('objects', true);
+      window.Draw.create_layer('objects', true);
+      return window.Draw.persistant_layers.objects.css('z-index', 999999);
     },
     update: function(delta) {
       var thing, _i, _j, _len, _len1, _ref, _ref1, _results;
@@ -137,7 +140,7 @@
         _ref = this.objects;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           thing = _ref[_i];
-          thing._update(delta);
+          thing.__update(delta);
         }
       }
       if (this.sentient != null) {
@@ -146,7 +149,7 @@
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
           thing = _ref1[_j];
           if (thing !== void 0) {
-            _results.push(thing._update(delta));
+            _results.push(thing.__update(delta));
           } else {
             _results.push(void 0);
           }

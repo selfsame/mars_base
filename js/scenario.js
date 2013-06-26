@@ -25,7 +25,7 @@
       }
     }
     for (i = _m = 0; _m <= 3; i = ++_m) {
-      for (j = _n = 0; _n <= 1; j = ++_n) {
+      for (j = _n = -3; _n <= -2; j = ++_n) {
         suit = new E.Thing('suit', 'engineer', [cx + ((i - 2) * 32), cy + ((j - 2) * 32)]);
       }
     }

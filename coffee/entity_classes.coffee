@@ -29,6 +29,7 @@ $(window).ready ->
       @pos = [@pos[0]-@pos[0]%32, @pos[1]-@pos[1]%32]
       @sprite_size = 32
       @sprite_offset = [0,0]
+      @claimed = false
       window.Entities.sentient.push @
       window.Entities.sentient_hash.add @
       @setup()
@@ -105,7 +106,7 @@ $(window).ready ->
 
     # State functions
 
-    idle: ->
+    _idle: ->
       if @state_que? and @state_que.length > 0
         use = @state_que.pop(0)
         @state = use
@@ -113,14 +114,14 @@ $(window).ready ->
       @target = @get_random_tile(10)
       @path_to @target
 
-    wait: ->
+    _wait: ->
       @wait_time += @delta_time
       #console.log @wait_time
       if @wait_time > 600
         @wait_time = 0
         @state = 'idle'
 
-    moving: ->
+    _moving: ->
       if not @path? or @path.length is 0
         @state = 'wait'
         return
@@ -224,7 +225,7 @@ $(window).ready ->
       return false
 
 
-    wait: ->
+    _wait: ->
       @wait_time += @delta_time
       #console.log @wait_time
       @move(.8)
@@ -235,6 +236,24 @@ $(window).ready ->
     n_tiles_away: (p1,p2, n)->
       if p1[0] > p2[0]-n and p1[0] < p2[0]+n and p1[1] > p2[1]-n and p1[1] < p2[1]+n
         return true
+
+    find_unclaimed_object: (nombre)->
+      found = false
+      distance = 250
+
+      local = window.Entities.objects_hash.get_within( [@pos[0], @pos[1]], distance )
+      if local
+
+        for obj in local
+          if obj.nombre is nombre
+            if obj.claimed is false
+              path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], obj.tile_pos[0], obj.tile_pos[1])
+              if path and path.length? and path.length > 0
+                @path = path
+                obj.claimed = true
+                @claim = obj
+                return true
+      return false
 
   class Talker extends Walker
     init_voice: ()->
@@ -340,7 +359,7 @@ $(window).ready ->
         blocked = []
         if key is 'forget'
           if arg1 and arg2
-            @_forget arg1, arg2
+            @forget arg1, arg2
         if key is 'need'
           if arg1
             if arg1 not in @needs
@@ -381,7 +400,7 @@ $(window).ready ->
                           @hear_que = []
                           return
                         else
-                          @_forget need, mem 
+                          @forget need, mem 
         @hear_que = []
 
   class Colonist extends Talker
@@ -461,10 +480,22 @@ $(window).ready ->
       corpse.sprite_offset = [0,0]
       @destroy()
 
-    pause: ->
+    forget: (nombre, pos)->
+      if @memory.objects[nombre]
+        for loc in @memory.objects[nombre]
+              if loc[0] is pos[0] and loc[1] is pos[1]
+                @memory.objects[nombre].remove loc
+                return true
 
+    drop: (type)->
+      for obj in @pocket
+        if obj.nombre is type
+          obj.show()
+          obj.pos = [@pos[0], @pos[1]]
+          @pocket.remove obj
+          return
 
-    idle: ->
+    _idle: ->
       #finish que of states
       @mood = 'busy'
       if @state_que? and @state_que.length > 0
@@ -500,7 +531,7 @@ $(window).ready ->
       @state = 'work'
 
 
-    follow: ->
+    _follow: ->
       if not @follow_timer?
         @follow_timer = 150
       if @follow_target
@@ -508,10 +539,10 @@ $(window).ready ->
       
         
 
-    asphyxiation: ->
+    _asphyxiation: ->
       @say 'help'
 
-    use_object: ->
+    _use_object: ->
       r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
       found = false
       if r and r.length > 0
@@ -522,20 +553,26 @@ $(window).ready ->
             if obj.use
               if obj.use @ #return true if use cycle complete, bad logic
                 @state = 'idle'
-                @_forget @want, @tile_pos
+                @forget @want, @tile_pos
                 return
               else
                 return
         if not found
-          @_forget @want, @tile_pos
+          @forget @want, @tile_pos
           @state_que = []
           @state = 'idle'
       @state_que = []
       @state = 'idle'
 
 
-    find_object: ->
-
+    _find_object: ->
+      found = @find_unclaimed_object(@want)
+      if found
+        @que_add_first 'moving'
+        @_found_obj = @want
+        @state = 'idle'
+        return
+      ###
       if @memory.objects[@want]? and @memory.objects[@want].length > 0
         list = @memory.objects[@want]
         if Math.random() < .33
@@ -545,15 +582,16 @@ $(window).ready ->
         for loc in @memory.objects[@want]
           if @path_to loc
 
-            @state_que =  ['moving'].concat @state_que
+            @que_add_first 'moving'
             @_found_obj = @want
             @state = 'idle'
             return
+      ###
       @say 'need', @want
       @state_que = []
       @state = 'inventory'
       @_found_obj = false
-    pickup: ->
+    _pickup: ->
 
       r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
       found = false
@@ -563,7 +601,7 @@ $(window).ready ->
         for obj in r
           if obj.nombre is @want
             console.log 'pickup', obj.nombre
-            @_forget @want, @tile_pos
+            @forget @want, @tile_pos
             @say 'forget', @want, @tile_pos
             found = true       
             r.remove obj
@@ -578,37 +616,24 @@ $(window).ready ->
       if not found
         @state_que = []
         @state = 'inventory'
-        if @_forget @want, @tile_pos
+        if @forget @want, @tile_pos
           @say 'forget', @want, @tile_pos
           @want = false
           return
 
-    _forget: (nombre, pos)->
-      if @memory.objects[nombre]
-        for loc in @memory.objects[nombre]
-              if loc[0] is pos[0] and loc[1] is pos[1]
-                @memory.objects[nombre].remove loc
-                return true
-
-    _drop: (type)->
-      for obj in @pocket
-        if obj.nombre is type
-          obj.show()
-          obj.pos = [@pos[0], @pos[1]]
-          @pocket.remove obj
-          return
+    
         
         
-    wear_suit: ->
+    _wear_suit: ->
 
       @suit = true
       @oxygen = 6000
       @max_oxygen = 6000
       @image = 'suitwalk'
       @state = 'idle'
-    work: ->
+    _work: ->
       @state = 'break'
-    break: ->
+    _break: ->
       if Math.random() < .6
         if Math.random() < .3
           @wander_dist = 10
@@ -636,7 +661,7 @@ $(window).ready ->
 
   class Engineer extends Colonist
 
-    work: ->
+    _work: ->
 
       if @remove_order
         if @n_tiles_away( @tile_pos, @remove_order.tile_pos, 2 )
@@ -701,14 +726,14 @@ $(window).ready ->
           else
             @state = 'break'
 
-    place_find: ->
+    _place_find: ->
       if not @_found_obj
         if @place_order
           window.Placer.jobs.push @place_order
           @place_order = false
       @state = 'idle'
 
-    place_pickup: ->
+    _place_pickup: ->
       p = @place_order[1]
       if @path_to [p[0],p[1]]
         @state_que = ['moving', 'place_place']
@@ -719,13 +744,13 @@ $(window).ready ->
           @place_order = false
         @state = 'idle'
 
-    place_place: ->
+    _place_place: ->
       if @place_order
-        @_drop(@place_order[0])
+        @drop(@place_order[0])
         @build_que = []
         @state = 'idle'
 
-    inventory: ->
+    _inventory: ->
       for i in [-3..3]
         for j in [-3..3]
           objs = window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
@@ -744,10 +769,10 @@ $(window).ready ->
 
       @state = 'break'
 
-    wander: ->
+    _wander: ->
       @target = @get_random_tile(@wander_dist)
       @path_to @target
-    removing_object: ->
+    _removing_object: ->
       x = parseInt(Math.random()*2)-1
       y = parseInt(Math.random()*2)-1
       x += @remove_order.tile_pos[0]

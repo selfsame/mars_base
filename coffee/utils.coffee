@@ -8,6 +8,11 @@ Array.prototype.remove = (item)->
   if indx != -1
     return @.splice(indx,1)
 
+window.unique_id_counter = 0
+window.get_unique_id = ()->
+  window.unique_id_counter += 1
+  return window.unique_id_counter
+
 window.util = 
   #the double click thing probably will eat up memory one way or another
   considered: 0

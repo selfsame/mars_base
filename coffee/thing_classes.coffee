@@ -2,15 +2,14 @@ $(window).ready ->
 
   class Entity
     constructor: (@nombre='thing', @image='sprite', @pos=[0,0])->
-      
+      @EID = window.get_unique_id()
       @draw_hooks = []
 
       @tile_pos = [parseInt(@pos[0]/window.Map.tilesize), parseInt(@pos[1]/window.Map.tilesize)]
       @debug = []
       @half_size = 16
       @no_path = false
-      @init()
-      @init_2()
+      
       @sprite_size = 32
       @sprite_offset = [0,0]
       @claimed = false
@@ -19,19 +18,25 @@ $(window).ready ->
       @block_build = false
       @needs_draw = true
       @persistant_draw = true
+      @init()
+      @init_2()
     init: ->
     init_2: ->
-    _update: (delta)->
+    __update: (delta)->
       @pos_to_tile_pos()
       @delta_time = delta
       @total_time += delta
       @frame_count += 1
       
-      if @[@state]?
-        @[@state]()
+      if @['_'+@state]?
+        @['_'+@state]()
       if not @hidden
         @draw()
       @update(delta)
+    que_add_first: (state)->
+      @state_que = [state].concat @state_que
+    que_add_last: (state)->
+      @state_que.push state
     hide: ->
       if not @hidden
         @hidden = true
@@ -45,11 +50,15 @@ $(window).ready ->
           @needs_draw = true
 
     draw: ->
-      if @needs_draw
-        window.Draw.use_layer 'objects'
+      if @persistant_draw is true
+        if @needs_draw
+          window.Draw.use_layer 'objects'
+          drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size)
+          if drawn
+            @needs_draw = false
+      else
+        window.Draw.use_layer 'entities'
         drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size)
-        if drawn
-          @needs_draw = false
       for hook in @draw_hooks
         @[hook]()
     update: ->
@@ -130,6 +139,7 @@ $(window).ready ->
 
   class Launchpad extends Thing
     init: ->
+      @persistant_draw = false
       @block_build = true
       window.Entities.objects.push @
       window.Entities.objects_hash.add @
@@ -140,6 +150,7 @@ $(window).ready ->
             window.Map.set('objects', @tile_pos[0]+i, @tile_pos[1]+j, [@])
           else 
             obj_in_map.push @
+
 
   class Airtank extends Placeable
     use: (entity)->

@@ -12,13 +12,12 @@
         this.nombre = nombre != null ? nombre : 'thing';
         this.image = image != null ? image : 'sprite';
         this.pos = pos != null ? pos : [0, 0];
+        this.EID = window.get_unique_id();
         this.draw_hooks = [];
         this.tile_pos = [parseInt(this.pos[0] / window.Map.tilesize), parseInt(this.pos[1] / window.Map.tilesize)];
         this.debug = [];
         this.half_size = 16;
         this.no_path = false;
-        this.init();
-        this.init_2();
         this.sprite_size = 32;
         this.sprite_offset = [0, 0];
         this.claimed = false;
@@ -27,24 +26,34 @@
         this.block_build = false;
         this.needs_draw = true;
         this.persistant_draw = true;
+        this.init();
+        this.init_2();
       }
 
       Entity.prototype.init = function() {};
 
       Entity.prototype.init_2 = function() {};
 
-      Entity.prototype._update = function(delta) {
+      Entity.prototype.__update = function(delta) {
         this.pos_to_tile_pos();
         this.delta_time = delta;
         this.total_time += delta;
         this.frame_count += 1;
-        if (this[this.state] != null) {
-          this[this.state]();
+        if (this['_' + this.state] != null) {
+          this['_' + this.state]();
         }
         if (!this.hidden) {
           this.draw();
         }
         return this.update(delta);
+      };
+
+      Entity.prototype.que_add_first = function(state) {
+        return this.state_que = [state].concat(this.state_que);
+      };
+
+      Entity.prototype.que_add_last = function(state) {
+        return this.state_que.push(state);
       };
 
       Entity.prototype.hide = function() {
@@ -68,12 +77,17 @@
 
       Entity.prototype.draw = function() {
         var drawn, hook, _i, _len, _ref, _results;
-        if (this.needs_draw) {
-          window.Draw.use_layer('objects');
-          drawn = window.Draw.image(this.image, this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0], this.sprite_size, this.sprite_size);
-          if (drawn) {
-            this.needs_draw = false;
+        if (this.persistant_draw === true) {
+          if (this.needs_draw) {
+            window.Draw.use_layer('objects');
+            drawn = window.Draw.image(this.image, this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0], this.sprite_size, this.sprite_size);
+            if (drawn) {
+              this.needs_draw = false;
+            }
           }
+        } else {
+          window.Draw.use_layer('entities');
+          drawn = window.Draw.image(this.image, this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0], this.sprite_size, this.sprite_size);
         }
         _ref = this.draw_hooks;
         _results = [];
@@ -231,6 +245,7 @@
 
       Launchpad.prototype.init = function() {
         var i, j, obj_in_map, _i, _results;
+        this.persistant_draw = false;
         this.block_build = true;
         window.Entities.objects.push(this);
         window.Entities.objects_hash.add(this);

@@ -8,17 +8,19 @@ class Hash extends Hack
     @data = {}
     @members = {}
   add: (obj)->
-    if not @members[obj]
+    if not @members[obj.EID]
       bucket = @pos_to_bucket obj.pos
-      @members[obj] = bucket
+      @members[obj.EID] = bucket
       if not @data[bucket]
         @data[bucket] = []
       @data[bucket].push obj
+    else
+      console.log 'cant add to hash: ', obj
 
   remove_member: (obj)->
-    if @members[obj]
-      @remove @data[ @members[obj] ], obj
-    delete @members[obj]
+    if @members[obj.EID]
+      @remove @data[ @members[obj.EID] ], obj.EID
+    delete @members[obj.EID]
 
   pos_to_bucket: (pos)->
     bucket = [parseInt(pos[0] / @size), parseInt(pos[0] / @size)]
@@ -28,16 +30,16 @@ class Hash extends Hack
       @data[bucket] = []
     if obj not in @data[bucket]
       @data[bucket].push obj
-    @members[obj] = bucket
+    @members[obj.EID] = bucket
 
   update_member: (obj)->
-    if @members[obj]?
+    if @members[obj.EID]?
       bucket = @pos_to_bucket obj.pos
-      if not @compare( @members[obj], bucket)
-        if @data[@members[obj]]
-          without = @remove(@data[@members[obj]], obj)
+      if not @compare( @members[obj.EID], bucket)
+        if @data[@members[obj.EID]]
+          without = @remove(@data[@members[obj.EID]], obj)
           if without
-            @data[@members[obj]] = without
+            @data[@members[obj.EID]] = without
 
           @put_in_data obj, bucket
 
@@ -61,6 +63,8 @@ class Hash extends Hack
   get_within: (pos, dist)->
     bucket = @pos_to_bucket pos
     b_radius = Math.floor(dist / @size)
+    #console.log 'within:    bucket=', bucket
+    #console.log '           radius=', b_radius
     if b_radius is 0
       b_radius = 1
     results = []
@@ -91,16 +95,17 @@ window.Entities =
     @objects_hash = new Hash(64)
  
     window.Draw.create_layer('objects', true);
+    window.Draw.persistant_layers.objects.css('z-index', 999999)
 
   update: (delta)->
     
     if @objects?
       for thing in @objects
-        thing._update(delta)
+        thing.__update(delta)
     if @sentient?
       for thing in @sentient
         if thing isnt undefined
-          thing._update(delta)
+          thing.__update(delta)
   get_path: (x,y,x2,y2)->
       grid = new PF.Grid(window.Map.width, window.Map.height, window.Map.arrays['pathfinding'])
       try  
