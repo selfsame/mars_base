@@ -214,6 +214,9 @@ $(window).ready ->
 					@context.restore()
 				else
 					@context.drawImage(@images[imgname],x,y, w, h )
+				return true
+			else
+				return false
 
 		within_view: (x,y,w,h)->
 			#takes global pixel values and checks if the draw area is partially visible
@@ -353,6 +356,9 @@ $(window).ready ->
 					@context.restore()
 				else
 					@context.drawImage(@images[imgname],sx,sy, clipsize, clipsize, x, y, w, h )
+				return true
+			else
+				return false
 
 
 
