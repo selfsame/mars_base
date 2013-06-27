@@ -320,7 +320,7 @@
           for (_i = 0, _len = local.length; _i < _len; _i++) {
             obj = local[_i];
             if (obj.nombre === nombre) {
-              if (obj.claimed === false) {
+              if (!obj.claimed) {
                 if (!(this.job === 'place' && obj.placed === true)) {
                   path = window.Entities.get_path(this.tile_pos[0], this.tile_pos[1], obj.tile_pos[0], obj.tile_pos[1]);
                   if (path && (path.length != null) && path.length > 0) {
@@ -724,12 +724,20 @@
         }
         if (this.oxygen < this.max_oxygen * .9) {
           if (this.oxygen < 260) {
+            if (this.job) {
+              this.state = 'job_fail';
+              return;
+            }
             this.state = 'asphyxiation';
             return;
           }
           if (this.oxygen < this.max_oxygen * .8) {
+            if (this.job) {
+              this.state = 'job_fail';
+              return;
+            }
             this.want = 'airtanks';
-            this.state_que = ['find_object', 'use_object'];
+            this.state_que = ['find_object', 'use_object', 'job_complete'];
             this.job = 'refill_oxygen';
             return;
           }
@@ -744,12 +752,23 @@
 
       Colonist.prototype._refill_find_suit_fail = function() {
         this.say('need', 'suit');
-        return this.state = 'wander';
+        return this.state = 'wander_inside';
       };
 
       Colonist.prototype._refill_oxygen_job_fail = function() {
-        this.say('need', 'airtanks');
-        return this.state = 'wander';
+        if (this.claim) {
+          this.claim.claimed = false;
+          this.claim = false;
+        }
+        return this.state = 'work';
+      };
+
+      Colonist.prototype._refill_oxygen_job_complete = function() {
+        if (this.claim) {
+          this.claim.claimed = false;
+          this.claim = false;
+        }
+        return this.state = 'work';
       };
 
       Colonist.prototype._follow = function() {
@@ -762,7 +781,8 @@
       };
 
       Colonist.prototype._asphyxiation = function() {
-        return this.say('help');
+        this.say('help');
+        return this.state = 'wander_inside';
       };
 
       Colonist.prototype._use_object = function() {
@@ -898,12 +918,13 @@
 
       Colonist.prototype._break = function() {
         var guy, near, _i, _len, _ref;
-        if (Math.random() < .6) {
-          if (Math.random() < .3) {
-            this.wander_dist = 10;
-            return this.state = 'wander';
+        if (Math.random() < .7) {
+          if (Math.random() < .5) {
+            this.wander_dist = 20;
+            return this.state = 'wander_inside';
           } else {
-            return this.path_to([parseInt(window.Map.width / 2 + (Math.random() * 6) - 3), parseInt(window.Map.height / 2 + (Math.random() * 6) - 3)]);
+            this.wander_dist = 5;
+            return this.state = 'wander';
           }
         } else {
           near = window.Entities.sentient_hash.get_within(this.pos, 80);
@@ -1053,7 +1074,14 @@
       };
 
       Engineer.prototype._place_carry = function() {
-        var p, path;
+        var obj, p, path, _i, _len, _ref;
+        _ref = this.pocket;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          obj = _ref[_i];
+          if (obj.nombre === this.place_order[0]) {
+            obj.show();
+          }
+        }
         p = this.place_order[1];
         path = this.path_close_to([p[0], p[1]]);
         console.log('CARRY TO ', path);
@@ -1117,6 +1145,26 @@
       Engineer.prototype._wander = function() {
         this.target = this.get_random_tile(this.wander_dist);
         return this.path_to(this.target);
+      };
+
+      Engineer.prototype._wander_inside = function() {
+        var f, target;
+        if (!(this.wander_inside_counter != null) || this.wander_inside_counter < 0) {
+          this.wander_inside_counter = 20;
+        }
+        this.wander_inside_counter -= 1;
+        target = this.get_random_tile(this.wander_dist);
+        f = window.Map.get('tiles', target[0], target[1]);
+        if (f && !f.is_wall() && f.built) {
+          this.say_verbose('Going inside', f);
+          this.target = target;
+          this.path_to(this.target);
+          this.wander_inside_counter = -1;
+          return;
+        }
+        if (this.wander_inside_counter < 0) {
+          return this.state = 'idle';
+        }
       };
 
       Engineer.prototype._removing_object = function() {

@@ -259,7 +259,7 @@ $(window).ready ->
 
         for obj in local
           if obj.nombre is nombre
-            if obj.claimed is false
+            if not obj.claimed
               if not (@job is 'place' and obj.placed is true)
                 path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], obj.tile_pos[0], obj.tile_pos[1])
                 if path and path.length? and path.length > 0
@@ -533,12 +533,18 @@ $(window).ready ->
       if @oxygen < @max_oxygen*.9
 
         if @oxygen < 260
+          if @job
+            @state = 'job_fail'
+            return
           @state = 'asphyxiation'
           return
         
         if @oxygen < @max_oxygen*.8
+          if @job
+            @state = 'job_fail'
+            return
           @want = 'airtanks'
-          @state_que = ['find_object', 'use_object']
+          @state_que = ['find_object', 'use_object', 'job_complete']
           @job = 'refill_oxygen'
           return
       if @follow_target and @follow_timer? and @follow_timer > 0
@@ -550,10 +556,17 @@ $(window).ready ->
 
     _refill_find_suit_fail: ->
       @say 'need', 'suit'
-      @state = 'wander'
+      @state = 'wander_inside'
     _refill_oxygen_job_fail: ->
-      @say 'need', 'airtanks'
-      @state = 'wander'
+      if @claim
+        @claim.claimed = false
+        @claim = false
+      @state = 'work'
+    _refill_oxygen_job_complete: ->
+      if @claim
+        @claim.claimed = false
+        @claim = false
+      @state = 'work'
 
     _follow: ->
       if not @follow_timer?
@@ -565,6 +578,7 @@ $(window).ready ->
 
     _asphyxiation: ->
       @say 'help'
+      @state = 'wander_inside'
 
     _use_object: ->
       r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
@@ -676,12 +690,13 @@ $(window).ready ->
     _work: ->
       @state = 'break'
     _break: ->
-      if Math.random() < .6
-        if Math.random() < .3
-          @wander_dist = 10
-          @state = 'wander'
+      if Math.random() < .7
+        if Math.random() < .5
+          @wander_dist = 20
+          @state = 'wander_inside'
         else
-          @path_to [parseInt(window.Map.width/2+(Math.random()*6)-3), parseInt(window.Map.height/2+(Math.random()*6)-3)]
+          @wander_dist = 5
+          @state = 'wander'
       else
         near = window.Entities.sentient_hash.get_within @pos, 80
         if near
@@ -785,6 +800,10 @@ $(window).ready ->
 
 
     _place_carry: ->
+      for obj in @pocket
+        if obj.nombre is @place_order[0]
+          obj.show()
+
       p = @place_order[1]
       path = @path_close_to [p[0],p[1]]
       console.log 'CARRY TO ', path
@@ -839,6 +858,22 @@ $(window).ready ->
     _wander: ->
       @target = @get_random_tile(@wander_dist)
       @path_to @target
+    _wander_inside: ->
+      if not @wander_inside_counter? or @wander_inside_counter < 0
+        @wander_inside_counter = 20
+      @wander_inside_counter -= 1
+
+      target = @get_random_tile(@wander_dist)
+      f = window.Map.get('tiles', target[0], target[1])
+      if f and not f.is_wall() and f.built
+        @say_verbose 'Going inside', f
+        @target = target
+        @path_to @target
+        @wander_inside_counter = -1
+        return 
+      if @wander_inside_counter < 0
+        @state = 'idle'
+
     _removing_object: ->
       x = parseInt(Math.random()*2)-1
       y = parseInt(Math.random()*2)-1

@@ -111,18 +111,20 @@
     },
     mouseup: function(e) {
       var pos;
-      if (this.build_mode && this.type && this.valid) {
-        pos = [window.Events.tile_under_mouse[0], window.Events.tile_under_mouse[1]];
-        this.jobs.push([this.type, pos]);
-        this.job_visuals.push([this.type, this.icons[this.type], pos]);
-        if (this.available[this.type]) {
-          this.available[this.type] -= 1;
+      if (!$('#UI_overlay').is($(e.target).parents())) {
+        if (this.build_mode && this.type && this.valid) {
+          pos = [window.Events.tile_under_mouse[0], window.Events.tile_under_mouse[1]];
+          this.jobs.push([this.type, pos]);
+          this.job_visuals.push([this.type, this.icons[this.type], pos]);
+          if (this.available[this.type]) {
+            this.available[this.type] -= 1;
+          }
+          if (this.available[this.type] <= 0) {
+            this.available[this.type] = 0;
+            this.type = false;
+          }
+          return this.update_menu();
         }
-        if (this.available[this.type] <= 0) {
-          this.available[this.type] = 0;
-          this.type = false;
-        }
-        return this.update_menu();
       }
     },
     confirm: function() {

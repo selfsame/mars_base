@@ -34,6 +34,10 @@ $(window).ready( function(){
 			window.Draw.show_layer("wall_shadows");
 			window.Draw.hide_layer("blueprints");
 		} else {
+			if ($('#place').children().first().data('active') == true ){
+				console.log( 'place is open....ad,fmsadf,msd.,f');
+				$('#place').children().first().click();
+			}
 			$(this).data('active', true);
 			$(this).parent().find('.ui_menu_dropdown').animate({'height':'420px', opacity:1.0},500);
 			window.Tiles.edit_mode = true;
@@ -85,6 +89,9 @@ $(window).ready( function(){
 			window.Placer.update_menu();
 
 		} else {
+			if ($('#build').children().first().data('active') == true ){
+				$('#build').children().first().click();
+			}
 			$(this).data('active', true);
 			window.Placer.build_mode = true;
 			window.Placer.update_menu();

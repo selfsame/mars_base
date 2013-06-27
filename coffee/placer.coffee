@@ -81,18 +81,19 @@ window.Placer =
         $('#place').find('#menu').append(option)
 
   mouseup: (e)->
-    if @build_mode and @type and @valid
-      pos = [window.Events.tile_under_mouse[0], window.Events.tile_under_mouse[1]]
-      @jobs.push [@type, pos]
+    if not $('#UI_overlay').is( $(e.target).parents() )
+      if @build_mode and @type and @valid
+        pos = [window.Events.tile_under_mouse[0], window.Events.tile_under_mouse[1]]
+        @jobs.push [@type, pos]
 
-      @job_visuals.push [ @type, @icons[@type], pos ]
+        @job_visuals.push [ @type, @icons[@type], pos ]
 
-      if @available[@type]
-        @available[@type] -= 1
-      if @available[@type] <= 0
-        @available[@type] = 0
-        @type = false
-      @update_menu()
+        if @available[@type]
+          @available[@type] -= 1
+        if @available[@type] <= 0
+          @available[@type] = 0
+          @type = false
+        @update_menu()
 
 
   confirm: ()->

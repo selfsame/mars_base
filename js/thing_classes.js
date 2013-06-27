@@ -322,7 +322,7 @@
       }
 
       Launchpad.prototype.init = function() {
-        this.persistant_draw = false;
+        this.persistant_draw = true;
         this.block_build = true;
         return this.attach_to_map();
       };

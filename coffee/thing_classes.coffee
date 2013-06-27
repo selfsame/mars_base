@@ -194,7 +194,7 @@ $(window).ready ->
 
   class Launchpad extends Thing
     init: ->
-      @persistant_draw = false
+      @persistant_draw = true
       @block_build = true
       @attach_to_map()
 
