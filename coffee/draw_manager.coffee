@@ -194,8 +194,10 @@ $(window).ready ->
 				if not window.Draw.images[name]
 					window.Draw.images[name] = this[0]
 
-		image: (imgname, x,y, w=32, h=32, rotation=false)->
+		image: (imgname, x,y, w=32, h=32, rotation=false, opacity=false)->
 
+			if opacity
+				@context.globalAlpha = opacity
 
 			if @layer_mode is 'view'
 				x *= @zoom
@@ -219,8 +221,11 @@ $(window).ready ->
 					@context.restore()
 				else
 					@context.drawImage(@images[imgname],x,y, w, h )
+
+				@context.globalAlpha = 1.0
 				return true
 			else
+				@context.globalAlpha = 1.0
 				return false
 
 		within_view: (x,y,w,h)->

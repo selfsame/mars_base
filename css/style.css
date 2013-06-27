@@ -123,6 +123,8 @@ canvas {
  top: 0px;
  float: right;
  margin: 4px;
+ width:32px;
+ height:32px;
 }
 
 .ui_menu_option p{

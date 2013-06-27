@@ -7,6 +7,7 @@ window.phrases =
   'greet': ['Nice to meet you, $1']
   'sup': ['what are you up to?', "what's up?", 'hey $1']
   'follow':['follow me', 'come, $1', 'I need a hand']
+  'fail':['I give up!', "Can't do the job.", 'Fail..']
 
 $(window).ready ->
 
@@ -291,7 +292,7 @@ $(window).ready ->
         if @voice_que.length > 4
           @voice_que = @voice_que.splice(1,@voice_que.length)
         
-    converse: ()->
+    _converse: ()->
 
       if @conversation_partner
         @conversation_timer += 1
@@ -300,6 +301,7 @@ $(window).ready ->
 
         @vector = Vector.lerp(@vector, target.subtract(me), .001)
       if @conversation_timer > 150
+
         if Math.random() < .5 and not @follow_target
 
           follow_target = @conversation_partner
@@ -326,8 +328,6 @@ $(window).ready ->
 
     say: (key, arg1=false, arg2=false)->
       @debug.push @voice_que.length
-      if @memory.objects.suit?
-        @debug.push @memory.objects.suit.length
       phrase = @get_phrase(key)
       if phrase
         if @voice_que.length < 2
@@ -338,6 +338,9 @@ $(window).ready ->
             for guy in window.Entities.sentient
               if guy isnt @ and guy.hear
                 guy.hear(@, key, arg1, arg2)
+
+    say_verbose: (str)->
+      @voice_que = [[str, 0]].concat( @voice_que )
 
 
 
@@ -419,28 +422,21 @@ $(window).ready ->
       if @vvv
         len = @vvv.length()
         if len > .2
-
           @walk_frame += len*.25
           if @walk_frame > 12
             @walk_frame = 0
 
       if @oxygen?
         tile = window.Map.get('tiles', @tile_pos[0], @tile_pos[1])
-
         if tile and tile isnt 0
-
           @oxygen += 5
         if @oxygen > @max_oxygen
           @oxygen = @max_oxygen
         @oxygen -= 1
-
         if @oxygen < @max_oxygen*.9
           window.Draw.use_layer 'view'
           w = 32 * (@oxygen / @max_oxygen )
           window.Draw.draw_box(16 + @pos[0]-w*.5, @pos[1]+30, w, 5, {fillStyle:'red',strokeStyle:'rgba('+32-w+','+w+','+w+',.4)',lineWidth:0})
-        
-        
-
         if @oxygen < 0
           @die()
           return
@@ -489,15 +485,19 @@ $(window).ready ->
                 return true
 
     drop: (type)->
+      console.log 'drop', type
       for obj in @pocket
         if obj.nombre is type
+          obj.pos = [@pos[0], @pos[1]]
+          obj.pos_to_tile_pos()
           obj.attach_to_map()
           @pocket.remove obj
           if obj.claimed
             obj.claimed = false
           if @claim
             @claim = false
-          return
+          return obj
+      return false
 
     _idle: ->
       #finish que of states
@@ -525,8 +525,7 @@ $(window).ready ->
         
         if @oxygen < @max_oxygen*.8
           @want = 'airtanks'
-          @state_que.push 'find_object'
-          @state_que.push 'use_object'
+          @state_que = ['find_object', 'use_object']
           @job = 'refill_oxygen'
           return
       if @follow_target and @follow_timer? and @follow_timer > 0
@@ -536,6 +535,12 @@ $(window).ready ->
       @mood = 'bored'
       @state = 'work'
 
+    _refill_find_suit_fail: ->
+      @say 'need', 'suit'
+      @state = 'wander'
+    _refill_oxygen_job_fail: ->
+      @say 'need', 'airtanks'
+      @state = 'wander'
 
     _follow: ->
       if not @follow_timer?
@@ -564,11 +569,8 @@ $(window).ready ->
               else
                 return
         if not found
-          @forget @want, @tile_pos
-          @state_que = []
-          @state = 'idle'
-      @state_que = []
-      @state = 'idle'
+          @state = 'job_fail'
+      @state = 'job_fail'
 
 
     _find_object: ->
@@ -594,9 +596,8 @@ $(window).ready ->
             return
       ###
       @say 'need', @want
-      @state_que = []
-      @state = 'inventory'
-      @_found_obj = false
+      @state = 'job_fail'
+
     _pickup: ->
 
       r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
@@ -619,16 +620,40 @@ $(window).ready ->
             return
 
       if not found
-        @state_que = []
-        @state = 'inventory'
-        if @forget @want, @tile_pos
-          @say 'forget', @want, @tile_pos
-          @want = false
-          return
+        @state = 'job_fail'
 
-    
-        
-        
+    ## failing some base states should trigger _fail_job, which at the least cleans up any job stuff and can call a job fail/complete function if it exists
+
+    clear_common_props: ->
+      @want = false
+      if @claim
+        @claim.claimed = false
+        @claim = false
+      @_found_obj = false
+
+    _job_complete: ->
+      @state = 'idle'
+      if @job
+        @clear_common_props()
+        @state_que = []
+        @state = 'wait' 
+        if @['_'+@job+'_job_complete']
+          @['_'+@job+'_job_complete']()
+        @job = false
+    _job_fail: -> 
+      @state = 'idle'
+      if @job  
+        @clear_common_props()
+        @state_que = []   
+        @state = 'wait'  
+        if @['_'+@job+'_job_fail']
+          @['_'+@job+'_job_fail']()
+        else
+          console.log "can't call ", '_'+@job+'_job_fail'
+        @job = false
+
+
+
     _wear_suit: ->
 
       @suit = true
@@ -651,7 +676,7 @@ $(window).ready ->
           for guy in near
             if guy isnt @
               if guy.state in ['idle','wait','break'] and guy.mood? and guy.mood is 'bored'
-                if new Vector(guy.pos[0], guy.pos[1], 0).subtract( new Vector(@pos[0], @pos[1], 0) ).length() < 40
+                if new Vector(guy.pos[0], guy.pos[1], 0).subtract( new Vector(@pos[0], @pos[1], 0) ).length() < 32
                   if not @memory.entities[guy.nombre]
                     @memory.entities[guy.nombre] = true
                     @say 'greet', guy.nombre
@@ -721,8 +746,9 @@ $(window).ready ->
         else if window.Placer.jobs.length > 0
           @place_order = window.Placer.jobs.pop()
           @want = @place_order[0]
-          console.log 'got place job'
-          @state_que = ['find_object','place_find', 'pickup', 'place_pickup']
+          @job = 'place'
+          @say_verbose 'Placing Object'
+          @state_que = ['find_object', 'pickup', 'place_carry']
           @state = 'idle'
 
         else
@@ -731,29 +757,46 @@ $(window).ready ->
           else
             @state = 'break'
 
-    _place_find: ->
-      if not @_found_obj
-        if @place_order
-          window.Placer.jobs.push @place_order
-          @place_order = false
-      @state = 'idle'
+    _place_job_fail: ->
+      console.log 'place fail'
+      if @place_order
+        window.Placer.jobs.push @place_order
+        dump = []
+        for obj in @pocket
+          if obj.nombre is @place_order[0]
+            dump.push obj
+        for obj in dump
+          @drop obj
+        @place_order = false
+        @say 'fail'
 
-    _place_pickup: ->
+
+    _place_carry: ->
       p = @place_order[1]
       if @path_to [p[0],p[1]]
-        @state_que = ['moving', 'place_place']
+        @state_que = ['moving', 'place_install', 'job_complete']
       else
         @state_que = []
         if @place_order
-          window.Placer.jobs.push @place_order
-          @place_order = false
-        @state = 'idle'
+          @state = 'job_fail'
 
-    _place_place: ->
+    _place_install: ->
       if @place_order
-        @drop(@place_order[0])
-        @build_que = []
-        @state = 'idle'
+        dropped = @drop(@place_order[0])
+        if dropped
+          if dropped.place
+            dropped.place()
+          @state = 'job_complete'
+          return
+      @state = 'job_fail'
+
+    _place_job_complete: ->
+      console.log 'place_job_complete'
+      window.Placer.job_done @place_order
+      @place_order = false
+
+
+
 
     _inventory: ->
       for i in [-3..3]

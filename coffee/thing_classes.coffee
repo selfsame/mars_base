@@ -9,7 +9,7 @@ $(window).ready ->
       @debug = []
       @half_size = 16
       @no_path = false
-      
+      @opacity = false
       @sprite_size = 32
       @sprite_offset = [0,0]
       @claimed = false
@@ -20,6 +20,7 @@ $(window).ready ->
       @persistant_draw = true
       @init()
       @init_2()
+
     init: ->
     init_2: ->
     __update: (delta)->
@@ -53,12 +54,12 @@ $(window).ready ->
       if @persistant_draw is true
         if @needs_draw
           window.Draw.use_layer 'objects'
-          drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size)
+          drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @opacity)
           if drawn
             @needs_draw = false
       else
         window.Draw.use_layer 'entities'
-        drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size)
+        drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @opacity)
       for hook in @draw_hooks
         @[hook]()
     update: ->
@@ -69,8 +70,8 @@ $(window).ready ->
 
     destroy: ()->
       console.log 'destroying ', @
-      window.Entities.objects_hash.remove_member @
-      window.Entities.sentient_hash.remove_member @
+      window.Entities.objects_hash.remove @
+      window.Entities.sentient_hash.remove @
       if @no_path
         window.Map.set 'pathfinding', @tile_pos[0], @tile_pos[1], 0
       console.log @ in window.Entities.sentient
@@ -87,7 +88,6 @@ $(window).ready ->
 
     init: ->
       @attach_to_map()
-      @init_2()
 
     attach_to_map: ()->
       @show()
@@ -102,7 +102,7 @@ $(window).ready ->
     detach_from_map: ()->
       @hide()
       window.Entities.objects.remove @
-      window.Entities.objects_hash.remove_member @
+      window.Entities.objects_hash.remove @
       obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
       if obj_in_map and obj_in_map.length > 0
         obj_in_map.remove @
@@ -110,7 +110,21 @@ $(window).ready ->
 
   class Placeable extends Thing
     init_2: ()->
+      @placed_image = @image
+      @unplaced_image = @image
       @placed = false
+      @registered = false
+      if not @registered
+        window.Placer.register @
+    place: ()->
+      @placed = true
+      s = window.Map.tilesize
+
+      @pos = [(@pos[0]+16)-(@pos[0]+16)%s, (@pos[1]+16)-(@pos[1]+16)%s]
+      @image = @placed_image
+    unplace: ()->
+      @placed = false
+      @image = @unplaced_image
       window.Placer.register @
 
   class Door extends Placeable

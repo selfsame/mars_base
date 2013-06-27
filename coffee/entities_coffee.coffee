@@ -14,15 +14,16 @@ class Hash extends Hack
       if not @data[bucket]
         @data[bucket] = []
       @data[bucket].push obj
+      console.log '+ ', obj
     else
       console.log 'cant add to hash: ', obj
 
-  remove_member: (obj)->
+  remove: (obj)->
 
     if @members[obj.EID]
       bucket = @members[obj.EID]
-      @remove @data[ @members[obj.EID] ], obj
-    delete @members[obj.EID]
+      @_remove @data[ @members[obj.EID] ], obj
+      delete @members[obj.EID]
 
 
   pos_to_bucket: (pos)->
@@ -40,13 +41,13 @@ class Hash extends Hack
       bucket = @pos_to_bucket obj.pos
       if not @compare( @members[obj.EID], bucket)
         if @data[@members[obj.EID]]
-          without = @remove(@data[@members[obj.EID]], obj)
+          without = @_remove(@data[@members[obj.EID]], obj)
           if without
             @data[@members[obj.EID]] = without
 
           @put_in_data obj, bucket
 
-  remove: (listing, obj)->
+  _remove: (listing, obj)->
     index = listing.indexOf(obj)
     if index isnt -1
       listing = listing.splice(index, 1)
