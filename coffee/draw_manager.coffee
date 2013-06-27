@@ -197,7 +197,7 @@ $(window).ready ->
 		image: (imgname, x,y, w=32, h=32, rotation=false, opacity=false)->
 
 			if opacity
-				@context.globalAlpha = opacity
+				@context.globalAlpha = parseFloat(opacity)
 
 			if @layer_mode is 'view'
 				x *= @zoom

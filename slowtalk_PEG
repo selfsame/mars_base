@@ -1,0 +1,39 @@
+start
+  = action+
+
+action
+  = whitespace action:word whitespace "{" statement:command* "}" whitespace
+  {return {action:action, statements:statement}}
+
+word
+  = whitespace name:[a-z,A-Z,_]+ whitespace {return name.join('')}
+
+whitespace
+  = [" ",\n,\t]*
+
+command
+  = word:( word / number / operator / assignment )+ ';' whitespace
+    { return word }
+
+number
+  = whitespace number:(float / integer) whitespace
+    {return number}
+
+float
+  = sign:"-"?
+    before:[0-9]* "." after:[0-9]+ {
+      return parseFloat(sign+before.join("") + "." + after.join(""));
+    }
+
+integer
+  = sign:"-"?
+    digits:[0-9]+ {
+      return parseInt(sign+digits.join(""), 10);
+    }
+
+operator
+  = whitespace operator:('+' / '-' / '/' / '*' / '%') whitespace
+  {return operator}
+
+assignment
+  = whitespace "=" whitespace {return '='}

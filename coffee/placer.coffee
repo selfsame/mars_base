@@ -17,15 +17,15 @@ window.Placer =
     if @build_mode and @type
       pos = [window.Events.tile_under_mouse[0]*window.Map.tilesize, window.Events.tile_under_mouse[1]*window.Map.tilesize]
       if @valid
-        color = "rgba(0, 255, 255,.5)"
+        color = "rgba(0, 255, 255, .5)"
       else
-        color = "rgba(255, 20, 10,.5)"
+        color = "rgba(255, 20, 10, .5)"
       window.Draw.draw_box(pos[0],pos[1],window.Map.tilesize,window.Map.tilesize, {fillStyle:color, strokeStyle:color, lineWidth:2})
 
-      color = 'rgba(0, 255, 255,.25)'
-      for job in @jobs
-        pos = job[1]
-        window.Draw.draw_box(pos[0],pos[1],window.Map.tilesize,window.Map.tilesize, {fillStyle:color, strokeStyle:color, lineWidth:1})
+      #color = "rgba(0, 255, 255, .25)"
+      #for job in @jobs
+      #  pos = job[1]
+      #  window.Draw.draw_box(pos[0],pos[1],window.Map.tilesize,window.Map.tilesize, {fillStyle:color, strokeStyle:color, lineWidth:1})
 
 
     for job in @job_visuals #[ @type, @icons[@type], pos ]
