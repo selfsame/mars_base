@@ -158,6 +158,7 @@ $(window).ready ->
   window.Draw.add_image('solarpanel', "./textures/objects/solarpanel.png")
   window.Draw.add_image('wrench', "./textures/objects/wrench.png")
   window.Draw.add_image('door', "./textures/objects/door.png")
+  window.Draw.add_image('locker', "./textures/objects/locker.png")
   
 
   window.Draw.add_image('barewalk', "./textures/astronauts/colonist_bare_walk.png")

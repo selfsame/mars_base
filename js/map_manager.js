@@ -1,7 +1,7 @@
 
 window.Map = {
-	width: 40,
-	height: 40,
+	width: 100,
+	height: 100,
 	view_w_px: 640,
 	view_h_px: 480,
 	tilesize: 32,

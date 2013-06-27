@@ -47,6 +47,10 @@ $(window).ready ->
     for j in [5..5]
       door = new E.Airtank('airtanks', 'airtanks', [cx+((i-2)*32), cy+((j-2)*32)])
 
+  for i in [-5..-1]
+    for j in [3..4]
+      door = new E.Locker('locker', 'locker', [cx+((i-2)*32), cy+((j-2)*32)])
+
 
   for i in [0..3]
     for j in [-3..-2]

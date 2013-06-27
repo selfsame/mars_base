@@ -198,6 +198,8 @@ $(window).ready ->
       @block_build = true
       @attach_to_map()
 
+  class Locker extends Placeable
+
 
   class Airtank extends Placeable
     use: (entity)->
@@ -224,3 +226,4 @@ $(window).ready ->
   window.Entities.classes.Door = Door
   window.Entities.classes.Launchpad = Launchpad
   window.Entities.classes.Airtank = Airtank
+  window.Entities.classes.Locker = Locker

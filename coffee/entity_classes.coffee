@@ -794,7 +794,9 @@ $(window).ready ->
           if obj.nombre is @place_order[0]
             dump.push obj
         for obj in dump
-          @drop obj
+          @drop obj.nombre
+        if @pocket.length > 0
+          @drop @pocket[0].nombre
         @place_order = false
         @say 'fail'
 

@@ -5,7 +5,7 @@
   names = ['Jack', 'Rupert', 'Iona', 'Jennie', 'Casie', 'Numbers', 'Naomi', 'Milissa', 'Janina', 'Lauren', 'Herman', 'Tawnya', 'Bernadine', 'Marjory', 'Jennell', 'Ricardo', 'Rita', 'Coreen', 'Tennille', 'Shondra', 'Donny', 'Florine'];
 
   $(window).ready(function() {
-    var E, advanced, cx, cy, door, i, j, launchpad, name, solarpanel, suit, wrench, x, y, _i, _j, _k, _l, _m, _n, _o, _results;
+    var E, advanced, cx, cy, door, i, j, launchpad, name, solarpanel, suit, wrench, x, y, _i, _j, _k, _l, _m, _n, _o, _p, _q, _results;
     E = window.Entities.classes;
     cx = (window.Map.width * 32) / 2;
     cy = (window.Map.height * 32) / 2;
@@ -25,13 +25,18 @@
         door = new E.Airtank('airtanks', 'airtanks', [cx + ((i - 2) * 32), cy + ((j - 2) * 32)]);
       }
     }
-    for (i = _m = 0; _m <= 3; i = ++_m) {
-      for (j = _n = -3; _n <= -2; j = ++_n) {
+    for (i = _m = -5; _m <= -1; i = ++_m) {
+      for (j = _n = 3; _n <= 4; j = ++_n) {
+        door = new E.Locker('locker', 'locker', [cx + ((i - 2) * 32), cy + ((j - 2) * 32)]);
+      }
+    }
+    for (i = _o = 0; _o <= 3; i = ++_o) {
+      for (j = _p = -3; _p <= -2; j = ++_p) {
         suit = new E.Thing('suit', 'engineer', [cx + ((i - 2) * 32), cy + ((j - 2) * 32)]);
       }
     }
     _results = [];
-    for (i = _o = 0; _o <= 7; i = ++_o) {
+    for (i = _q = 0; _q <= 7; i = ++_q) {
       x = parseInt(Math.random() * 600 + (window.Map.width * window.Map.tilesize / 2) - 300);
       y = parseInt(Math.random() * 600 + (window.Map.width * window.Map.tilesize / 2) - 300);
       name = names[parseInt(Math.random() * names.length)];

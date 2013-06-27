@@ -1066,7 +1066,10 @@
           }
           for (_j = 0, _len1 = dump.length; _j < _len1; _j++) {
             obj = dump[_j];
-            this.drop(obj);
+            this.drop(obj.nombre);
+          }
+          if (this.pocket.length > 0) {
+            this.drop(this.pocket[0].nombre);
           }
           this.place_order = false;
           return this.say('fail');

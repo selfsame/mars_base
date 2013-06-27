@@ -5,7 +5,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   $(window).ready(function() {
-    var Airtank, Door, Entity, Launchpad, Placeable, Thing;
+    var Airtank, Door, Entity, Launchpad, Locker, Placeable, Thing;
     Entity = (function() {
 
       Entity.name = 'Entity';
@@ -330,6 +330,19 @@
       return Launchpad;
 
     })(Thing);
+    Locker = (function(_super) {
+
+      __extends(Locker, _super);
+
+      Locker.name = 'Locker';
+
+      function Locker() {
+        return Locker.__super__.constructor.apply(this, arguments);
+      }
+
+      return Locker;
+
+    })(Placeable);
     Airtank = (function(_super) {
 
       __extends(Airtank, _super);
@@ -368,7 +381,8 @@
     window.Entities.classes.Placeable = Placeable;
     window.Entities.classes.Door = Door;
     window.Entities.classes.Launchpad = Launchpad;
-    return window.Entities.classes.Airtank = Airtank;
+    window.Entities.classes.Airtank = Airtank;
+    return window.Entities.classes.Locker = Locker;
   });
 
 }).call(this);
