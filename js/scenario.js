@@ -16,7 +16,8 @@
     solarpanel = new E.Thing('solarpanel', 'solarpanel', [cx - (2 * 32), cy - (8 * 32)]);
     for (i = _i = 5; _i <= 8; i = ++_i) {
       for (j = _j = 0; _j <= 1; j = ++_j) {
-        door = new E.Placeable('door', 'door', [cx + ((i - 2) * 32), cy + ((j - 2) * 32)]);
+        door = new E.Door('door', 'door', [cx + ((i - 2) * 32), cy + ((j - 2) * 32)]);
+        door.placed_image = 'door_h';
       }
     }
     for (i = _k = 5; _k <= 8; i = ++_k) {

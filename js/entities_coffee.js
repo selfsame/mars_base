@@ -35,8 +35,7 @@
         if (!this.data[bucket]) {
           this.data[bucket] = [];
         }
-        this.data[bucket].push(obj);
-        return console.log('+ ', obj);
+        return this.data[bucket].push(obj);
       } else {
         return console.log('cant add to hash: ', obj);
       }

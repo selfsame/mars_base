@@ -62,6 +62,7 @@ $(window).ready ->
         drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @opacity)
       for hook in @draw_hooks
         @[hook]()
+
     update: ->
 
     pos_to_tile_pos: ()->
@@ -117,10 +118,9 @@ $(window).ready ->
       if not @registered
         window.Placer.register @
     place: ()->
+      console.log @nombre, 'getting placed'
       @placed = true
-      s = window.Map.tilesize
-
-      @pos = [(@pos[0]+16)-(@pos[0]+16)%s, (@pos[1]+16)-(@pos[1]+16)%s]
+      @pos_to_tile_pos()
       @image = @placed_image
     unplace: ()->
       @placed = false
@@ -136,22 +136,55 @@ $(window).ready ->
 
       window.Draw.use_layer('objects')
       window.Draw.clear_box(@pos[0], @pos[1], 32, 32);
+
+    place: ()->
+      @placed = true
+      @pos_to_tile_pos()
+      pos = @tile_pos
+      left = window.Map.get('tiles', pos[0]-1, pos[1])
+      right = window.Map.get('tiles', pos[0]+1, pos[1])
+      top = window.Map.get('tiles', pos[0], pos[1]-1)
+      bottom = window.Map.get('tiles', pos[0], pos[1]+1)
+      center = window.Map.get('tiles', pos[0], pos[1])
+      if left and left.is_wall() and right and right.is_wall()
+        @placed_image = 'door_h'
+      else if top and top.is_wall() and bottom and bottom.is_wall()
+        @placed_image = 'door_v'
+
+      @image = @placed_image
       window.Map.set('pathfinding', @tile_pos[0], @tile_pos[1], 0)
     draw: ->
+      if @placed
+        @placed_draw()
+      else
+        if @persistant_draw is true
+          if @needs_draw
+            window.Draw.use_layer 'objects'
+            drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @opacity)
+            if drawn
+              @needs_draw = false
+        else
+          window.Draw.use_layer 'entities'
+          drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @opacity)
+      for hook in @draw_hooks
+        @[hook]()
+
+    placed_draw: ->
       @open -= 1
       if @open < 0
         @open = 0
-      if not @drawn
-        #@drawn = true
-        window.Draw.use_layer 'tiles'
-        window.Draw.clear_box(@pos[0], @pos[1], 32, 32);
-        window.Draw.image('supply',@pos[0], @pos[1], 32, 32);
-        if @image is 'door_h'
-          window.Draw.image('corridor', @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0]+11, (@sprite_size-1)-@open, 10, {fillStyle:'red'})
-        else
-          window.Draw.image('corridor', @pos[0]+@sprite_offset[0]+11, @pos[1]+@sprite_offset[0], 10, (@sprite_size-1)-@open, {fillStyle:'red'})
 
-        window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], (@sprite_size), @sprite_size)
+      window.Draw.use_layer 'objects'
+      window.Draw.clear_box(@pos[0], @pos[1], 32, 32);
+      window.Draw.image('supply',@pos[0], @pos[1], 32, 32);
+      if @image is 'door_h'
+        window.Draw.image('corridor', @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0]+11, (@sprite_size-1)-@open, 10, {fillStyle:'red'})
+      else
+        window.Draw.image('corridor', @pos[0]+@sprite_offset[0]+11, @pos[1]+@sprite_offset[0], 10, (@sprite_size-1)-@open, {fillStyle:'red'})
+
+      #window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], (@sprite_size), @sprite_size)
+
+
       for hook in @draw_hooks
         @[hook]()
     visited: ()->

@@ -40,7 +40,8 @@ $(window).ready ->
 
   for i in [5..8]
     for j in [0..1]
-      door = new E.Placeable('door', 'door', [cx+((i-2)*32), cy+((j-2)*32)])
+      door = new E.Door('door', 'door', [cx+((i-2)*32), cy+((j-2)*32)])
+      door.placed_image = 'door_h'
 
   for i in [5..8]
     for j in [5..5]

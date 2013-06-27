@@ -157,6 +157,24 @@
         }
       };
 
+      Walker.prototype.path_close_to = function(pos) {
+        var i, j, path, _i, _j;
+        path = window.Entities.get_path(this.tile_pos[0], this.tile_pos[1], pos[0], pos[1]);
+        if (path && (path.length != null) && path.length > 0) {
+          return path;
+        } else {
+          for (i = _i = -1; _i <= 1; i = ++_i) {
+            for (j = _j = -1; _j <= 1; j = ++_j) {
+              path = window.Entities.get_path(this.tile_pos[0], this.tile_pos[1], pos[0] + i, pos[1] + j);
+              if (path && (path.length != null) && path.length > 0) {
+                return path;
+              }
+            }
+          }
+        }
+        return false;
+      };
+
       Walker.prototype._idle = function() {
         var use;
         if ((this.state_que != null) && this.state_que.length > 0) {
@@ -303,12 +321,14 @@
             obj = local[_i];
             if (obj.nombre === nombre) {
               if (obj.claimed === false) {
-                path = window.Entities.get_path(this.tile_pos[0], this.tile_pos[1], obj.tile_pos[0], obj.tile_pos[1]);
-                if (path && (path.length != null) && path.length > 0) {
-                  this.path = path;
-                  obj.claimed = true;
-                  this.claim = obj;
-                  return true;
+                if (!(this.job === 'place' && obj.placed === true)) {
+                  path = window.Entities.get_path(this.tile_pos[0], this.tile_pos[1], obj.tile_pos[0], obj.tile_pos[1]);
+                  if (path && (path.length != null) && path.length > 0) {
+                    this.path = path;
+                    obj.claimed = true;
+                    this.claim = obj;
+                    return true;
+                  }
                 }
               }
             }
@@ -774,31 +794,34 @@
 
       Colonist.prototype._find_object = function() {
         var found;
-        found = this.find_unclaimed_object(this.want);
-        if (found) {
-          this.que_add_first('moving');
-          this._found_obj = this.want;
-          this.state = 'idle';
-          return;
-        }
-        /*
-              if @memory.objects[@want]? and @memory.objects[@want].length > 0
-                list = @memory.objects[@want]
-                if Math.random() < .33
-                  list = list.sort()
-                if Math.random() < .33
-                  list = list.reverse()
-                for loc in @memory.objects[@want]
-                  if @path_to loc
-        
-                    @que_add_first 'moving'
-                    @_found_obj = @want
-                    @state = 'idle'
-                    return
-        */
+        if (this.want) {
+          found = this.find_unclaimed_object(this.want);
+          if (found) {
+            this.que_add_first('moving');
+            this._found_obj = this.want;
+            this.state = 'idle';
+            return;
+          }
+          /*
+                  if @memory.objects[@want]? and @memory.objects[@want].length > 0
+                    list = @memory.objects[@want]
+                    if Math.random() < .33
+                      list = list.sort()
+                    if Math.random() < .33
+                      list = list.reverse()
+                    for loc in @memory.objects[@want]
+                      if @path_to loc
+          
+                        @que_add_first 'moving'
+                        @_found_obj = @want
+                        @state = 'idle'
+                        return
+          */
 
-        this.say('need', this.want);
-        return this.state = 'job_fail';
+          this.say('need', this.want);
+          this.state = 'job_fail';
+        }
+        return this.state = 'idle';
       };
 
       Colonist.prototype._pickup = function() {
@@ -809,9 +832,6 @@
           for (_i = 0, _len = r.length; _i < _len; _i++) {
             obj = r[_i];
             if (obj.nombre === this.want) {
-              console.log('pickup', obj.nombre);
-              this.forget(this.want, this.tile_pos);
-              this.say('forget', this.want, this.tile_pos);
               found = true;
               obj.detach_from_map();
               this.pocket.push(obj);
@@ -1033,10 +1053,14 @@
       };
 
       Engineer.prototype._place_carry = function() {
-        var p;
+        var p, path;
         p = this.place_order[1];
-        if (this.path_to([p[0], p[1]])) {
-          return this.state_que = ['moving', 'place_install', 'job_complete'];
+        path = this.path_close_to([p[0], p[1]]);
+        console.log('CARRY TO ', path);
+        if (path) {
+          this.path = path;
+          this.state_que = ['place_install', 'job_complete'];
+          return this.state = 'moving';
         } else {
           this.state_que = [];
           if (this.place_order) {
@@ -1046,10 +1070,12 @@
       };
 
       Engineer.prototype._place_install = function() {
-        var dropped;
+        var dropped, g;
         if (this.place_order) {
           dropped = this.drop(this.place_order[0]);
           if (dropped) {
+            g = this.place_order[1];
+            dropped.pos = [g[0] * 32, g[1] * 32];
             if (dropped.place) {
               dropped.place();
             }

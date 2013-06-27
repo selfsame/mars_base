@@ -195,10 +195,9 @@
       };
 
       Placeable.prototype.place = function() {
-        var s;
+        console.log(this.nombre, 'getting placed');
         this.placed = true;
-        s = window.Map.tilesize;
-        this.pos = [(this.pos[0] + 16) - (this.pos[0] + 16) % s, (this.pos[1] + 16) - (this.pos[1] + 16) % s];
+        this.pos_to_tile_pos();
         return this.image = this.placed_image;
       };
 
@@ -226,30 +225,72 @@
         this.open = 0;
         this.attach_to_map();
         window.Draw.use_layer('objects');
-        window.Draw.clear_box(this.pos[0], this.pos[1], 32, 32);
+        return window.Draw.clear_box(this.pos[0], this.pos[1], 32, 32);
+      };
+
+      Door.prototype.place = function() {
+        var bottom, center, left, pos, right, top;
+        this.placed = true;
+        this.pos_to_tile_pos();
+        pos = this.tile_pos;
+        left = window.Map.get('tiles', pos[0] - 1, pos[1]);
+        right = window.Map.get('tiles', pos[0] + 1, pos[1]);
+        top = window.Map.get('tiles', pos[0], pos[1] - 1);
+        bottom = window.Map.get('tiles', pos[0], pos[1] + 1);
+        center = window.Map.get('tiles', pos[0], pos[1]);
+        if (left && left.is_wall() && right && right.is_wall()) {
+          this.placed_image = 'door_h';
+        } else if (top && top.is_wall() && bottom && bottom.is_wall()) {
+          this.placed_image = 'door_v';
+        }
+        this.image = this.placed_image;
         return window.Map.set('pathfinding', this.tile_pos[0], this.tile_pos[1], 0);
       };
 
       Door.prototype.draw = function() {
+        var drawn, hook, _i, _len, _ref, _results;
+        if (this.placed) {
+          this.placed_draw();
+        } else {
+          if (this.persistant_draw === true) {
+            if (this.needs_draw) {
+              window.Draw.use_layer('objects');
+              drawn = window.Draw.image(this.image, this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0], this.sprite_size, this.sprite_size, this.opacity);
+              if (drawn) {
+                this.needs_draw = false;
+              }
+            }
+          } else {
+            window.Draw.use_layer('entities');
+            drawn = window.Draw.image(this.image, this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0], this.sprite_size, this.sprite_size, this.opacity);
+          }
+        }
+        _ref = this.draw_hooks;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          hook = _ref[_i];
+          _results.push(this[hook]());
+        }
+        return _results;
+      };
+
+      Door.prototype.placed_draw = function() {
         var hook, _i, _len, _ref, _results;
         this.open -= 1;
         if (this.open < 0) {
           this.open = 0;
         }
-        if (!this.drawn) {
-          window.Draw.use_layer('tiles');
-          window.Draw.clear_box(this.pos[0], this.pos[1], 32, 32);
-          window.Draw.image('supply', this.pos[0], this.pos[1], 32, 32);
-          if (this.image === 'door_h') {
-            window.Draw.image('corridor', this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0] + 11, (this.sprite_size - 1) - this.open, 10, {
-              fillStyle: 'red'
-            });
-          } else {
-            window.Draw.image('corridor', this.pos[0] + this.sprite_offset[0] + 11, this.pos[1] + this.sprite_offset[0], 10, (this.sprite_size - 1) - this.open, {
-              fillStyle: 'red'
-            });
-          }
-          window.Draw.image(this.image, this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0], this.sprite_size, this.sprite_size);
+        window.Draw.use_layer('objects');
+        window.Draw.clear_box(this.pos[0], this.pos[1], 32, 32);
+        window.Draw.image('supply', this.pos[0], this.pos[1], 32, 32);
+        if (this.image === 'door_h') {
+          window.Draw.image('corridor', this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0] + 11, (this.sprite_size - 1) - this.open, 10, {
+            fillStyle: 'red'
+          });
+        } else {
+          window.Draw.image('corridor', this.pos[0] + this.sprite_offset[0] + 11, this.pos[1] + this.sprite_offset[0], 10, (this.sprite_size - 1) - this.open, {
+            fillStyle: 'red'
+          });
         }
         _ref = this.draw_hooks;
         _results = [];

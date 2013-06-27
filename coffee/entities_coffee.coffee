@@ -14,7 +14,7 @@ class Hash extends Hack
       if not @data[bucket]
         @data[bucket] = []
       @data[bucket].push obj
-      console.log '+ ', obj
+      #console.log '+ ', obj
     else
       console.log 'cant add to hash: ', obj
 

@@ -105,6 +105,18 @@ $(window).ready ->
         @state = 'wait'
         return false
 
+    path_close_to: (pos)->
+      path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], pos[0], pos[1])
+      if path and path.length? and path.length > 0
+        return path
+      else
+        for i in [-1..1]
+          for j in [-1..1]
+            path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], pos[0]+i, pos[1]+j)
+            if path and path.length? and path.length > 0
+              return path
+      return false
+
     # State functions
 
     _idle: ->
@@ -248,12 +260,13 @@ $(window).ready ->
         for obj in local
           if obj.nombre is nombre
             if obj.claimed is false
-              path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], obj.tile_pos[0], obj.tile_pos[1])
-              if path and path.length? and path.length > 0
-                @path = path
-                obj.claimed = true
-                @claim = obj
-                return true
+              if not (@job is 'place' and obj.placed is true)
+                path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], obj.tile_pos[0], obj.tile_pos[1])
+                if path and path.length? and path.length > 0
+                  @path = path
+                  obj.claimed = true
+                  @claim = obj
+                  return true
       return false
 
   class Talker extends Walker
@@ -574,29 +587,31 @@ $(window).ready ->
 
 
     _find_object: ->
-      found = @find_unclaimed_object(@want)
-      if found
-        @que_add_first 'moving'
-        @_found_obj = @want
-        @state = 'idle'
-        return
-      ###
-      if @memory.objects[@want]? and @memory.objects[@want].length > 0
-        list = @memory.objects[@want]
-        if Math.random() < .33
-          list = list.sort()
-        if Math.random() < .33
-          list = list.reverse()
-        for loc in @memory.objects[@want]
-          if @path_to loc
+      if @want
+        found = @find_unclaimed_object(@want)
+        if found
+          @que_add_first 'moving'
+          @_found_obj = @want
+          @state = 'idle'
+          return
+        ###
+        if @memory.objects[@want]? and @memory.objects[@want].length > 0
+          list = @memory.objects[@want]
+          if Math.random() < .33
+            list = list.sort()
+          if Math.random() < .33
+            list = list.reverse()
+          for loc in @memory.objects[@want]
+            if @path_to loc
 
-            @que_add_first 'moving'
-            @_found_obj = @want
-            @state = 'idle'
-            return
-      ###
-      @say 'need', @want
-      @state = 'job_fail'
+              @que_add_first 'moving'
+              @_found_obj = @want
+              @state = 'idle'
+              return
+        ###
+        @say 'need', @want
+        @state = 'job_fail'
+      @state = 'idle'
 
     _pickup: ->
 
@@ -607,9 +622,6 @@ $(window).ready ->
 
         for obj in r
           if obj.nombre is @want
-            console.log 'pickup', obj.nombre
-            @forget @want, @tile_pos
-            @say 'forget', @want, @tile_pos
             found = true       
             obj.detach_from_map()
             @pocket.push obj
@@ -748,6 +760,7 @@ $(window).ready ->
           @want = @place_order[0]
           @job = 'place'
           @say_verbose 'Placing Object'
+
           @state_que = ['find_object', 'pickup', 'place_carry']
           @state = 'idle'
 
@@ -773,8 +786,12 @@ $(window).ready ->
 
     _place_carry: ->
       p = @place_order[1]
-      if @path_to [p[0],p[1]]
-        @state_que = ['moving', 'place_install', 'job_complete']
+      path = @path_close_to [p[0],p[1]]
+      console.log 'CARRY TO ', path
+      if path
+        @path = path
+        @state_que = ['place_install', 'job_complete']
+        @state = 'moving'
       else
         @state_que = []
         if @place_order
@@ -784,6 +801,8 @@ $(window).ready ->
       if @place_order
         dropped = @drop(@place_order[0])
         if dropped
+          g = @place_order[1]
+          dropped.pos = [ g[0]*32, g[1]*32 ]
           if dropped.place
             dropped.place()
           @state = 'job_complete'
