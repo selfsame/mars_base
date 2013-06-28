@@ -30,19 +30,15 @@ $(window).ready( function(){
 		if ( $(this).data('active') ){
 			$(this).data('active', false);
 			$(this).parent().find('.ui_menu_dropdown').animate({'height':'0px', opacity:.2},500);
-			window.Tiles.edit_mode = false;
-			window.Draw.show_layer("wall_shadows");
-			window.Draw.hide_layer("blueprints");
+			window.Tiles.show_blueprints(false);
 		} else {
 			if ($('#place').children().first().data('active') == true ){
 				console.log( 'place is open....ad,fmsadf,msd.,f');
 				$('#place').children().first().click();
 			}
 			$(this).data('active', true);
-			$(this).parent().find('.ui_menu_dropdown').animate({'height':'420px', opacity:1.0},500);
-			window.Tiles.edit_mode = true;
-			window.Draw.hide_layer("wall_shadows");
-			window.Draw.show_layer("blueprints");
+			$(this).parent().find('.ui_menu_dropdown').animate({'height':'450px', opacity:1.0},500);
+			window.Tiles.show_blueprints(true);
 			
 		}
 
@@ -53,21 +49,26 @@ $(window).ready( function(){
 		});
 		
 	});
+	
+	menu.append( '<div id="remove" class="ui_menu_option"><p class="">REMOVE</p><img src="./textures/UI/remove.png"></div>' );
+	$('#remove').click(function(e){
+		window.Tiles.edit_style = 'empty';
+		$(this).parent().children().removeClass('active');
+		$(this).addClass('active');
+	});
+
 	menu.append( '<div id="confirm_build" class="ui_menu_option"><p class="">CONFIRM</p><img src="./textures/UI/confirm.png"></div>' );
 	$('#confirm_build').click(function(e){
 
-		window.Tiles.confirm_blueprints()
-		$('#build').children().first().click();
+		if (window.Tiles.confirm_blueprints()) {
+			$('#build').children().first().click();
+		}
 	});
 
-	menu.append( '<div id="cancel_build" class="ui_menu_option"><p class="">CANCEL</p><img src="./textures/UI/cancel.png"></div>' );
+	menu.append( '<div id="cancel_build" class="ui_menu_option"><p class="">CLEAR</p><img src="./textures/UI/cancel.png"></div>' );
 	$('#cancel_build').click(function(e){
-
-		window.Tiles.cancel_blueprints()
-		$('#build').children().first().click();
+		window.Tiles.cancel_blueprints();
 	});
-
-
 
 
 

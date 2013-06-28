@@ -25,16 +25,6 @@ function Tile(x, y) {
 		} else if (style != 'empty') {
 			this.valid = this.check_neighbors_clear();
 		}
-		
-		if (!this.valid) {
-		//	window.Tiles.invalid_tiles.push(this);
-		} else {
-		//	window.Tiles.invalid_tiles.remove(this);
-		}
-		
-		if (this.state == 0 && style == 'empty') {
-			this.erase();
-		}
 
 		if (style == 'wall') {
 			this.blue_wall_style = this.determine_wall_style();
@@ -45,7 +35,9 @@ function Tile(x, y) {
 				}
 			}
 		} else if (style == 'empty') {
-			if (this.state == 1 || this.state == 2) {
+			if (this.state == 0) {
+				this.erase();
+			} if (this.state == 1 || this.state == 2) {
 				if (this.goal_style != 'wall') {
 					this.set_blueprint('wall');
 					this.get_walls();
@@ -54,13 +46,21 @@ function Tile(x, y) {
 					this.blue_style = 'wall';
 				}
 			} else {
-				this.get_walls();
 				this.set_blueprint('wall');
+				this.get_walls();
 			}
 		} else if (style != 'wall') {
 			this.get_walls();
 		}
 		
+		if (this.valid || style == 'empty') {
+			window.Tiles.invalid_tiles.remove(this);
+		} else if (this.blue_style != 'empty') {
+			if (window.Tiles.invalid_tiles.indexOf(this) == -1) {
+				window.Tiles.invalid_tiles.push(this);
+			}
+		}
+	
 		this.draw();
 	
 	}
@@ -74,9 +74,7 @@ function Tile(x, y) {
 					neighbor = new Tile (this.x + x - 1, this.y + y - 1);
 					window.Map.set('tiles', neighbor.x, neighbor.y, neighbor);
 					neighbor.set_blueprint('wall');
-				} else if (neighbor.blue_style == 'wall') { // there is a wall here already
-					neighbor.set_blueprint('wall');
-				} else if (neighbor.blue_style == 'empty') {
+				} else if (neighbor.blue_style == 'wall' || neighbor.blue_style == 'empty') { // there is a tile here already
 					neighbor.set_blueprint('wall');
 				}
 			}
@@ -89,7 +87,6 @@ function Tile(x, y) {
 		window.Tiles.live_tiles.remove(this);
 		window.Tiles.under_construction.remove(this);
 		window.Tiles.invalid_tiles.remove(this);
-		console.log("deleting tile");
 	}
 	
 	// called by the astronauts
@@ -217,7 +214,7 @@ function Tile(x, y) {
 			return ('wall_base_' + window.Tiles.wall_styles[bin_val]);
 		} else if ( bin_val == 0 ) { // no neighbors
 			return ('empty'); // should be empty
-		} else {
+		} else { // catch-all style
 			return ('wall_base_17');
 		}
 	}
@@ -278,7 +275,6 @@ function Tile(x, y) {
 				window.Draw.use_layer("tiles");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
 			} else {
-				//alert("drawing invalid tile!");
 				window.Draw.use_layer("blueprints");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
 				if (this.blue_style == 'wall') {
@@ -288,12 +284,12 @@ function Tile(x, y) {
 				}
 				window.Draw.image("blueprint2", x, y);
 			}
-		} else if (this.state == 1 || this.state == 2) { // building something
+		} else if (this.state == 1 || this.state == 2) { // building/removing something
 			if (this.goal_style == 'wall') {
 				window.Draw.use_layer("tiles");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
 				window.Draw.image("wall_build", x, y);
-				if (this.blue_style != this.goal_style) { // the blueprint wants something different than the current construction
+				if (this.blue_style != this.goal_style) {
 					window.Draw.use_layer("blueprints");
 					window.Draw.clear_box(x, y, tilesize, tilesize);
 					if (this.blue_style == 'empty') {
@@ -312,7 +308,7 @@ function Tile(x, y) {
 				window.Draw.use_layer("tiles");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
 				window.Draw.image("tile_build", x, y);
-				if (this.blue_style != this.goal_style) { // the blueprint wants something different than the current construction
+				if (this.blue_style != this.goal_style) {
 					window.Draw.use_layer("blueprints");
 					window.Draw.clear_box(x, y, tilesize, tilesize);
 					if (this.blue_style == 'wall') {
@@ -337,8 +333,8 @@ function Tile(x, y) {
 				window.Draw.use_layer("tiles");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
 				window.Draw.image(this.wall_style, x, y);
-				if (this.blue_style != this.goal_style) { // the blueprint wants something different than what is built
-					if (this.blue_style == 'empty') { // the blueprints want it to be removed
+				if (this.blue_style != this.goal_style) {
+					if (this.blue_style == 'empty') {
 						window.Draw.use_layer("blueprints");
 						window.Draw.clear_box(x, y, tilesize, tilesize);
 						window.Draw.image(this.wall_style, x, y);
@@ -359,8 +355,8 @@ function Tile(x, y) {
 				window.Draw.use_layer("tiles");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
 				window.Draw.image(this.current_style, x, y);
-				if (this.blue_style != this.goal_style) { // the blueprint wants something different than what is built
-					if (this.blue_style == 'empty') { // the blueprints want it to be removed
+				if (this.blue_style != this.goal_style) {
+					if (this.blue_style == 'empty') {
 						window.Draw.use_layer("blueprints");
 						window.Draw.clear_box(x, y, tilesize, tilesize);
 						window.Draw.image(this.current_style, x, y);
@@ -386,6 +382,7 @@ function Tile(x, y) {
 		}
 	}
 	
+	// returns true if the tile is currently a wall that is built
 	Tile.prototype.is_wall = function() {
 		return (this.state == 3 && this.current_style == 'wall');
 	}
@@ -461,8 +458,8 @@ function Tile(x, y) {
 			} else if (!walls[7] && !walls[1] && walls[0]) {
 				window.Draw.image('shadow_7', x, y);
 			}
-		} else {
 		
+		} else {
 			window.Draw.use_layer("wall_shadows");
 			var tilesize = window.Map.tilesize;
 			var x = this.x * tilesize;
@@ -474,16 +471,19 @@ function Tile(x, y) {
 
 window.Tiles = {
 	init: function() {
-		this.edit_mode = false;
-		this.edit_placement = 'tiles';
-		this.edit_style = 'corridor';
-		this.wall_set = 'chunky 2';
-		this.shad_set = 'plain';
+		this.edit_mode = false; // blueprint mode = true, view mode = false
+		this.edit_style = 'corridor'; // current cursor type
+		
+		this.wall_set = 'chunky 2'; // the folder holding the wall images
+		this.shad_set = 'plain'; // the folder holding the shadow images
+		
 		this.dragging = false; // is the mouse being clicked/dragged?
 		this.start_tile = [0,0];
-		this.under_construction = [];
-		this.live_tiles = [];
-		this.invalid_tiles = [];
+		
+		this.under_construction = []; // an array of all tiles currently in need of construction
+		this.live_tiles = []; // an array of all tiles (used when doing any operation on all active tiles)
+		this.invalid_tiles = []; //  a list of all invalid tiles (used when confirming blueprint orders)
+		
 		this.wall_styles = {
 			// 1
 			12: 1,
@@ -810,9 +810,7 @@ window.Tiles = {
 			// 46
 			168: 46
 		};
-		
-		
-		
+
 		// ask for events
 		window.Events.add_listener(this);
 	
@@ -831,8 +829,9 @@ window.Tiles = {
 		for (var i = 0; i < 46; i++) {
 			window.Draw.add_image('wall_base_' + (i+1), "./textures/walls/external/" + this.wall_set + '/wall_base_' + (i+1) + ".png");
 		}
-		//window.Draw.add_image('wall_base_17', "./textures/walls/external/" + this.wall_set + "/wall_base_17.png");
-		window.Draw.add_image('wall', "./textures/walls/external/wall_ext_m.png");
+		
+		// used in case the blueprint style isn't set properly
+		window.Draw.add_image('wall', "./textures/walls/external/" + this.wall_set + "/wall_base_17.png");
 		
 		// load shadow images
 		for (var i = 0; i < 12; i++) {
@@ -850,25 +849,41 @@ window.Tiles = {
 		
 		// create draw layers
 		window.Draw.create_layer('tiles', true);
+		//window.Draw.create_layer('objects', true);
 		window.Draw.create_layer('wall_shadows', true);
 		window.Draw.create_layer('blueprints', true);
 	},
 	
+	show_blueprints: function(mode) { // true = blueprint mode, false = view mode
+		if (mode) {
+			this.edit_mode = true;
+			console.log("Switching to blueprint view!");
+			window.Draw.hide_layer("wall_shadows");
+			window.Draw.show_layer("blueprints");
+		} else {
+			this.edit_mode = false;
+			console.log("Switching to default view!");
+			window.Draw.hide_layer("blueprints");
+			window.Draw.show_layer("wall_shadows");
+		}
+	},
+	
 	confirm_blueprints: function() { // confirm all pending blueprints
 		if (this.invalid_tiles.length == 0) {
+			console.log("Player confirmed all pending blueprints. Total pending: " + this.live_tiles.length);
 			for(var i = 0; i < this.live_tiles.length; i++) {
-				console.log("confirming blueprint orders!");
 				this.live_tiles[i].confirm();
 			}
+			return true;
 		} else {
-			alert("Cannot confirm invalid blueprints! Get rid of the invalid tiles first.");
+			alert("Cannot confirm blueprints! Get rid of the invalid tiles first.");
+			return false;
 		}
 	},
 	
 	cancel_blueprints: function() { // cancel all pending blueprints
 		for(var t = 0; t < this.live_tiles.length; t) {
-			console.log(this.live_tiles.length);
-			if(!this.live_tiles[t].cancel()) { // tile wasn't removed, skip over it
+			if(!this.live_tiles[t].cancel()) { // tile wasn't removed (it's already built), skip over it
 				t++;
 			}
 		}
@@ -895,56 +910,36 @@ window.Tiles = {
 			}
 		} else if (e.keyCode == 86) { // v
 			if (this.edit_mode) {
-				this.edit_mode = false;
-				console.log("Switching view mode to no-edit!");
-				window.Draw.show_layer("wall_shadows");
-				window.Draw.hide_layer("blueprints");
+				this.show_blueprints(false);
 			} else {
-				this.edit_mode = true;
-				console.log("Switching view mode to edit!");
-				window.Draw.show_layer("blueprints");
-				window.Draw.hide_layer("wall_shadows");
+				this.show_blueprints(true);
 			}
 		} else if (e.keyCode == 67) { // c
 			this.cancel_blueprints();
 		} else if (e.keyCode == 82) { // r
 			this.edit_style = 'empty';
 		}
-		console.log("Key pressed. keycode: " + e.keyCode);
 	},
 	
 	mousedown: function(e){ // called on mouse click
 		e.preventDefault();
-		console.log(this.invalid_tiles.length);
 		if (this.edit_mode && e.which == 1) {
-			// get the tile the user clicked
-			var tile_coords = window.Events.tile_under_mouse;
-			var t = window.Map.get('tiles', tile_coords[0], tile_coords[1]);
-			
-			// save it for when the mouse is being dragged
+			// get the tile the user clicked and save it for later
+			this.start_tile = window.Events.tile_under_mouse;
 			this.dragging = true;
-			this.start_tile = tile_coords;
-			/*
-			if (t == 0) { // if the tile does not exist, make one and set the blueprint to edit_style
-				if (this.edit_style != 'empty') {
-					t = new Tile(tile_coords[0], tile_coords[1]);
-					window.Map.set('tiles', tile_coords[0], tile_coords[1], t);
-					t.set_blueprint(this.edit_style);
-				}
-			} else {
-				t.set_blueprint(this.edit_style);
-			} */
 		}
 	},
-	mouseup: function(e) {
+	
+	mouseup: function(e) { // called on mouse click released
 		e.preventDefault();
 		if (this.dragging && this.edit_mode && e.which == 1) {
 			var end_tile = window.Events.tile_under_mouse;
 			
-			var top_left = [0, 0];
-			var bottom_right = [0, 0];
+			var top_left = [0, 0]; // top left corner of drag
+			var bottom_right = [0, 0]; // bottom right corner of drag
 			
 			
+			// determine the x coordinates for the top left tile and bottom right tile
 			if (this.start_tile[0] < end_tile[0]) {
 				top_left[0] = this.start_tile[0];
 				bottom_right[0] = end_tile[0];
@@ -953,6 +948,7 @@ window.Tiles = {
 				bottom_right[0] = this.start_tile[0];
 			}
 			
+			// determine the y coordinates for the top left tile and bottom right tile
 			if (this.start_tile[1] < end_tile[1]) {
 				top_left[1] = this.start_tile[1];
 				bottom_right[1] = end_tile[1];
@@ -961,6 +957,7 @@ window.Tiles = {
 				bottom_right[1] = this.start_tile[1];
 			}
 			
+			// place the tiles in the box
 			for (var i = top_left[0]; i <= bottom_right[0]; i++) {
 				for (var j = top_left[1]; j <= bottom_right[1]; j++) {
 					var t = window.Map.get('tiles', i, j);
