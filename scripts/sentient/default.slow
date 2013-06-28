@@ -1,0 +1,5 @@
+main (
+	wander 20;
+	wait 40;
+
+)

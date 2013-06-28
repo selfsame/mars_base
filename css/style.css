@@ -152,3 +152,54 @@ canvas {
 	color:orange;
 	font-weight:bold;
 }
+
+
+
+#inspect{
+	position:absolute;
+	width:300px;
+	right: 20px;
+	top: 20px;
+	height: 800px;
+	padding: 10px;
+	background-color: rgba(0, 0, 0, 0.5);
+	overflow:hidden;
+	color:silver;
+	font-size: 12px;
+	line-height: 1.1;
+	font-family: courier;
+}
+
+.script_display{
+	padding: 6px;
+	border: 1px solid silver;
+	white-space: pre;
+	height:auto;
+}
+
+#inspect .current{
+	background-color:#6d1c6e;
+	color:white;
+}
+
+#inspect .script_vars{
+	width:280px;
+	height:280px;
+	color: red;
+	font-size: 10px;
+}
+
+#inspect .script_vars .column{
+	float:left;
+	width: 54px;
+	
+	}
+
+#inspect .script_vars .entry{
+	height:15px;
+
+	overflow:hidden;
+	border-bottom: 1px dashed gray;
+	border-left: 1px solid gray;
+	padding: 2px;
+}

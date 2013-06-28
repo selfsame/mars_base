@@ -2,27 +2,53 @@ start
   = action+
 
 action
-  = white action:word white start_group white statement:statement* white end_group white
-  {return {action:action.value, statements:statement}}
+  = w1:white action:word w2:white start:start_group w3:white statement:statement* w4:white end:end_group w5:white
+  {
+data = [];
+literals = [];
+
+ for (_i = 0, _len = statement.length; _i < _len; _i++) {
+  part = statement[_i];
+  data.push(part.value);
+  literals.push(part.literal);
+ }
+
+return {action:action.value, statements:data, literals:literals,
+begin:w1+action.literal+w2+start.literal+w3,
+end:w4+end.literal+w5}}
 
 word
-  = white string:[a-zA-Z_]+ white {return {type:'word', value:string.join('')}}
+  = w1:white string:[a-zA-Z_]+ w2:white 
+  {return {type:'word', value:string.join(''), literal:w1+string.join('')+w2}}
 
 white
-  = [" "\n\t]*
+  = string:(" " / newline / tab)* {return string.join('')}
+
+newline =
+  [\n] {return "\n" }
+
+tab =
+  [\t] {return "\t" }
 
 statement
-  = word:logic_block end_line white
-    { return word }
+  = w1:white block:logic_block end:end_line w2:white
+    { 
+literal = ''; 
+ for (_i = 0, _len = block.length; _i < _len; _i++) {
+  part = block[_i];
+  literal += part.literal
+ }
+
+return {type:'statement', value:block, literal:w1+literal+end.literal+w2} }
 
 logic_block =
-  white word:( word / number / operator / assignment / comparative / 
-           memory / self / enclosure )+ white
-    { return word }
+  w1:white parts:( word / number / operator / assignment / comparative / 
+           memory / self / enclosure )+ w2:white
+   {return parts }
 
 number
-  = white number:(float / integer) white
-    {return number}
+  = w1:white number:(float / integer) w2:white
+    {return {type:'number', value:number, literal:w1+number+w2}}
 
 float
   = sign:"-"?
@@ -37,31 +63,44 @@ integer
     }
 
 operator
-  = white operator:('+' / '-' / '/' / '*' / '%') white
-  {return {type:'operator', value:operator}}
+  = w1:white operator:('+' / '-' / '/' / '*' / '%') w2:white
+  {return {type:'operator', value:operator, literal:w1+operator+w2}}
 
 assignment
-  = white "=" white {return '='}
+  = w1:white "=" w2:white 
+ {return {type:'assignment', value:'=', literal:w1+'='+w2}}
 
 comparative
- = white comp:('==' / '<' / '>' / '<=' / '>=' / '&') white
-  {return {type:'compare', value:comp}}
+ = w1:white comp:('==' / '<' / '>' / '<=' / '>=' / '&') w2:white
+  {return {type:'compare', value:comp, literal:w1+comp+w2}}
 
 
 /* */
 
 start_group
-  = white ( '(' / '{' / '[' ) white
+  = w1:white start:( '(' / '{' / '[' ) w2:white
+  {return {type:'end_line', value:start, literal:w1+start+w2} }
 
 end_group
-  = white ( ')' / '}' / ']' ) white
+  = w1:white end:( ')' / '}' / ']' ) w2:white
+  {return {type:'end_line', value:end, literal:w1+end+w2} }
 
 end_line
-  = white ( ';' / ':' / ',' / '.' ) white
+  = w1:white end:( ';' / ':' / ',' / '.' ) w2:white
+  {return {type:'end_line', value:end, literal:w1+end+w2} }
 
 enclosure =
-  white start_group white block:logic_block white end_group white
-  { return block }
+  w1:white start:start_group w2:white block:logic_block w3:white end:end_group w4:white
+  { 
+
+literal = ''; 
+ for (_i = 0, _len = block.length; _i < _len; _i++) {
+  part = block[_i];
+  literal += part.literal
+ }
+
+return {type:'enclosure' , value:block, 
+literal:w1+start.literal+w2+literal+w3+end.literal+w2} }
 
 
 
@@ -72,7 +111,5 @@ memory
 
 self
   = white amp:'@' self:[a-zA-Z_]+ white {return {type:'self', value:self.join('') } }
-
-
 
 

@@ -1,5 +1,87 @@
 $(window).ready ->
 
+  window.Scripter = 
+    init: ->
+      @watch = false
+      window.Events.add_listener(@)
+      @inspect = $('<div id="inspect"></div>')
+      $('#UI_overlay').append @inspect
+
+    show: (thing)->
+      @watch = thing
+      @inspect.html ''
+      @inspect.append '<p>'+thing.nombre+'</p>'
+      @inspect.append '<p>'+thing.tile_pos+'</p>'
+      if thing.script and thing.parsed_script
+
+
+        @vars = $('<div class="script_vars"></div>')
+        for i in [0..4]
+          @vars.append $('<div class="column"></div>')
+
+        i = 0
+        for type of @watch.script_vars
+          $(@vars.children()[i]).append '<p>'+type+'</p>'
+          for item in @watch.script_vars[type]
+            if item is false
+              item = ''
+            $(@vars.children()[i]).append $('<div class="entry">'+item+'</div>')
+          i += 1
+
+        @inspect.append @vars
+
+        @script = $('<div class="script_display"><pre><code></pre></code></div>')
+        @code = @script.find('code')
+        @inspect.append @script
+        parsed = thing.parsed_script
+        for action in parsed
+
+          span = $('<span></span>')
+          span[0].innerHTML = action.begin
+          window.scriptbegin = action.begin
+          @code.append span
+
+          console.log action.begin
+          block = $('<span class="block"></span>')
+          @code.append block
+          for line in action.literals
+            span = $('<span></span>')
+            span[0].innerHTML = line
+            block.append span
+
+            console.log line
+
+
+          span = $('<span></span>')
+          span[0].innerHTML = action.end
+          @code.append span
+
+          console.log action.end
+      else
+        @script = false
+
+    update: ->
+      if @watch and @script and @watch.parser
+        @script.find('span').removeClass 'current'
+        index = @watch.parser.code_line
+
+        $(@code.find('.block').children()[index]).addClass 'current'
+
+
+    mouseup: ->
+      t = window.Events.tile_under_mouse
+      p = {x:t[0]*32, y:t[1]*32}
+      found = window.Entities.sentient_hash.get_within([p.x,p.y], 32)
+      results = []
+      for guy in found
+        if guy.tile_pos[0] is t[0] and guy.tile_pos[1] is t[1]
+          results.push guy
+      if results.length > 0
+        console.log 'Selected:', results
+        @show results[0]
+
+  window.Scripter.init()
+
   class SlowEntity
     constructor: (@nombre='thing', @image='sprite', @pos=[0,0])->
       @EID = window.get_unique_id()
@@ -290,14 +372,35 @@ $(window).ready ->
 
   class Scripted extends SlowWalker
     init_2: ->
+      @speed = 2
       @parsed_script = false
       @parser = false
       @script = "
-main(
-  wander,
-  wait 120.
-)
-"
+        main (\n
+          wait(5);\n
+          wait(10);\n
+          wait(5);\n
+          wait(20); wait( 30 ); wait(10);\n
+        \n
+        \n
+        wander(5);\n
+        )
+        "
+      @script_vars =
+        int:[]
+        float:[]
+        string: []
+        vector: []
+        entity: []
+
+      for i in [0..9]
+        @script_vars.int.push false
+        @script_vars.float.push false
+        @script_vars.string.push false
+        @script_vars.vector.push false
+        @script_vars.entity.push false
+
+
       try
         @parsed_script = window.slow_parser.parse @script
       catch error
@@ -310,11 +413,66 @@ main(
       if @parser
         @parser.exec()
 
-    _wander: ->
-      console.log 'wander'
+    walk_path: ->
+      console.log 'i think ive started walk path'
+      if not @path? or @path.length is 0
+        return false
 
-    _wait: ->
-      console.log 'wait'
+
+      tilesize = window.Map.tilesize
+
+      p1 = @path[0][0]*tilesize
+      p2 = @path[0][1]*tilesize
+      @vect_to_target = new Vector((@path[0][0]*tilesize)-@pos[0], (@path[0][1]*tilesize)-@pos[1], 0)
+      @dist_to_target = @vect_to_target.length()
+      @target_vect = @normalize_vector( @vect_to_target )
+      @vector = Vector.lerp(@vector, @target_vect, @turn_speed)
+      near = 10
+      if @pos[0] > p1-near and @pos[0] < p1+near and @pos[1] > p2-near and @pos[1] < p2+near
+        @path = @path.splice(1,@path.length)
+        @velocity = .1
+        if @path.length is 0
+          console.log 'i think path is 0 length'
+          return true
+      else
+        @move(1)
+      console.log 'i think we ran all the code'
+      return false
+
+    _wander: (args = [])->
+
+      if not args[0]
+        amount = 10
+      else
+        amount = args[0]
+      
+      if not @path or not @target
+        @target = @get_random_tile(amount)
+        @path_to @target
+        console.log 'wander.. ', @path, @target
+      if @walk_path()
+        console.log 'walk finished, we done'
+        @path = false
+        @target = false
+        return true
+
+    
+
+
+    _wait: (args = [])->
+
+      if not args[0]
+        amount = 0
+      else
+        amount = args[0]
+
+      if not @test_timer
+        @test_timer = 0
+      @test_timer += 1
+      if @test_timer > amount
+        @test_timer = 0
+        return true
+      return false
 
   class SlowParser
     constructor: (@self, @json)->
@@ -331,22 +489,47 @@ main(
         lines = @behavior.statements
         if lines.length > @code_line
           @run_statement lines[@code_line]
-          @code_line += 1
         else
           @code_line = 0
           @behavior = false
 
     run_statement: (line)->
       index = 0
-      if line[0]
-        if typeof line[0] is 'object'
-          if line[0].type is 'word'
-            value = line[0].value
-            v = @self['_'+value]
-            if v?
-              if typeof v is 'function'
-                v()
-      console.log line
+      parts = line.length
+      pattern = false
+      funct = false
+      args = false
+      vars = []
+
+      for part in line
+        if typeof part isnt 'object'
+          console.log 'ERROR parsing part: ', part
+        if not pattern
+          if part.type is 'word'
+            pattern = 'call'
+            funct = part.value
+        else if pattern is 'call' and args is false
+          args = []
+          if part.type is 'enclosure'
+            for subpart in part.value
+              if subpart.type is 'number'
+                args.push subpart.value
+        else
+          console.log 'parsing leftover: ', part.type, part.value
+
+      if pattern is 'call'
+        if not args
+          args = []
+        v = @self['_'+funct]
+        if @self['_'+funct]? and typeof @self['_'+funct] is 'function'
+          if @self['_'+funct](args)
+            @code_line += 1
+
+
+
+
+
+
 
 
 

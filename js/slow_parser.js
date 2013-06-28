@@ -41,6 +41,8 @@ window.slow_parser = (function(){
         "action": parse_action,
         "word": parse_word,
         "white": parse_white,
+        "newline": parse_newline,
+        "tab": parse_tab,
         "statement": parse_statement,
         "logic_block": parse_logic_block,
         "number": parse_number,
@@ -193,7 +195,19 @@ window.slow_parser = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, action, statement) {return {action:action.value, statements:statement}})(pos0, result0[1], result0[5]);
+          result0 = (function(offset, w1, action, w2, start, w3, statement, w4, end, w5) {
+        data = [];
+        literals = [];
+        
+         for (_i = 0, _len = statement.length; _i < _len; _i++) {
+          part = statement[_i];
+          data.push(part.value);
+          literals.push(part.literal);
+         }
+        
+        return {action:action.value, statements:data, literals:literals,
+        begin:w1+action.literal+w2+start.literal+w3,
+        end:w4+end.literal+w5}})(pos0, result0[0], result0[1], result0[2], result0[3], result0[4], result0[5], result0[6], result0[7], result0[8]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -252,7 +266,7 @@ window.slow_parser = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, string) {return {type:'word', value:string.join('')}})(pos0, result0[1]);
+          result0 = (function(offset, w1, string, w2) {return {type:'word', value:string.join(''), literal:w1+string.join('')+w2}})(pos0, result0[0], result0[1], result0[2]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -262,45 +276,117 @@ window.slow_parser = (function(){
       
       function parse_white() {
         var result0, result1;
+        var pos0;
         
+        pos0 = pos;
         result0 = [];
-        if (/^[" "\n\t]/.test(input.charAt(pos))) {
-          result1 = input.charAt(pos);
+        if (input.charCodeAt(pos) === 32) {
+          result1 = " ";
           pos++;
         } else {
           result1 = null;
           if (reportFailures === 0) {
-            matchFailed("[\" \"\\n\\t]");
+            matchFailed("\" \"");
+          }
+        }
+        if (result1 === null) {
+          result1 = parse_newline();
+          if (result1 === null) {
+            result1 = parse_tab();
           }
         }
         while (result1 !== null) {
           result0.push(result1);
-          if (/^[" "\n\t]/.test(input.charAt(pos))) {
-            result1 = input.charAt(pos);
+          if (input.charCodeAt(pos) === 32) {
+            result1 = " ";
             pos++;
           } else {
             result1 = null;
             if (reportFailures === 0) {
-              matchFailed("[\" \"\\n\\t]");
+              matchFailed("\" \"");
             }
           }
+          if (result1 === null) {
+            result1 = parse_newline();
+            if (result1 === null) {
+              result1 = parse_tab();
+            }
+          }
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, string) {return string.join('')})(pos0, result0);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_newline() {
+        var result0;
+        var pos0;
+        
+        pos0 = pos;
+        if (/^[\n]/.test(input.charAt(pos))) {
+          result0 = input.charAt(pos);
+          pos++;
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("[\\n]");
+          }
+        }
+        if (result0 !== null) {
+          result0 = (function(offset) {return "\n" })(pos0);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_tab() {
+        var result0;
+        var pos0;
+        
+        pos0 = pos;
+        if (/^[\t]/.test(input.charAt(pos))) {
+          result0 = input.charAt(pos);
+          pos++;
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("[\\t]");
+          }
+        }
+        if (result0 !== null) {
+          result0 = (function(offset) {return "\t" })(pos0);
+        }
+        if (result0 === null) {
+          pos = pos0;
         }
         return result0;
       }
       
       function parse_statement() {
-        var result0, result1, result2;
+        var result0, result1, result2, result3;
         var pos0, pos1;
         
         pos0 = pos;
         pos1 = pos;
-        result0 = parse_logic_block();
+        result0 = parse_white();
         if (result0 !== null) {
-          result1 = parse_end_line();
+          result1 = parse_logic_block();
           if (result1 !== null) {
-            result2 = parse_white();
+            result2 = parse_end_line();
             if (result2 !== null) {
-              result0 = [result0, result1, result2];
+              result3 = parse_white();
+              if (result3 !== null) {
+                result0 = [result0, result1, result2, result3];
+              } else {
+                result0 = null;
+                pos = pos1;
+              }
             } else {
               result0 = null;
               pos = pos1;
@@ -314,7 +400,14 @@ window.slow_parser = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, word) { return word })(pos0, result0[0]);
+          result0 = (function(offset, w1, block, end, w2) { 
+        literal = ''; 
+         for (_i = 0, _len = block.length; _i < _len; _i++) {
+          part = block[_i];
+          literal += part.literal
+         }
+        
+        return {type:'statement', value:block, literal:w1+literal+end.literal+w2} })(pos0, result0[0], result0[1], result0[2], result0[3]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -399,7 +492,7 @@ window.slow_parser = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, word) { return word })(pos0, result0[1]);
+          result0 = (function(offset, w1, parts, w2) {return parts })(pos0, result0[0], result0[1], result0[2]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -436,7 +529,7 @@ window.slow_parser = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, number) {return number})(pos0, result0[1]);
+          result0 = (function(offset, w1, number, w2) {return {type:'number', value:number, literal:w1+number+w2}})(pos0, result0[0], result0[1], result0[2]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -691,7 +784,7 @@ window.slow_parser = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, operator) {return {type:'operator', value:operator}})(pos0, result0[1]);
+          result0 = (function(offset, w1, operator, w2) {return {type:'operator', value:operator, literal:w1+operator+w2}})(pos0, result0[0], result0[1], result0[2]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -733,7 +826,7 @@ window.slow_parser = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset) {return '='})(pos0);
+          result0 = (function(offset, w1, w2) {return {type:'assignment', value:'=', literal:w1+'='+w2}})(pos0, result0[0], result0[2]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -830,7 +923,7 @@ window.slow_parser = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, comp) {return {type:'compare', value:comp}})(pos0, result0[1]);
+          result0 = (function(offset, w1, comp, w2) {return {type:'compare', value:comp, literal:w1+comp+w2}})(pos0, result0[0], result0[1], result0[2]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -840,9 +933,10 @@ window.slow_parser = (function(){
       
       function parse_start_group() {
         var result0, result1, result2;
-        var pos0;
+        var pos0, pos1;
         
         pos0 = pos;
+        pos1 = pos;
         result0 = parse_white();
         if (result0 !== null) {
           if (input.charCodeAt(pos) === 40) {
@@ -882,14 +976,20 @@ window.slow_parser = (function(){
               result0 = [result0, result1, result2];
             } else {
               result0 = null;
-              pos = pos0;
+              pos = pos1;
             }
           } else {
             result0 = null;
-            pos = pos0;
+            pos = pos1;
           }
         } else {
           result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, w1, start, w2) {return {type:'end_line', value:start, literal:w1+start+w2} })(pos0, result0[0], result0[1], result0[2]);
+        }
+        if (result0 === null) {
           pos = pos0;
         }
         return result0;
@@ -897,9 +997,10 @@ window.slow_parser = (function(){
       
       function parse_end_group() {
         var result0, result1, result2;
-        var pos0;
+        var pos0, pos1;
         
         pos0 = pos;
+        pos1 = pos;
         result0 = parse_white();
         if (result0 !== null) {
           if (input.charCodeAt(pos) === 41) {
@@ -939,14 +1040,20 @@ window.slow_parser = (function(){
               result0 = [result0, result1, result2];
             } else {
               result0 = null;
-              pos = pos0;
+              pos = pos1;
             }
           } else {
             result0 = null;
-            pos = pos0;
+            pos = pos1;
           }
         } else {
           result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, w1, end, w2) {return {type:'end_line', value:end, literal:w1+end+w2} })(pos0, result0[0], result0[1], result0[2]);
+        }
+        if (result0 === null) {
           pos = pos0;
         }
         return result0;
@@ -954,9 +1061,10 @@ window.slow_parser = (function(){
       
       function parse_end_line() {
         var result0, result1, result2;
-        var pos0;
+        var pos0, pos1;
         
         pos0 = pos;
+        pos1 = pos;
         result0 = parse_white();
         if (result0 !== null) {
           if (input.charCodeAt(pos) === 59) {
@@ -1007,14 +1115,20 @@ window.slow_parser = (function(){
               result0 = [result0, result1, result2];
             } else {
               result0 = null;
-              pos = pos0;
+              pos = pos1;
             }
           } else {
             result0 = null;
-            pos = pos0;
+            pos = pos1;
           }
         } else {
           result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, w1, end, w2) {return {type:'end_line', value:end, literal:w1+end+w2} })(pos0, result0[0], result0[1], result0[2]);
+        }
+        if (result0 === null) {
           pos = pos0;
         }
         return result0;
@@ -1070,7 +1184,16 @@ window.slow_parser = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, block) { return block })(pos0, result0[3]);
+          result0 = (function(offset, w1, start, w2, block, w3, end, w4) { 
+        
+        literal = ''; 
+         for (_i = 0, _len = block.length; _i < _len; _i++) {
+          part = block[_i];
+          literal += part.literal
+         }
+        
+        return {type:'enclosure' , value:block, 
+        literal:w1+start.literal+w2+literal+w3+end.literal+w2} })(pos0, result0[0], result0[1], result0[2], result0[3], result0[4], result0[5], result0[6]);
         }
         if (result0 === null) {
           pos = pos0;
