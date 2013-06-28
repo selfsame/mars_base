@@ -301,12 +301,12 @@ $(window).ready ->
         redcolor = 'rgba(255,0,0,'+alpha+')'
         blackcolor = 'rgba(0,0,0,'+alpha+')'
         
-        font = {fillStyle: 'black', strokeStyle: 'black', font:'courier', fontsize: 16}
+        font = {fillStyle: blackcolor, strokeStyle: 'black', font:'courier', fontsize: 16}
         if @voice_que[0][2] is 'emergency'
           font = {fillStyle: redcolor, strokeStyle: 'red',font:'Comic Sans MS', fontsize: 20}
         window.Draw.draw_box(@pos[0], @pos[1]-20+ymod, phlen, 20, {fillStyle:whitecolor, strokeStyle:'black',lineWidth:0})
-        window.Draw.draw_lines([[@pos[0]+4, @pos[1]+ymod], [@pos[0]+5+4, @pos[1]+7+ymod],[@pos[0]+10+4, @pos[1]+ymod]], {fillStyle:whitecolor, strokeStyle:'white', lineWidth:0})
-        #window.Draw.draw_text(phrase,@pos[0]+5, @pos[1]-5+ymod, font)
+        window.Draw.draw_lines([[@pos[0]+4, @pos[1]+ymod], [@pos[0]+5+4, @pos[1]+7+ymod],[@pos[0]+10+4, @pos[1]+ymod]], {fillStyle:whitecolor, strokeStyle:whitecolor, lineWidth:0})
+        window.Draw.draw_text(phrase,@pos[0]+5, @pos[1]-5+ymod, font)
         if @voice_que[0][1] > 90
           @voice_que = @voice_que.splice(1,@voice_que.length)
         if @voice_que.length > 4

@@ -13,7 +13,7 @@ $(window).ready ->
       @inspect.append '<p>'+thing.nombre+'</p>'
       @inspect.append '<p>'+thing.tile_pos+'</p>'
       if thing.script and thing.parsed_script
-
+        @inspect.css('diplay', 'block')
 
         @vars = $('<div class="script_vars"></div>')
         for i in [0..4]
