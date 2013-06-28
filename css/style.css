@@ -25,6 +25,13 @@ canvas {
     image-rendering: -o-crisp-edges;            // OS X & Windows Opera (12.02+)
     image-rendering: optimize-contrast;         // Possible future browsers.
     -ms-interpolation-mode: nearest-neighbor;   // IE
+	user-select: none;
+	-ms-user-select: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-user-drag: none;
 }
 
 
