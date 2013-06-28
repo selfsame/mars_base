@@ -66,5 +66,7 @@ $(window).ready ->
     advanced.sprite_offset = [0, 0]
     advanced.sprite_size = 32
 
+  slow = new E.Scripted('Norm', 'spirit', [300,300])
+
     
 

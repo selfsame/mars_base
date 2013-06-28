@@ -2,21 +2,26 @@ start
   = action+
 
 action
-  = whitespace action:word whitespace "{" statement:command* "}" whitespace
-  {return {action:action, statements:statement}}
+  = white action:word white start_group white statement:statement* white end_group white
+  {return {action:action.value, statements:statement}}
 
 word
-  = whitespace name:[a-z,A-Z,_]+ whitespace {return name.join('')}
+  = white string:[a-zA-Z_]+ white {return {type:'word', value:string.join('')}}
 
-whitespace
-  = [" ",\n,\t]*
+white
+  = [" "\n\t]*
 
-command
-  = word:( word / number / operator / assignment )+ ';' whitespace
+statement
+  = word:logic_block end_line white
+    { return word }
+
+logic_block =
+  white word:( word / number / operator / assignment / comparative / 
+           memory / self / enclosure )+ white
     { return word }
 
 number
-  = whitespace number:(float / integer) whitespace
+  = white number:(float / integer) white
     {return number}
 
 float
@@ -32,8 +37,42 @@ integer
     }
 
 operator
-  = whitespace operator:('+' / '-' / '/' / '*' / '%') whitespace
-  {return operator}
+  = white operator:('+' / '-' / '/' / '*' / '%') white
+  {return {type:'operator', value:operator}}
 
 assignment
-  = whitespace "=" whitespace {return '='}
+  = white "=" white {return '='}
+
+comparative
+ = white comp:('==' / '<' / '>' / '<=' / '>=' / '&') white
+  {return {type:'compare', value:comp}}
+
+
+/* */
+
+start_group
+  = white ( '(' / '{' / '[' ) white
+
+end_group
+  = white ( ')' / '}' / ']' ) white
+
+end_line
+  = white ( ';' / ':' / ',' / '.' ) white
+
+enclosure =
+  white start_group white block:logic_block white end_group white
+  { return block }
+
+
+
+/* game stuff */ 
+
+memory
+ = white sym:'$' slot:('i' / 'f' / 's' / 'l' / 'e') index:[0-9] white {return {type:'memory', slot:slot, index:index}}
+
+self
+  = white amp:'@' self:[a-zA-Z_]+ white {return {type:'self', value:self.join('') } }
+
+
+
+
