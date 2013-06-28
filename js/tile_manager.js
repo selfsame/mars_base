@@ -18,13 +18,25 @@ function Tile(x, y) {
 	
 	// set a blueprint style for this tile
 	Tile.prototype.set_blueprint = function(style) {
-	
 		this.blue_style = style;
+		
+		if (style == 'wall') {
+			this.valid = this.check_clear();
+		} else if (style != 'empty') {
+			this.valid = this.check_neighbors_clear();
+		}
+		
+		if (!this.valid) {
+		//	window.Tiles.invalid_tiles.push(this);
+		} else {
+		//	window.Tiles.invalid_tiles.remove(this);
+		}
+		
 		if (this.state == 0 && style == 'empty') {
 			this.erase();
 		}
+
 		if (style == 'wall') {
-			this.valid = window.Map.get("objects", this.x, this.y) == 0;
 			this.blue_wall_style = this.determine_wall_style();
 			if (this.blue_wall_style == 'empty') {
 				this.blue_style = 'empty';
@@ -42,16 +54,13 @@ function Tile(x, y) {
 					this.blue_style = 'wall';
 				}
 			} else {
-				this.blue_style = 'wall';
 				this.get_walls();
 				this.set_blueprint('wall');
 			}
-		} else {
-			this.valid = this.check_clear();
-			if (this.valid) {
-				this.get_walls();
-			}
+		} else if (style != 'wall') {
+			this.get_walls();
 		}
+		
 		this.draw();
 	
 	}
@@ -79,6 +88,7 @@ function Tile(x, y) {
 		window.Map.set('tiles', this.x, this.y, 0);
 		window.Tiles.live_tiles.remove(this);
 		window.Tiles.under_construction.remove(this);
+		window.Tiles.invalid_tiles.remove(this);
 		console.log("deleting tile");
 	}
 	
@@ -152,7 +162,7 @@ function Tile(x, y) {
 			}
 			this.draw();
 			return true;
-		} else if (this.blue_style == 'wall') { 
+		} else if (this.blue_style == 'wall') { 5
 			if (this.blue_wall_style != this.wall_style) { // they are both wall
 				this.wall_style = this.blue_wall_style;
 				this.draw();
@@ -167,11 +177,11 @@ function Tile(x, y) {
 	Tile.prototype.cancel = function() {
 		if (this.state == 0) {
 			this.erase();
-			this.blue_style = 'empty';
-			this.draw();
+			this.set_blueprint('empty');
+			return true;
 		} else {
-			this.blue_style = this.current_style;
-			this.draw();
+			this.set_blueprint(this.goal_style);
+			return false;
 		}
 	}
 	
@@ -202,7 +212,7 @@ function Tile(x, y) {
 	Tile.prototype.determine_wall_style = function() {
 		var bin_val = this.get_bin_value();
 		var wall_style = window.Tiles.wall_styles[bin_val];
-		console.log("bin: " + bin_val + " style: wall_base_" + wall_style + ".png");
+		//console.log("bin: " + bin_val + " style: wall_base_" + wall_style + ".png");
 		if (wall_style != undefined) {
 			return ('wall_base_' + window.Tiles.wall_styles[bin_val]);
 		} else if ( bin_val == 0 ) { // no neighbors
@@ -213,21 +223,31 @@ function Tile(x, y) {
 	}
 	
 	// check if the ground is clear of any obstacles
-	Tile.prototype.check_clear = function() {
-		var mid = window.Map.get("objects", this.x, this.y);
-		//var others = window.Map.get_neighbors("objects", this.x, this.y);
-		if (mid != 0) {
-			if (mid.block_build == true) {
+	Tile.prototype.check_clear = function(x, y) {
+		if (x && y) {
+			var ob = window.Map.get("objects", x, y);
+		} else {
+			var ob = window.Map.get("objects", this.x, this.y);
+		}
+		if (ob) {
+			if (!ob.block_build) {
 				return false;
 			}
 		}
-		//for (var i = 0; i < others.length; i++) {
-		//	if (others[i] != 0) {
-		//		if (!others[i].block_build) {
-		//			return false;
-		//		}
-		//	}
-		//}
+		
+		return true;
+		
+	}
+	
+	// check if the neighbors around this tile are clear of any obstacles
+	Tile.prototype.check_neighbors_clear = function() {
+		for (i = -1; i < 2; i++) {
+			for (j = -1; j < 2; j++) {
+				if (!this.check_clear(this.x + i, this.y + j)) {
+					return false;
+				}
+			}
+		}
 		return true;
 	}
 	
@@ -258,8 +278,14 @@ function Tile(x, y) {
 				window.Draw.use_layer("tiles");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
 			} else {
+				//alert("drawing invalid tile!");
 				window.Draw.use_layer("blueprints");
 				window.Draw.clear_box(x, y, tilesize, tilesize);
+				if (this.blue_style == 'wall') {
+					window.Draw.image(this.blue_wall_style, x, y);
+				} else {
+					window.Draw.image(this.blue_style, x, y);
+				}
 				window.Draw.image("blueprint2", x, y);
 			}
 		} else if (this.state == 1 || this.state == 2) { // building something
@@ -450,12 +476,14 @@ window.Tiles = {
 	init: function() {
 		this.edit_mode = false;
 		this.edit_placement = 'tiles';
-		this.edit_obj = 'crate';
 		this.edit_style = 'corridor';
 		this.wall_set = 'chunky 2';
-		this.shad_set = 'chunky';
+		this.shad_set = 'plain';
+		this.dragging = false; // is the mouse being clicked/dragged?
+		this.start_tile = [0,0];
 		this.under_construction = [];
 		this.live_tiles = [];
+		this.invalid_tiles = [];
 		this.wall_styles = {
 			// 1
 			12: 1,
@@ -824,27 +852,31 @@ window.Tiles = {
 		window.Draw.create_layer('tiles', true);
 		window.Draw.create_layer('wall_shadows', true);
 		window.Draw.create_layer('blueprints', true);
-		window.Draw.create_layer('obj_blueprints', true);
-	},
-	confirm_blueprints: function() { // confirm all blueprints
-		for(var i = 0; i < this.live_tiles.length; i++) {
-				this.live_tiles[i].confirm();
-		}
-		console.log("tiles to be built: " + this.under_construction.length);
-	},
-	cancel_blueprints: function() { // cancel all blueprints
-		alert(this.live_tiles.length);
-		for(var i = 0; i < this.live_tiles.length; i++) {
-			this.live_tiles[i].cancel();
-		}
-		alert(this.live_tiles.length);
 	},
 	
-	keydown: function(e){
-		//alert(e.keyCode);
+	confirm_blueprints: function() { // confirm all pending blueprints
+		if (this.invalid_tiles.length == 0) {
+			for(var i = 0; i < this.live_tiles.length; i++) {
+				console.log("confirming blueprint orders!");
+				this.live_tiles[i].confirm();
+			}
+		} else {
+			alert("Cannot confirm invalid blueprints! Get rid of the invalid tiles first.");
+		}
+	},
+	
+	cancel_blueprints: function() { // cancel all pending blueprints
+		for(var t = 0; t < this.live_tiles.length; t) {
+			console.log(this.live_tiles.length);
+			if(!this.live_tiles[t].cancel()) { // tile wasn't removed, skip over it
+				t++;
+			}
+		}
+	},
+	
+	keydown: function(e){ // called on keypress
 		if (e.keyCode == 49) { // 1
 			this.edit_style = "corridor";
-			this.edit_obj = 'crate_closed';
 		} else if (e.keyCode == 50) { // 2
 			this.edit_style = "supply";
 		} else if (e.keyCode == 51) { // 3
@@ -859,7 +891,6 @@ window.Tiles = {
 			this.edit_style = "power";
 		} else if (e.keyCode == 66) { // b
 			if(this.edit_mode) {
-				console.log("confirming blueprint orders");
 				this.confirm_blueprints();
 			}
 		} else if (e.keyCode == 86) { // v
@@ -875,37 +906,77 @@ window.Tiles = {
 				window.Draw.hide_layer("wall_shadows");
 			}
 		} else if (e.keyCode == 67) { // c
-			console.log("cancelling blueprint orders");
 			this.cancel_blueprints();
 		} else if (e.keyCode == 82) { // r
 			this.edit_style = 'empty';
 		}
-		//console.log("keycode: " + e.keyCode);
+		console.log("Key pressed. keycode: " + e.keyCode);
 	},
-	mousedown: function(e){
-		if (this.edit_mode) {
-			if (this.edit_placement == 'tiles') { // in tile placement mode
-				// get the tile the user clicked
-				var tile_coords = window.Events.tile_under_mouse;
-				var t = window.Map.get('tiles', tile_coords[0], tile_coords[1]);
-				if (t == 0) { // if the tile does not exist, make one
-					console.log("tile doesn't exist yet, making one");
-					if (this.edit_style != 'empty') {
-						t = new Tile(tile_coords[0], tile_coords[1]);
-						window.Map.set('tiles', tile_coords[0], tile_coords[1], t);
-						t.set_blueprint(this.edit_style);
-					}
-				} else {
+	
+	mousedown: function(e){ // called on mouse click
+		e.preventDefault();
+		console.log(this.invalid_tiles.length);
+		if (this.edit_mode && e.which == 1) {
+			// get the tile the user clicked
+			var tile_coords = window.Events.tile_under_mouse;
+			var t = window.Map.get('tiles', tile_coords[0], tile_coords[1]);
+			
+			// save it for when the mouse is being dragged
+			this.dragging = true;
+			this.start_tile = tile_coords;
+			/*
+			if (t == 0) { // if the tile does not exist, make one and set the blueprint to edit_style
+				if (this.edit_style != 'empty') {
+					t = new Tile(tile_coords[0], tile_coords[1]);
+					window.Map.set('tiles', tile_coords[0], tile_coords[1], t);
 					t.set_blueprint(this.edit_style);
 				}
-			} else if (this.edit_placement = 'objects') { // in object placement mode
-				
-			}
+			} else {
+				t.set_blueprint(this.edit_style);
+			} */
 		}
 	},
-	update: function(delta) { // hackish update code, change when astronauts can interact
-		for(i = 0; i < this.under_construction.length; i++) {
-			// this.under_construction[i].build(delta/2);
+	mouseup: function(e) {
+		e.preventDefault();
+		if (this.dragging && this.edit_mode && e.which == 1) {
+			var end_tile = window.Events.tile_under_mouse;
+			
+			var top_left = [0, 0];
+			var bottom_right = [0, 0];
+			
+			
+			if (this.start_tile[0] < end_tile[0]) {
+				top_left[0] = this.start_tile[0];
+				bottom_right[0] = end_tile[0];
+			} else {
+				top_left[0] = end_tile[0];
+				bottom_right[0] = this.start_tile[0];
+			}
+			
+			if (this.start_tile[1] < end_tile[1]) {
+				top_left[1] = this.start_tile[1];
+				bottom_right[1] = end_tile[1];
+			} else {
+				top_left[1] = end_tile[1];
+				bottom_right[1] = this.start_tile[1];
+			}
+			
+			for (var i = top_left[0]; i <= bottom_right[0]; i++) {
+				for (var j = top_left[1]; j <= bottom_right[1]; j++) {
+					var t = window.Map.get('tiles', i, j);
+					
+					if (t == 0) { // if the tile does not exist, make one and set the blueprint to edit_style
+						if (this.edit_style != 'empty') {
+							t = new Tile(i, j);
+							window.Map.set('tiles', i, j, t);
+							t.set_blueprint(this.edit_style);
+						}
+					} else {
+						t.set_blueprint(this.edit_style);
+					}
+				}
+			}		
+			this.dragging = false;
 		}
 	}
 }
