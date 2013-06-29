@@ -887,6 +887,7 @@ window.Tiles = {
 				t++;
 			}
 		}
+		this.invalid_tiles = [];
 	},
 	
 	keydown: function(e){ // called on keypress
