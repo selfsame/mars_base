@@ -44,7 +44,21 @@
       advanced.sprite_offset = [0, 0];
       advanced.sprite_size = 32;
     }
-    return slow = new E.Scripted('Norm', 'spirit', [300, 300]);
+    slow = new E.Scripted('Norm', 'spirit', [300, 300]);
+    return slow.run_script("main ( \n  $i9 = 1;\n  wait(40);\n  if 1:(\n    $i5 = 1;\n    wait(40);\n    $i6 = 21;\n    wait(40);\n    $i7 = 41;\n    $f4 = 1.2;\n    if 1:(\n      wait(40);\n    )\n      )\n  $i3 = 66;\n  wander(4);\n  )");
   });
+
+  /*
+  if $i1 == 10:(\n
+      $i3 = 6;\n
+    )\n
+    wait($i1*5); wait( $i1*2+(3*10));\n
+    \n
+    wander(5);\n
+    $f5 = 89 * (2 / 3);\n
+    $i1 /= $f5 * .5;\n
+    wait(50);\n
+  */
+
 
 }).call(this);

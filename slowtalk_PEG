@@ -2,20 +2,76 @@ start
   = action+
 
 action
-  = w1:white action:word w2:white start:start_group w3:white statement:statement* w4:white end:end_group w5:white
+  = w1:white action:word w2:white start:start_group w3:white statement:(statement / conditional)* w4:white end:end_group w5:white
   {
 data = [];
 literals = [];
 
  for (_i = 0, _len = statement.length; _i < _len; _i++) {
   part = statement[_i];
-  data.push(part.value);
+  if (part.type == 'conditional'){
+    data.push(part);
+  } else {
+    data.push(part.value);
+  }
   literals.push(part.literal);
  }
 
-return {action:action.value, statements:data, literals:literals,
+return {type:'routine', action:action.value, block:data, literals:literals,
 begin:w1+action.literal+w2+start.literal+w3,
 end:w4+end.literal+w5}}
+
+conditional =
+  w1:white  logic:('if' / 'then' / 'else' ) 
+  w2:white 
+  eval: logic_block w3:white ':'
+  w4:white start:start_group w5:white
+  statement:(statement / conditional)*
+  w6:white end:end_group w7:white
+
+{
+
+evlit = ''; 
+ for (_i = 0, _len = eval.length; _i < _len; _i++) {
+  part = eval[_i];
+  evlit += part.literal
+ }
+
+lits = '';
+literals = [];
+data = [];
+ for (_i = 0, _len = statement.length; _i < _len; _i++) {
+  part = statement[_i];
+  lits += part.literal
+  literals.push(part.literal);
+  if (part.type == 'conditional'){
+    data.push(part);
+  } else {
+    data.push(part.value);
+  }
+ }
+
+begin = w1+logic+w2+evlit+w3+':'+w4+start.literal
++w5;
+end = w6+end.literal+w7;
+return {type:'conditional', term:logic, eval:eval,
+block:data, literals:literals, literal: begin+lits+end,
+begin:begin,
+end:end  } }
+
+
+
+
+logic_block =
+  w1:white parts:( word / number /  comparative / assignment / operator /
+           memory / self / enclosure )+ w2:white
+   {return parts }
+
+
+
+
+
+
 
 word
   = w1:white string:[a-zA-Z_]+ w2:white 
@@ -31,7 +87,7 @@ tab =
   [\t] {return "\t" }
 
 statement
-  = w1:white block:logic_block end:end_line w2:white
+  = w1:white block:(logic_block ) end:end_line
     { 
 literal = ''; 
  for (_i = 0, _len = block.length; _i < _len; _i++) {
@@ -39,12 +95,10 @@ literal = '';
   literal += part.literal
  }
 
-return {type:'statement', value:block, literal:w1+literal+end.literal+w2} }
+return {type:'statement', value:block, literal:w1+literal+end.literal} }
 
-logic_block =
-  w1:white parts:( word / number / operator / assignment / comparative / 
-           memory / self / enclosure )+ w2:white
-   {return parts }
+
+
 
 number
   = w1:white number:(float / integer) w2:white
@@ -67,11 +121,11 @@ operator
   {return {type:'operator', value:operator, literal:w1+operator+w2}}
 
 assignment
-  = w1:white "=" w2:white 
- {return {type:'assignment', value:'=', literal:w1+'='+w2}}
+  = w1:white ass:("+=" / "-=" / "*=" / "/=" / "=") w2:white 
+ {return {type:'assignment', value:ass, literal:w1+ass+w2}}
 
 comparative
- = w1:white comp:('==' / '<' / '>' / '<=' / '>=' / '&') w2:white
+ = w1:white comp:('==' / '<=' / '>=' / '<' / '>' /  '&') w2:white
   {return {type:'compare', value:comp, literal:w1+comp+w2}}
 
 
@@ -86,8 +140,8 @@ end_group
   {return {type:'end_line', value:end, literal:w1+end+w2} }
 
 end_line
-  = w1:white end:( ';' / ':' / ',' / '.' ) w2:white
-  {return {type:'end_line', value:end, literal:w1+end+w2} }
+  = w1:white end:( ';' / ',' / '.' ) 
+  {return {type:'end_line', value:end, literal:w1+end} }
 
 enclosure =
   w1:white start:start_group w2:white block:logic_block w3:white end:end_group w4:white
@@ -103,13 +157,43 @@ return {type:'enclosure' , value:block,
 literal:w1+start.literal+w2+literal+w3+end.literal+w2} }
 
 
+ifend =
+   w1:white sym: ':'  w2:white
+  {return {type:'ifend', value:sym, literal:w1+sym+w2} }
+
+
 
 /* game stuff */ 
 
 memory
- = white sym:'$' slot:('i' / 'f' / 's' / 'l' / 'e') index:[0-9] white {return {type:'memory', slot:slot, index:index}}
+ = w1:white sym:'$' slot:('i' / 'f' / 's' / 'v' / 'e') index:[0-9] w2:white {return {type:'memory', slot:slot, index:index, 
+literal:w1+sym+slot+index+w2}}
 
 self
   = white amp:'@' self:[a-zA-Z_]+ white {return {type:'self', value:self.join('') } }
 
 
+
+
+
+/* test data
+
+main(
+  $i2 <= 5;
+  wander,
+  wait 120.
+)
+
+find_oxygen [
+ $e1 = find_object airtanks,
+ path_to $e1,
+ follow_path, wait 13,
+ @x = 54 / ( (5/.02) + 3-2 ),
+ use $e1,
+ do idle.
+]
+
+
+
+
+*/

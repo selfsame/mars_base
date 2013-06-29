@@ -13,58 +13,71 @@
         this.inspect = $('<div id="inspect"></div>');
         return $('#UI_overlay').append(this.inspect);
       },
-      show: function(thing) {
-        var action, block, i, item, line, parsed, span, type, _i, _j, _k, _l, _len, _len1, _len2, _ref, _ref1, _results;
-        this.watch = thing;
-        this.inspect.html('');
-        this.inspect.append('<p>' + thing.nombre + '</p>');
-        this.inspect.append('<p>' + thing.tile_pos + '</p>');
-        if (thing.script && thing.parsed_script) {
-          this.inspect.css('diplay', 'block');
-          this.vars = $('<div class="script_vars"></div>');
+      show_vars: function() {
+        var i, item, type, _i, _j, _len, _ref, _results;
+        if (this.watch && this.watch.script_vars) {
+          this.vars.html('');
           for (i = _i = 0; _i <= 4; i = ++_i) {
             this.vars.append($('<div class="column"></div>'));
           }
           i = 0;
+          _results = [];
           for (type in this.watch.script_vars) {
             $(this.vars.children()[i]).append('<p>' + type + '</p>');
             _ref = this.watch.script_vars[type];
             for (_j = 0, _len = _ref.length; _j < _len; _j++) {
               item = _ref[_j];
-              if (item === false) {
+              if (item === void 0) {
                 item = '';
               }
               $(this.vars.children()[i]).append($('<div class="entry">' + item + '</div>'));
             }
-            i += 1;
+            _results.push(i += 1);
           }
+          return _results;
+        }
+      },
+      show: function(thing) {
+        var make_block, parsed, routine, _i, _len, _results;
+        this.watch = thing;
+        this.inspect.html('');
+        this.inspect.append('<p>' + thing.nombre + '</p>');
+        this.inspect.append('<p>' + thing.tile_pos + '</p>');
+        if (thing.script && thing.parsed_script) {
+          this.inspect.css('visibility', 'visible');
+          this.vars = $('<div class="script_vars"></div>');
+          this.show_vars();
           this.inspect.append(this.vars);
           this.script = $('<div class="script_display"><pre><code></pre></code></div>');
           this.code = this.script.find('code');
           this.inspect.append(this.script);
           parsed = thing.parsed_script;
-          _results = [];
-          for (_k = 0, _len1 = parsed.length; _k < _len1; _k++) {
-            action = parsed[_k];
-            span = $('<span></span>');
-            span[0].innerHTML = action.begin;
-            window.scriptbegin = action.begin;
-            this.code.append(span);
-            console.log(action.begin);
+          make_block = function(obj) {
+            var block, i, part, sub, _i, _len, _ref, _ref1;
             block = $('<span class="block"></span>');
-            this.code.append(block);
-            _ref1 = action.literals;
-            for (_l = 0, _len2 = _ref1.length; _l < _len2; _l++) {
-              line = _ref1[_l];
-              span = $('<span></span>');
-              span[0].innerHTML = line;
-              block.append(span);
-              console.log(line);
+            if (obj.begin) {
+              block.append(obj.begin);
             }
-            span = $('<span></span>');
-            span[0].innerHTML = action.end;
-            this.code.append(span);
-            _results.push(console.log(action.end));
+            _ref = obj.block;
+            for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+              part = _ref[i];
+              if ((_ref1 = part.type) === 'action' || _ref1 === 'routine' || _ref1 === 'conditional') {
+                sub = make_block(part);
+                block.append(sub);
+              } else {
+                block.append($('<span class="block statement">' + obj.literals[i] + '</span>'));
+              }
+            }
+            if (obj.end) {
+              block.append(obj.end);
+            }
+            return block;
+          };
+          console.log(parsed);
+          _results = [];
+          for (_i = 0, _len = parsed.length; _i < _len; _i++) {
+            routine = parsed[_i];
+            _results.push(this.code.append(make_block(routine)));
           }
           return _results;
         } else {
@@ -72,11 +85,15 @@
         }
       },
       update: function() {
-        var index;
+        var i, index, start, _i, _ref;
         if (this.watch && this.script && this.watch.parser) {
-          this.script.find('span').removeClass('current');
-          index = this.watch.parser.code_line;
-          return $(this.code.find('.block').children()[index]).addClass('current');
+          this.code.find('.block').removeClass('current');
+          start = this.code;
+          for (i = _i = 0, _ref = this.watch.parser.block_level; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+            index = this.watch.parser.code_index[i];
+            start = $(start.children('.block')[index]);
+          }
+          return start.addClass('current');
         }
       },
       mouseup: function() {
@@ -501,20 +518,20 @@
         this.speed = 2;
         this.parsed_script = false;
         this.parser = false;
-        this.script = "        main (\n          wait(5);\n          wait(10);\n          wait(5);\n          wait(20); wait( 30 ); wait(10);\n        \n        \n        wander(5);\n        )        ";
+        this.script = false;
         this.script_vars = {
-          int: [],
-          float: [],
-          string: [],
-          vector: [],
-          entity: []
+          i: [],
+          f: [],
+          s: [],
+          v: [],
+          e: []
         };
         for (i = _i = 0; _i <= 9; i = ++_i) {
-          this.script_vars.int.push(false);
-          this.script_vars.float.push(false);
-          this.script_vars.string.push(false);
-          this.script_vars.vector.push(false);
-          this.script_vars.entity.push(false);
+          this.script_vars.i.push(void 0);
+          this.script_vars.f.push(void 0);
+          this.script_vars.s.push(void 0);
+          this.script_vars.v.push(void 0);
+          this.script_vars.e.push(void 0);
         }
         try {
           this.parsed_script = window.slow_parser.parse(this.script);
@@ -533,9 +550,21 @@
         }
       };
 
+      Scripted.prototype.run_script = function(script) {
+        this.script = script;
+        try {
+          this.parsed_script = window.slow_parser.parse(this.script);
+        } catch (error) {
+          console.log('parse error: ', error, this.script);
+        }
+        console.log(this.parsed_script);
+        if (this.parsed_script) {
+          return this.parser = new SlowParser(this, this.parsed_script);
+        }
+      };
+
       Scripted.prototype.walk_path = function() {
         var near, p1, p2, tilesize;
-        console.log('i think ive started walk path');
         if (!(this.path != null) || this.path.length === 0) {
           return false;
         }
@@ -551,13 +580,11 @@
           this.path = this.path.splice(1, this.path.length);
           this.velocity = .1;
           if (this.path.length === 0) {
-            console.log('i think path is 0 length');
             return true;
           }
         } else {
           this.move(1);
         }
-        console.log('i think we ran all the code');
         return false;
       };
 
@@ -574,10 +601,8 @@
         if (!this.path || !this.target) {
           this.target = this.get_random_tile(amount);
           this.path_to(this.target);
-          console.log('wander.. ', this.path, this.target);
         }
         if (this.walk_path()) {
-          console.log('walk finished, we done');
           this.path = false;
           this.target = false;
           return true;
@@ -613,65 +638,116 @@
       SlowParser.name = 'SlowParser';
 
       function SlowParser(self, json) {
+        var r, _i, _len, _ref;
         this.self = self;
         this.json = json;
-        this.behavior = false;
-        this.code_line = 0;
+        this.scope = false;
+        this.scope_stack = [];
+        this.code_index = [0];
+        this.block_level = 0;
+        this.routines = {};
+        _ref = this.json;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          r = _ref[_i];
+          this.routines[r.action] = r;
+        }
       }
 
+      SlowParser.prototype.enter_block = function(block) {
+        this.block_level += 1;
+        if (this.code_index.length - 1 < this.block_level) {
+          this.code_index.push(0);
+        }
+        this.code_index[this.block_level] = 0;
+        this.scope = block;
+        this.scope_stack.push(block);
+        return console.log('ENTERING ', block.type, this.code_index, '|', this.block_level);
+      };
+
+      SlowParser.prototype.leave_block = function() {
+        var scope;
+        this.code_index[this.block_level] = 0;
+        scope = this.scope;
+        this.block_level -= 1;
+        console.log('Leaving ', scope.type, this.code_index, '|', this.block_level);
+        if (this.block_level === 0) {
+          this.scope = false;
+          return this.code_index[this.block_level] = 0;
+        } else {
+          return this.scope = this.scope_stack.pop();
+        }
+      };
+
       SlowParser.prototype.exec = function() {
-        var aobj, lines, _i, _len, _ref;
-        if (!this.behavior) {
-          _ref = this.json;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            aobj = _ref[_i];
-            if (aobj.action === 'main') {
-              this.behavior = aobj;
-            }
+        var lines;
+        if (!this.scope) {
+          if (this.routines['main']) {
+            this.enter_block(this.routines['main']);
           }
         }
-        if (this.behavior) {
-          lines = this.behavior.statements;
-          if (lines.length > this.code_line) {
-            return this.run_statement(lines[this.code_line]);
+        if (this.scope) {
+          lines = this.scope.block;
+          if (lines.length > this.code_index[this.block_level]) {
+            return this.run_statement(lines[this.code_index[this.block_level]]);
           } else {
-            this.code_line = 0;
-            return this.behavior = false;
+            return this.leave_block();
           }
         }
       };
 
       SlowParser.prototype.run_statement = function(line) {
-        var args, funct, index, part, parts, pattern, subpart, v, vars, _i, _j, _len, _len1, _ref;
+        var args, assign, first, funct, i, index, part, parts, pattern, register, remains, subpart, v, value, value_found, vars, _i, _j, _len, _len1, _ref, _ref1;
+        if ((line.type != null) && ((_ref = line.type) === 'conditional')) {
+          this.enter_block(line);
+          return;
+        }
         index = 0;
         parts = line.length;
         pattern = false;
         funct = false;
+        register = false;
+        assign = false;
+        value = void 0;
+        value_found = false;
         args = false;
         vars = [];
-        for (_i = 0, _len = line.length; _i < _len; _i++) {
-          part = line[_i];
-          if (typeof part !== 'object') {
-            console.log('ERROR parsing part: ', part);
-          }
-          if (!pattern) {
-            if (part.type === 'word') {
-              pattern = 'call';
-              funct = part.value;
-            }
-          } else if (pattern === 'call' && args === false) {
-            args = [];
-            if (part.type === 'enclosure') {
-              _ref = part.value;
-              for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-                subpart = _ref[_j];
-                if (subpart.type === 'number') {
-                  args.push(subpart.value);
+        first = line[0];
+        if (typeof first !== 'object') {
+          console.log('ERROR parsing first token: ', first);
+        }
+        if (first.type === 'word') {
+          pattern = 'call';
+          funct = first.value;
+        }
+        if (first.type === 'memory') {
+          pattern = 'assign';
+          register = first;
+        }
+        for (i = _i = 0, _len = line.length; _i < _len; i = ++_i) {
+          part = line[i];
+          if (i !== 0) {
+            if (pattern === 'call' && args === false) {
+              if (part.type === 'enclosure') {
+                args = [];
+                _ref1 = part.value;
+                for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+                  subpart = _ref1[_j];
+                  args.push(this.untoken(subpart));
                 }
               }
+            } else if (pattern === 'assign') {
+              if (!assign) {
+                if (part.type === 'assignment') {
+                  assign = part.value;
+                }
+              } else if (value_found === false) {
+                remains = line.slice(i, line.length);
+                value = this.calculate(remains);
+                value_found = true;
+              }
+            } else {
+              console.log('parsing leftover: ', part.type, part.value);
             }
-          } else {
-            console.log('parsing leftover: ', part.type, part.value);
           }
         }
         if (pattern === 'call') {
@@ -681,10 +757,102 @@
           v = this.self['_' + funct];
           if ((this.self['_' + funct] != null) && typeof this.self['_' + funct] === 'function') {
             if (this.self['_' + funct](args)) {
-              return this.code_line += 1;
+              this.code_index[this.block_level] += 1;
+              console.log('STATEMENT: ', this.code_index, this.code_index, '|', this.block_level);
             }
           }
         }
+        if (pattern === 'assign') {
+          if (register && assign && value) {
+            v = this.self.script_vars[register.slot][register.index];
+            if (assign === '+=') {
+              v += value;
+            } else if (assign === '-=') {
+              v -= value;
+            } else if (assign === '/=') {
+              v /= value;
+            } else if (assign === '*=') {
+              v *= value;
+            } else {
+              v = value;
+            }
+            this.store_var(register, value);
+            window.Scripter.show_vars();
+          }
+          this.code_index[this.block_level] += 1;
+          return console.log('STATEMENT: ', this.code_index, '|', this.block_level);
+        }
+      };
+
+      SlowParser.prototype.store_var = function(reg, value) {
+        if (reg.slot === 'i') {
+          value = parseInt(value);
+        }
+        if (reg.slot === 'f') {
+          value = parseFloat(value).toFixed(2);
+        }
+        return this.self.script_vars[reg.slot][reg.index] = value;
+      };
+
+      SlowParser.prototype.untoken = function(obj) {
+        if (typeof obj !== 'object') {
+          return;
+        }
+        if (obj.type === 'enclosure') {
+          return this.calculate(obj.value);
+        }
+        if (obj.type === 'number') {
+          return obj.value;
+        }
+        if (obj.type === 'memory') {
+          return this.self.script_vars[obj.slot][obj.index];
+        }
+      };
+
+      SlowParser.prototype.calculate = function(tokens) {
+        var next, operator, report, t, token, valid, value, _i, _j, _len, _len1;
+        report = '';
+        for (_i = 0, _len = tokens.length; _i < _len; _i++) {
+          t = tokens[_i];
+          report += t.value + ' ';
+        }
+        console.log('calc:', report);
+        value = void 0;
+        valid = false;
+        operator = false;
+        for (_j = 0, _len1 = tokens.length; _j < _len1; _j++) {
+          token = tokens[_j];
+          if (value === void 0) {
+            if (!valid) {
+              value = this.untoken(token);
+              valid = true;
+            } else {
+              return;
+            }
+          } else if (!operator) {
+            if (token.type === 'operator') {
+              operator = token.value;
+            } else {
+              return;
+            }
+          } else {
+            next = this.untoken(token);
+            if (operator === '+') {
+              value += next;
+            } else if (operator === '-') {
+              value -= next;
+            } else if (operator === '*') {
+              value *= next;
+            } else if (operator === '/') {
+              value /= next;
+            } else if (operator === '%') {
+              value %= next;
+            }
+            operator = false;
+          }
+        }
+        console.log('  = ', value);
+        return value;
       };
 
       return SlowParser;

@@ -7,15 +7,9 @@ $(window).ready ->
       @inspect = $('<div id="inspect"></div>')
       $('#UI_overlay').append @inspect
 
-    show: (thing)->
-      @watch = thing
-      @inspect.html ''
-      @inspect.append '<p>'+thing.nombre+'</p>'
-      @inspect.append '<p>'+thing.tile_pos+'</p>'
-      if thing.script and thing.parsed_script
-        @inspect.css('diplay', 'block')
-
-        @vars = $('<div class="script_vars"></div>')
+    show_vars: ->
+      if @watch and @watch.script_vars
+        @vars.html ''
         for i in [0..4]
           @vars.append $('<div class="column"></div>')
 
@@ -23,49 +17,60 @@ $(window).ready ->
         for type of @watch.script_vars
           $(@vars.children()[i]).append '<p>'+type+'</p>'
           for item in @watch.script_vars[type]
-            if item is false
+            if item is undefined
               item = ''
             $(@vars.children()[i]).append $('<div class="entry">'+item+'</div>')
           i += 1
 
+    show: (thing)->
+      @watch = thing
+      @inspect.html ''
+      @inspect.append '<p>'+thing.nombre+'</p>'
+      @inspect.append '<p>'+thing.tile_pos+'</p>'
+      if thing.script and thing.parsed_script
+        @inspect.css('visibility', 'visible')
+
+        @vars = $('<div class="script_vars"></div>')
+        @show_vars()
         @inspect.append @vars
 
         @script = $('<div class="script_display"><pre><code></pre></code></div>')
         @code = @script.find('code')
         @inspect.append @script
         parsed = thing.parsed_script
-        for action in parsed
 
-          span = $('<span></span>')
-          span[0].innerHTML = action.begin
-          window.scriptbegin = action.begin
-          @code.append span
-
-          console.log action.begin
+        make_block = (obj)->
           block = $('<span class="block"></span>')
-          @code.append block
-          for line in action.literals
-            span = $('<span></span>')
-            span[0].innerHTML = line
-            block.append span
+          if obj.begin
+            block.append obj.begin
+          for part, i in obj.block
+            if part.type in ['action', 'routine', 'conditional']
 
-            console.log line
+              sub = make_block(part)
+ 
+              block.append sub
+            else
+              block.append $('<span class="block statement">'+obj.literals[i]+'</span>')
+          if obj.end
 
+            block.append obj.end
+          return block
 
-          span = $('<span></span>')
-          span[0].innerHTML = action.end
-          @code.append span
-
-          console.log action.end
+        console.log parsed
+        for routine in parsed
+          @code.append make_block routine
+        
       else
         @script = false
 
     update: ->
       if @watch and @script and @watch.parser
-        @script.find('span').removeClass 'current'
-        index = @watch.parser.code_line
-
-        $(@code.find('.block').children()[index]).addClass 'current'
+        @code.find('.block').removeClass 'current'
+        start = @code
+        for i in [0..@watch.parser.block_level]
+          index = @watch.parser.code_index[i]
+          start = $(start.children('.block')[index])
+        start.addClass 'current'
 
 
     mouseup: ->
@@ -375,30 +380,24 @@ $(window).ready ->
       @speed = 2
       @parsed_script = false
       @parser = false
-      @script = "
-        main (\n
-          wait(5);\n
-          wait(10);\n
-          wait(5);\n
-          wait(20); wait( 30 ); wait(10);\n
-        \n
-        \n
-        wander(5);\n
-        )
-        "
+      @script = false
+        
+        
       @script_vars =
-        int:[]
-        float:[]
-        string: []
-        vector: []
-        entity: []
+        i:[]
+        f:[]
+        s:[]
+        v:[]
+        e:[]
+
+
 
       for i in [0..9]
-        @script_vars.int.push false
-        @script_vars.float.push false
-        @script_vars.string.push false
-        @script_vars.vector.push false
-        @script_vars.entity.push false
+        @script_vars.i.push undefined
+        @script_vars.f.push undefined
+        @script_vars.s.push undefined
+        @script_vars.v.push undefined
+        @script_vars.e.push undefined
 
 
       try
@@ -413,8 +412,17 @@ $(window).ready ->
       if @parser
         @parser.exec()
 
+    run_script: (script)->
+      @script = script
+      try
+        @parsed_script = window.slow_parser.parse @script
+      catch error
+        console.log 'parse error: ', error, @script
+      console.log @parsed_script
+      if @parsed_script
+        @parser = new SlowParser(@, @parsed_script)
+
     walk_path: ->
-      console.log 'i think ive started walk path'
       if not @path? or @path.length is 0
         return false
 
@@ -432,11 +440,9 @@ $(window).ready ->
         @path = @path.splice(1,@path.length)
         @velocity = .1
         if @path.length is 0
-          console.log 'i think path is 0 length'
           return true
       else
         @move(1)
-      console.log 'i think we ran all the code'
       return false
 
     _wander: (args = [])->
@@ -449,9 +455,7 @@ $(window).ready ->
       if not @path or not @target
         @target = @get_random_tile(amount)
         @path_to @target
-        console.log 'wander.. ', @path, @target
       if @walk_path()
-        console.log 'walk finished, we done'
         @path = false
         @target = false
         return true
@@ -476,46 +480,113 @@ $(window).ready ->
 
   class SlowParser
     constructor: (@self, @json)->
-      @behavior = false
-      @code_line = 0
+      @scope = false
+      @scope_stack = []
+      @code_index = [0]
+      @block_level = 0
+      @routines = {}
+      for r in @json
+        @routines[r.action] = r
+
+    enter_block: (block)->
+      
+      @block_level += 1
+      if @code_index.length-1 < @block_level
+        @code_index.push 0
+      @code_index[@block_level] = 0
+
+      @scope = block
+      @scope_stack.push block
+      console.log 'ENTERING ', block.type, @code_index, '|', @block_level
+
+    leave_block: ()->
+      @code_index[@block_level] = 0
+      scope = @scope
+      @block_level -= 1
+      #@code_index[@block_level] += 1
+      console.log 'Leaving ', scope.type, @code_index, '|', @block_level
+      if @block_level is 0
+        @scope = false #top level, should find main
+        @code_index[@block_level] = 0
+      else
+        @scope = @scope_stack.pop()
+      
+
+
 
     exec: ->
-      if not @behavior
-        for aobj in @json
-          if aobj.action is 'main'
-            @behavior = aobj
+      if not @scope
+        if @routines['main']
+          @enter_block @routines['main']
+          
 
-      if @behavior
-        lines = @behavior.statements
-        if lines.length > @code_line
-          @run_statement lines[@code_line]
+      if @scope
+        lines = @scope.block
+        if lines.length > @code_index[@block_level]
+          @run_statement lines[@code_index[@block_level]]
         else
-          @code_line = 0
-          @behavior = false
+          @leave_block()
+
 
     run_statement: (line)->
+      if line.type? and line.type in ['conditional']
+        @enter_block line
+        return
       index = 0
       parts = line.length
       pattern = false
+
+
+
       funct = false
+      register = false
+      assign = false
+      value = undefined
+      value_found = false
+
       args = false
       vars = []
 
-      for part in line
-        if typeof part isnt 'object'
-          console.log 'ERROR parsing part: ', part
-        if not pattern
-          if part.type is 'word'
-            pattern = 'call'
-            funct = part.value
-        else if pattern is 'call' and args is false
-          args = []
-          if part.type is 'enclosure'
-            for subpart in part.value
-              if subpart.type is 'number'
-                args.push subpart.value
-        else
-          console.log 'parsing leftover: ', part.type, part.value
+      # determine the type of statement being executed
+      # var, function call, if, interrupt
+
+      first = line[0]
+      
+      if typeof first isnt 'object'
+        console.log 'ERROR parsing first token: ', first
+
+      if first.type is 'word'
+        pattern = 'call'
+        funct = first.value
+
+      if first.type is 'memory'
+        pattern = 'assign'
+        register = first
+
+      for part, i in line
+        if i isnt 0 #we allready used the first token
+          if pattern is 'call' and args is false
+
+            if part.type is 'enclosure'
+              args = []
+
+              #here is where we would be calling an evaluate for getting results from math/groupings
+              for subpart in part.value
+                args.push @untoken(subpart)
+
+          else if pattern is 'assign'
+            
+            if not assign
+              if part.type is 'assignment'
+                assign = part.value
+            else if value_found is false
+                remains = line.slice(i,line.length)
+                value = @calculate remains
+                value_found = true
+
+
+          else
+            console.log 'parsing leftover: ', part.type, part.value
 
       if pattern is 'call'
         if not args
@@ -523,7 +594,93 @@ $(window).ready ->
         v = @self['_'+funct]
         if @self['_'+funct]? and typeof @self['_'+funct] is 'function'
           if @self['_'+funct](args)
-            @code_line += 1
+            @code_index[@block_level] += 1
+            console.log 'STATEMENT: ', @code_index, @code_index, '|', @block_level
+
+      if pattern is 'assign'
+        if register and assign and value
+          v = @self.script_vars[register.slot][register.index] 
+          if assign is '+='
+            v += value
+          else if assign is '-='
+            v -= value
+          else if assign is '/='
+            v /= value
+          else if assign is '*='
+            v *= value
+          else   
+            v = value
+          @store_var register, value
+          window.Scripter.show_vars()
+        @code_index[@block_level] += 1
+
+        console.log 'STATEMENT: ', @code_index, '|', @block_level
+
+
+
+    store_var: (reg, value)->
+      if reg.slot is 'i'
+        value = parseInt(value)
+      if reg.slot is 'f'
+        value = parseFloat(value).toFixed(2)
+      @self.script_vars[reg.slot][reg.index] = value
+
+
+    untoken: (obj)->
+      if typeof obj isnt 'object'
+        return undefined
+      if obj.type is 'enclosure'
+        return @calculate obj.value
+      if obj.type is 'number'
+        return obj.value
+      if obj.type is 'memory'
+        return @self.script_vars[obj.slot][obj.index]
+      return undefined
+
+    calculate: (tokens)->
+      report = ''
+      for t in tokens
+        report += t.value+' '
+      console.log 'calc:', report
+      value = undefined
+      valid = false
+      operator = false
+      for token in tokens
+        
+
+        if value is undefined
+          if not valid
+            value = @untoken(token)
+
+            valid = true
+          else
+            return undefined
+        else if not operator
+          if token.type is 'operator'
+            operator = token.value
+
+          else
+
+            return undefined
+        else
+          next = @untoken(token)
+          if operator is '+'
+            value += next
+          else if operator is '-'
+            value -= next
+          else if operator is '*'
+            value *= next
+          else if operator is '/'
+            value /= next
+          else if operator is '%'
+            value %= next
+          operator = false
+      console.log '  = ', value
+      return value
+
+
+
+
 
 
 
