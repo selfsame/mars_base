@@ -173,7 +173,7 @@ canvas {
 	font-size: 12px;
 	line-height: 1.1;
 	font-family: courier;
-	display:none;
+	visibility: hidden;
 }
 
 .script_display{
@@ -192,7 +192,7 @@ canvas {
 	width:280px;
 	height:280px;
 	color: red;
-	font-size: 10px;
+	font-size: 12px;
 }
 
 #inspect .script_vars .column{
