@@ -22,9 +22,9 @@ begin:w1+action.literal+w2+start.literal+w3,
 end:w4+end.literal+w5}}
 
 conditional =
-  w1:white  logic:('if' / 'then' / 'else' ) 
-  w2:white 
-  eval: logic_block w3:white ':'
+  w1:white  
+  logic:('if' / 'else' ) w2:white eval: logic_block?
+  w3:white ':'
   w4:white start:start_group w5:white
   statement:(statement / conditional)*
   w6:white end:end_group w7:white
@@ -63,7 +63,7 @@ end:end  } }
 
 
 logic_block =
-  w1:white parts:( word / number /  comparative / assignment / operator /
+  w1:white parts:( call / number /  comparative / assignment / operator /
            memory / self / enclosure )+ w2:white
    {return parts }
 
@@ -95,7 +95,7 @@ literal = '';
   literal += part.literal
  }
 
-return {type:'statement', value:block, literal:w1+literal+end.literal} }
+return {type:'statement', value:block, literal:w1+literal+end.literal, end:end.literal} }
 
 
 
@@ -125,8 +125,28 @@ assignment
  {return {type:'assignment', value:ass, literal:w1+ass+w2}}
 
 comparative
- = w1:white comp:('==' / '<=' / '>=' / '<' / '>' /  '&') w2:white
+ = w1:white comp:('==' / '<=' / '>=' / '<' / '>' /  
+   '&' / '|' ) w2:white
   {return {type:'compare', value:comp, literal:w1+comp+w2}}
+
+
+
+call = w1:white word:word w2:white
+       start:start_group w3:white
+       args:logic_block? w4:white
+       end:end_group w5:white
+    {
+literal = ''; 
+ for (_i = 0, _len = args.length; _i < _len; _i++) {
+  part = args[_i];
+  literal += part.literal
+ }
+
+return {type:'call', value:word, args:args, 
+     literal:w1+word.literal+w2+start.literal+w3+literal+w4+end.literal+w5}}
+
+
+
 
 
 /* */
@@ -178,20 +198,21 @@ self
 
 /* test data
 
-main(
-  $i2 <= 5;
-  wander,
-  wait 120.
+main ( 
+  wait(20);
+  if $i0:(
+    if wander(4):(
+    $i0 = $i0 + 1;
+  ) else :(
+    $i1 = $i1 + 1;
+  )
+  )
+  else:(
+    $i0 = 1;
+  $i1 = 1;
+    wait(20);
+  )
 )
-
-find_oxygen [
- $e1 = find_object airtanks,
- path_to $e1,
- follow_path, wait 13,
- @x = 54 / ( (5/.02) + 3-2 ),
- use $e1,
- do idle.
-]
 
 
 

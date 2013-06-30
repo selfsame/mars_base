@@ -33,7 +33,6 @@ $(window).ready( function(){
 			window.Tiles.show_blueprints(false);
 		} else {
 			if ($('#place').children().first().data('active') == true ){
-				console.log( 'place is open....ad,fmsadf,msd.,f');
 				$('#place').children().first().click();
 			}
 			$(this).data('active', true);

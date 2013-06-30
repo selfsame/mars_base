@@ -162,12 +162,12 @@ canvas {
 
 #inspect{
 	position:absolute;
-	width:300px;
+	width:330px;
 	right: 20px;
 	top: 20px;
 	height: 800px;
 	padding: 10px;
-	background-color: rgba(0, 0, 0, 0.5);
+	background-color: rgba(0, 0, 0, 0.8);
 	overflow:hidden;
 	color:silver;
 	font-size: 12px;
@@ -176,23 +176,57 @@ canvas {
 	visibility: hidden;
 }
 
-.script_display{
+#inspect .script_display{
 	padding: 6px;
-	border: 1px solid silver;
+	padding-left: 20px;
+	border-top: 1px solid silver;
+	width:300px;
+	float:right;
 	white-space: pre;
 	height:auto;
+	min-height: 450px;
+	overflow:hidden;
+	overflow-y:auto;
+	clear: both;
+
 }
 
+#inspect .script_display textarea{
+	color: silver;
+	width: 100%;
+	background-color: transparent;
+	border: 0px;
+	font-family: courier;
+	line-height: 1.1;
+	white-space: pre;
+	padding: 0px;
+	font-size: 12px;
+	min-height: 450px;
+	height: auto;
+}
+#inspect .script_display textarea:focus{
+	border: 0px;
+}
+
+#inspect .script_display { -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; }
+
 #inspect .current{
+	background-color: #441245;
+
+}
+
+#inspect .chunk{
 	background-color:#6d1c6e;
 	color:white;
 }
 
 #inspect .script_vars{
 	width:280px;
-	height:280px;
+	height:240px;
 	color: red;
 	font-size: 12px;
+	float:right;
+	clear:both;
 }
 
 #inspect .script_vars .column{
@@ -208,4 +242,59 @@ canvas {
 	border-bottom: 1px dashed gray;
 	border-left: 1px solid gray;
 	padding: 2px;
+}
+
+.script_display .linenums{
+	position: absolute;
+	width: 15px;
+	text-align: right;
+	margin-left: -22px;
+	color:gray;
+}
+
+.script_display .linenums p{
+	margin: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.script_display .linenums p.error{
+	color: red;
+	font-weight: bold;
+}
+
+
+#inspect .messages{
+	height:40px;
+	color: red;
+	font-size: 12px;
+	clear:both;
+}
+
+#inspect .codebutton{
+	border: 1px solid gray;
+	background-color:black;
+	color:silver;
+	font-size:12px;
+	cursor: pointer;
+	float:right;
+	padding: 0px 4px;
+}
+
+#inspect .reference{
+	position:absolute;
+	width: 180px;
+	left:0px;
+	top:0px;
+	height: 800px;
+	border-right: 1px dotted gray;
+	padding-left: 10px;
+}
+
+#inspect .reference .funct{
+	color:#0bc20f;
+}
+
+#inspect .reference .prop{
+	color:#b370f7;
 }
