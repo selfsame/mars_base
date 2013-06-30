@@ -180,7 +180,7 @@
         }
       },
       update: function() {
-        var cp, i, index, local, mt, obj, si, start, _i, _j, _len, _ref, _results;
+        var cp, i, index, si, start, _i, _ref;
         if (this.watch && this.script && this.watch.parser) {
           this.code.find('.block').removeClass('current');
           this.code.find('.word').removeClass('chunk');
@@ -194,25 +194,23 @@
           if (cp) {
             si = cp.statement_index;
             if (si != null) {
-              $(start.children('.word')[si]).addClass('chunk');
+              return $(start.children('.word')[si]).addClass('chunk');
             }
           }
         }
-        if (window.Entities.objects_hash) {
-          mt = window.Events.tile_under_mouse;
-          local = window.Entities.objects_hash.get_within([mt[0] * 32, mt[1] * 32], 64);
-          _results = [];
-          for (_j = 0, _len = local.length; _j < _len; _j++) {
-            obj = local[_j];
-            window.Draw.use_layer('entities');
-            _results.push(window.Draw.draw_box(obj.tile_pos[0] * 32, obj.tile_pos[1] * 32, 32, 32, {
-              fillStyle: "transparent",
-              strokeStyle: "red",
-              lineWidth: 2
-            }));
-          }
-          return _results;
-        }
+        /*
+              if window.Entities.objects_hash
+                mt = window.Events.tile_under_mouse
+                local = window.Entities.objects_hash.get_within([mt[0]*32, mt[1]*32], 64)
+        
+                for obj in local
+                  window.Draw.use_layer 'entities'
+                  window.Draw.draw_box obj.tile_pos[0] * 32, obj.tile_pos[1] * 32, 32, 32,
+                    fillStyle: "transparent"
+                    strokeStyle: "red"
+                    lineWidth: 2
+        */
+
       },
       mouseup: function() {
         var found, guy, p, results, t, _i, _len;
@@ -304,6 +302,9 @@
       Scripted.prototype.walk_path = function() {
         var near, p1, p2, tilesize;
         if (!(this.path != null) || this.path.length === 0) {
+          return false;
+        }
+        if (this.path[0].length === 0) {
           return false;
         }
         tilesize = window.Map.tilesize;

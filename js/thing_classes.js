@@ -147,16 +147,24 @@
         return this.attach_to_map();
       };
 
-      Thing.prototype.attach_to_map = function() {
+      Thing.prototype.attach_to_map = function(tpos) {
         var obj_in_map;
+        if (tpos == null) {
+          tpos = false;
+        }
+        if (!tpos) {
+          tpos = this.tile_pos;
+        }
         this.show();
         window.Entities.objects.push(this);
         window.Entities.objects_hash.add(this);
-        obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
+        obj_in_map = window.Map.get('objects', tpos[0], tpos[1]);
         if (!obj_in_map) {
-          return window.Map.set('objects', this.tile_pos[0], this.tile_pos[1], [this]);
+          return window.Map.set('objects', tpos[0], tpos[1], [this]);
         } else {
-          return obj_in_map.push(this);
+          if (__indexOf.call(obj_in_map, this) < 0) {
+            return obj_in_map.push(this);
+          }
         }
       };
 
@@ -322,9 +330,21 @@
       }
 
       Launchpad.prototype.init = function() {
+        var i, j, _i, _results;
         this.persistant_draw = true;
         this.block_build = true;
-        return this.attach_to_map();
+        _results = [];
+        for (i = _i = -2; _i <= 1; i = ++_i) {
+          _results.push((function() {
+            var _j, _results1;
+            _results1 = [];
+            for (j = _j = -2; _j <= 1; j = ++_j) {
+              _results1.push(this.attach_to_map([this.tile_pos[0] + i, this.tile_pos[1] + j]));
+            }
+            return _results1;
+          }).call(this));
+        }
+        return _results;
       };
 
       return Launchpad;

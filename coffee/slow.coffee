@@ -164,7 +164,7 @@ $(window).ready ->
 
             $(start.children('.word')[si]).addClass 'chunk'
 
-
+      ###
       if window.Entities.objects_hash
         mt = window.Events.tile_under_mouse
         local = window.Entities.objects_hash.get_within([mt[0]*32, mt[1]*32], 64)
@@ -175,6 +175,7 @@ $(window).ready ->
             fillStyle: "transparent"
             strokeStyle: "red"
             lineWidth: 2
+      ###
 
 
 
@@ -245,6 +246,8 @@ $(window).ready ->
 
     walk_path: ->
       if not @path? or @path.length is 0
+        return false
+      if @path[0].length is 0
         return false
 
 

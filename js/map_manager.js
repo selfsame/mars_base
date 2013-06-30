@@ -49,7 +49,7 @@ window.Map = {
 			y = mtile[1];
 			window.Draw.draw_box(x*this.tilesize, y*this.tilesize, this.tilesize, this.tilesize, {fillStyle:'transparent',strokeStyle:'#BADA55',lineWidth:1});
 		}
-		
+
 		
 	},
 	create_layer: function(name, base) {
@@ -100,7 +100,7 @@ window.Map = {
 	},
 	draw_background: function(){
 		// sloppy check if images are loaded
-		if (this.background_drawn == 0 && window.Draw.images.dirt && window.Draw.images.dirt2 && window.Draw.images.dirt3){
+		if (this.background_drawn == 0 && window.Draw.images.dirt && window.Draw.images.dirt2 && window.Draw.images.dirt3 && window.Draw.images.dirt4){
 			this.background_drawn = 1
 			window.Draw.use_layer('background');
 			for (i = 0; i <= this.height-1; i += 1) {

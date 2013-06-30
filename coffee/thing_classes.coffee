@@ -90,15 +90,18 @@ $(window).ready ->
     init: ->
       @attach_to_map()
 
-    attach_to_map: ()->
+    attach_to_map: (tpos=false)->
+      if not tpos
+        tpos = @tile_pos
       @show()
       window.Entities.objects.push @
       window.Entities.objects_hash.add @
-      obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+      obj_in_map = window.Map.get('objects', tpos[0], tpos[1])
       if not obj_in_map
-        window.Map.set('objects', @tile_pos[0], @tile_pos[1], [@])
+        window.Map.set('objects', tpos[0], tpos[1], [@])
       else 
-        obj_in_map.push @
+        if @ not in obj_in_map
+          obj_in_map.push @
 
     detach_from_map: ()->
       @hide()
@@ -196,7 +199,9 @@ $(window).ready ->
     init: ->
       @persistant_draw = true
       @block_build = true
-      @attach_to_map()
+      for i in [-2..1]
+        for j in [-2..1]
+          @attach_to_map([@tile_pos[0]+i, @tile_pos[1]+j])
 
   class Locker extends Placeable
 
