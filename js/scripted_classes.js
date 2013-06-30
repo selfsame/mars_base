@@ -42,6 +42,7 @@
 
       SlowEntity.prototype.__update = function(delta) {
         this.pos_to_tile_pos();
+        this.props['pos'] = new Vect2D(this.tile_pos[0], this.tile_pos[1]);
         this.delta_time = delta;
         this.total_time += delta;
         this.frame_count += 1;
@@ -449,13 +450,15 @@
         if (!this.path || !this.target) {
           this.target = this.get_random_tile(distance);
           this.path_to(this.target);
+          if (!this.path) {
+            this.target = false;
+          }
         }
         if (this.walk_path()) {
           this.path = false;
           this.target = false;
           return true;
         }
-        return false;
       };
 
       SlowSentient.prototype._goto = function(v) {
@@ -593,12 +596,14 @@
         if (r && r.length > 0) {
           for (_k = 0, _len = r.length; _k < _len; _k++) {
             obj = r[_k];
-            if (obj.nombre === e_s) {
-              found = true;
-              obj.detach_from_map();
-              this.pocket.push(obj);
-              obj.pos = this.pos;
-              return true;
+            if (obj !== 'undefined' && typeof obj === 'object') {
+              if (obj.nombre === e_s) {
+                found = true;
+                obj.detach_from_map();
+                this.pocket.push(obj);
+                obj.pos = this.pos;
+                return true;
+              }
             }
           }
         }

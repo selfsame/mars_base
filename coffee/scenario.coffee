@@ -71,32 +71,37 @@ $(window).ready ->
   slow.speed = 2
   slow.footprint_img = 'tracks';
   slow.run_script "
-main (   \n
-  if $i0:()else:($i0 = 1;)\n
+main: (   \n
+  if $i0:()else:(\n
+    $s8 = @name;\n
+    $i0 = 1;)\n
 
 \n
-  $e0 = search(32);\n
-  $v0 = $e0;\n
-  $s0 = $e0;\n
+  $e0 = search(64); wait(10);\n
+  $v0 = $e0; wait(10);\n
+  $s0 = $e0; wait(10);\n
 
-  wait(30);\n
-  if $v0 < 0:(\n
-    wander(10);\n
-  )else:(\n
-
-    
+  \n
+  if $v0:(\n
     go_near( $v0);\n
-    wait(30);\n
+    wait(10);\n
     $i9 = pickup($s0);\n
     if $i9 > 0:(\n
-      $i9 = -1;
-      $i0 = $i0 + 1;\n
-      $e0 = -1;\n
-      $v0 = -1;\n
-      $s0 = -1;\n
+      $i0 = $i0 + 1; wait(10);\n
     )\n
-    wait(30);\n
+    DELETE $i9; wait(10);\n
+    DELETE $e0; wait(10);\n
+    DELETE $v0; wait(10);\n
+    DELETE $s0; wait(10);\n
+    
   )\n
+  else:(\n
+    wander(10);\n  
+  )\n
+)\n
+\n
+relocate: (\n
+  wander(20);\n
 )\n
 "
 

@@ -237,12 +237,17 @@ canvas {
 
 #inspect .script_vars .entry{
 	height:15px;
-
+	min-height: 15px;
 	overflow:hidden;
 	border-bottom: 1px dashed gray;
 	border-left: 1px solid gray;
 	padding: 2px;
+	cursor:default;
 }
+
+#inspect .script_vars .entry:hover{
+	height:auto;
+	}
 
 .script_display .linenums{
 	position: absolute;
