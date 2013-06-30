@@ -24,12 +24,21 @@
         this.editarea = $('<textarea class="tabindent">');
         this.messages = $('<div class="messages"></div>');
         this.editbutton = $('<div class="codebutton">edit</div>');
+        this.saveload = $('<div class="saveload"><input id="file">\
+        <div class="codebutton" id="save">save</div><div class="codebutton" id="load">load</div></div>');
+        this.saveload.find('#save').click(function() {
+          return window.Scripter.save_script(window.Scripter.saveload.find('input').val());
+        });
+        this.saveload.find('#load').click(function() {
+          return window.Scripter.load_script(window.Scripter.saveload.find('input').val());
+        });
         this.reference = $('<div class="reference"></div>');
         this.reference.hide();
         this.tileinfo = $('<div class="tileinfo"></div>');
         this.tileinfo.hide();
         this.inspect.append(this.messages);
         this.inspect.append(this.editbutton);
+        this.inspect.append(this.saveload);
         this.inspect.append(this.script);
         this.inspect.append(this.tileinfo);
         this.inspect.append(this.reference);
@@ -39,6 +48,23 @@
           scripter = $(this).data('scripter');
           return scripter.toggle_edit();
         });
+      },
+      save_script: function(filename) {
+        var script;
+        if (this.watch && this.watch.script && filename && filename !== '') {
+          script = this.editarea.val();
+          localStorage[filename] = script;
+          return console.log('saved: ', localStorage[filename]);
+        }
+      },
+      load_script: function(filename) {
+        var script;
+        if (this.watch && this.watch.script && filename && filename !== '') {
+          if (localStorage[filename] != null) {
+            script = localStorage[filename];
+            return this.editarea.val(script);
+          }
+        }
       },
       toggle_edit: function() {
         if (this.watch) {
@@ -145,6 +171,7 @@
           this.messages.show();
           this.vars.show();
           this.tileinfo.hide();
+          this.saveload.show();
           this.code.html('');
           this.messages.html('');
           this.linenums.children().removeClass('error');
@@ -225,9 +252,11 @@
       },
       show_tile: function(x, y) {
         var ob, obd, obs, stats, _i, _len;
+        this.watch = false;
         this.script.hide();
         this.messages.hide();
         this.vars.hide();
+        this.saveload.hide();
         this.tileinfo.show();
         stats = $('<p>' + x + ',' + y + '</p>');
         obs = window.Map.get('objects', x, y);
@@ -242,25 +271,27 @@
         this.tileinfo.append(stats);
         return this.tileinfo.append(obd);
       },
-      mouseup: function() {
+      mouseup: function(e) {
         var found, guy, p, results, t, _i, _len;
-        t = window.Events.tile_under_mouse;
-        p = {
-          x: t[0] * 32,
-          y: t[1] * 32
-        };
-        found = window.Entities.sentient_hash.get_within([p.x, p.y], 32);
-        results = [];
-        for (_i = 0, _len = found.length; _i < _len; _i++) {
-          guy = found[_i];
-          if (guy.tile_pos[0] === t[0] && guy.tile_pos[1] === t[1]) {
-            results.push(guy);
+        if (!$('#UI_overlay').is($(e.target).parents())) {
+          t = window.Events.tile_under_mouse;
+          p = {
+            x: t[0] * 32,
+            y: t[1] * 32
+          };
+          found = window.Entities.sentient_hash.get_within([p.x, p.y], 32);
+          results = [];
+          for (_i = 0, _len = found.length; _i < _len; _i++) {
+            guy = found[_i];
+            if (guy.tile_pos[0] === t[0] && guy.tile_pos[1] === t[1]) {
+              results.push(guy);
+            }
           }
-        }
-        if (results.length > 0) {
-          return this.show(results[0]);
-        } else {
-          return this.show_tile(t[0], t[1]);
+          if (results.length > 0) {
+            return this.show(results[0]);
+          } else {
+            return this.show_tile(t[0], t[1]);
+          }
         }
       }
     };
