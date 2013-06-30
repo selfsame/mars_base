@@ -18,6 +18,7 @@ $(window).ready ->
       @block_build = false
       @needs_draw = true
       @persistant_draw = true
+      @grid_area = false
       @init()
       @init_2()
 
@@ -90,23 +91,45 @@ $(window).ready ->
     init: ->
       @attach_to_map()
 
-    attach_to_map: ()->
+    attach_to_map: (tpos=false)->
+      if not tpos
+        tpos = @tile_pos
       @show()
       window.Entities.objects.push @
       window.Entities.objects_hash.add @
-      obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
-      if not obj_in_map
-        window.Map.set('objects', @tile_pos[0], @tile_pos[1], [@])
-      else 
-        obj_in_map.push @
+      if @grid_area
+        for i in [@grid_area[0]..@grid_area[1]]
+          for j in [@grid_area[2]..@grid_area[3]]
+            obj_in_map = window.Map.get('objects', tpos[0]+i, tpos[1]+j)
+            if not obj_in_map
+              window.Map.set('objects', tpos[0]+i, tpos[1]+j, [@])
+            else 
+              if @ not in obj_in_map
+                obj_in_map.push @
+      else
+        obj_in_map = window.Map.get('objects', tpos[0], tpos[1])
+        if not obj_in_map
+          window.Map.set('objects', tpos[0], tpos[1], [@])
+        else 
+          if @ not in obj_in_map
+            obj_in_map.push @
 
     detach_from_map: ()->
       @hide()
       window.Entities.objects.remove @
       window.Entities.objects_hash.remove @
-      obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
-      if obj_in_map and obj_in_map.length > 0
-        obj_in_map.remove @
+      if @grid_area
+        for i in [@grid_area[0]..@grid_area[1]]
+          for j in [@grid_area[2]..@grid_area[3]]
+            obj_in_map = window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
+            if obj_in_map and obj_in_map.length > 0
+              obj_in_map.remove @
+      else
+        obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+        if obj_in_map and obj_in_map.length > 0
+          obj_in_map.remove @
+
+
 
 
   class Placeable extends Thing
@@ -196,7 +219,9 @@ $(window).ready ->
     init: ->
       @persistant_draw = true
       @block_build = true
-      @attach_to_map()
+      @grid_area = [-2,1,-2,1]
+      @attach_to_map([@tile_pos[0], @tile_pos[1]])
+
 
   class Locker extends Placeable
 

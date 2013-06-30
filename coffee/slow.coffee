@@ -19,9 +19,12 @@ $(window).ready ->
       @editbutton = $('<div class="codebutton">edit</div>')
       @reference = $('<div class="reference"></div>')
       @reference.hide()
+      @tileinfo = $('<div class="tileinfo"></div>')
+      @tileinfo.hide()
       @inspect.append @messages
       @inspect.append @editbutton
       @inspect.append @script
+      @inspect.append @tileinfo
       @inspect.append @reference
 
       @editbutton.data('scripter', @)
@@ -114,6 +117,10 @@ $(window).ready ->
         
 
       else if thing.script and thing.parsed_script
+        @script.show()
+        @messages.show()
+        @vars.show()
+        @tileinfo.hide()
         @code.html ''
         @messages.html ''
         @linenums.children().removeClass 'error'
@@ -147,6 +154,12 @@ $(window).ready ->
         for routine in parsed
           @code.append make_block routine
 
+      else
+        @script.hide()
+        @messages.hide()
+        @vars.hide()
+
+
 
     update: ->
       if @watch and @script and @watch.parser
@@ -164,7 +177,7 @@ $(window).ready ->
 
             $(start.children('.word')[si]).addClass 'chunk'
 
-
+      ###
       if window.Entities.objects_hash
         mt = window.Events.tile_under_mouse
         local = window.Entities.objects_hash.get_within([mt[0]*32, mt[1]*32], 64)
@@ -175,11 +188,25 @@ $(window).ready ->
             fillStyle: "transparent"
             strokeStyle: "red"
             lineWidth: 2
+      ###
 
 
 
+    show_tile: (x,y)->
+      @script.hide()
+      @messages.hide()
+      @vars.hide()
+      @tileinfo.show()
+      stats = $('<p>'+x+','+y+'</p>')
+      obs = window.Map.get('objects', x, y)
+      obd = $('<ul></ul>')
+      if obs
+        for ob in obs
+          obd.append '<li>'+ob.nombre+'</li>'
 
-
+      @tileinfo.html ''
+      @tileinfo.append stats
+      @tileinfo.append obd
 
 
     mouseup: ->
@@ -193,6 +220,8 @@ $(window).ready ->
       if results.length > 0
         #console.log 'Selected:', results
         @show results[0]
+      else
+        @show_tile( t[0], t[1])
 
   window.Scripter.init()
 
@@ -244,8 +273,15 @@ $(window).ready ->
           @script_vars.e.push undefined
 
     walk_path: ->
-      if not @path? or @path.length is 0
+      if not @path?
         return false
+      if @path.length is 0
+        return false
+      try
+        if @path[0].length is 0
+          return false
+      catch error
+        console.log 'bad bad bad ', @path
 
 
       tilesize = window.Map.tilesize

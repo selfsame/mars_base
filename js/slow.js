@@ -26,9 +26,12 @@
         this.editbutton = $('<div class="codebutton">edit</div>');
         this.reference = $('<div class="reference"></div>');
         this.reference.hide();
+        this.tileinfo = $('<div class="tileinfo"></div>');
+        this.tileinfo.hide();
         this.inspect.append(this.messages);
         this.inspect.append(this.editbutton);
         this.inspect.append(this.script);
+        this.inspect.append(this.tileinfo);
         this.inspect.append(this.reference);
         this.editbutton.data('scripter', this);
         return this.editbutton.click(function() {
@@ -138,6 +141,10 @@
           this.linenums.children().removeClass('error');
           return $(this.linenums.children()[line - 1]).addClass('error');
         } else if (thing.script && thing.parsed_script) {
+          this.script.show();
+          this.messages.show();
+          this.vars.show();
+          this.tileinfo.hide();
           this.code.html('');
           this.messages.html('');
           this.linenums.children().removeClass('error');
@@ -177,10 +184,14 @@
             _results.push(this.code.append(make_block(routine)));
           }
           return _results;
+        } else {
+          this.script.hide();
+          this.messages.hide();
+          return this.vars.hide();
         }
       },
       update: function() {
-        var cp, i, index, local, mt, obj, si, start, _i, _j, _len, _ref, _results;
+        var cp, i, index, si, start, _i, _ref;
         if (this.watch && this.script && this.watch.parser) {
           this.code.find('.block').removeClass('current');
           this.code.find('.word').removeClass('chunk');
@@ -194,25 +205,42 @@
           if (cp) {
             si = cp.statement_index;
             if (si != null) {
-              $(start.children('.word')[si]).addClass('chunk');
+              return $(start.children('.word')[si]).addClass('chunk');
             }
           }
         }
-        if (window.Entities.objects_hash) {
-          mt = window.Events.tile_under_mouse;
-          local = window.Entities.objects_hash.get_within([mt[0] * 32, mt[1] * 32], 64);
-          _results = [];
-          for (_j = 0, _len = local.length; _j < _len; _j++) {
-            obj = local[_j];
-            window.Draw.use_layer('entities');
-            _results.push(window.Draw.draw_box(obj.tile_pos[0] * 32, obj.tile_pos[1] * 32, 32, 32, {
-              fillStyle: "transparent",
-              strokeStyle: "red",
-              lineWidth: 2
-            }));
+        /*
+              if window.Entities.objects_hash
+                mt = window.Events.tile_under_mouse
+                local = window.Entities.objects_hash.get_within([mt[0]*32, mt[1]*32], 64)
+        
+                for obj in local
+                  window.Draw.use_layer 'entities'
+                  window.Draw.draw_box obj.tile_pos[0] * 32, obj.tile_pos[1] * 32, 32, 32,
+                    fillStyle: "transparent"
+                    strokeStyle: "red"
+                    lineWidth: 2
+        */
+
+      },
+      show_tile: function(x, y) {
+        var ob, obd, obs, stats, _i, _len;
+        this.script.hide();
+        this.messages.hide();
+        this.vars.hide();
+        this.tileinfo.show();
+        stats = $('<p>' + x + ',' + y + '</p>');
+        obs = window.Map.get('objects', x, y);
+        obd = $('<ul></ul>');
+        if (obs) {
+          for (_i = 0, _len = obs.length; _i < _len; _i++) {
+            ob = obs[_i];
+            obd.append('<li>' + ob.nombre + '</li>');
           }
-          return _results;
         }
+        this.tileinfo.html('');
+        this.tileinfo.append(stats);
+        return this.tileinfo.append(obd);
       },
       mouseup: function() {
         var found, guy, p, results, t, _i, _len;
@@ -231,6 +259,8 @@
         }
         if (results.length > 0) {
           return this.show(results[0]);
+        } else {
+          return this.show_tile(t[0], t[1]);
         }
       }
     };
@@ -303,8 +333,18 @@
 
       Scripted.prototype.walk_path = function() {
         var near, p1, p2, tilesize;
-        if (!(this.path != null) || this.path.length === 0) {
+        if (!(this.path != null)) {
           return false;
+        }
+        if (this.path.length === 0) {
+          return false;
+        }
+        try {
+          if (this.path[0].length === 0) {
+            return false;
+          }
+        } catch (error) {
+          console.log('bad bad bad ', this.path);
         }
         tilesize = window.Map.tilesize;
         p1 = this.path[0][0] * tilesize;
