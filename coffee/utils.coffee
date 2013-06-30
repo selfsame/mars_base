@@ -8,10 +8,46 @@ Array.prototype.remove = (item)->
   if indx != -1
     return @.splice(indx,1)
 
+Array.prototype.get_last = ()->
+  return this[this.length-1]
+
+Array.prototype.set_last = (value)->
+  return this[this.length-1] = value
+
+Array.prototype.clone = ()->
+  r = []
+  for i in @
+    r.push i
+  return r
+
+window.get_function_arg_strings = (func) ->
+  funStr = func.toString()
+
+  results = funStr.slice(funStr.indexOf("(") + 1, funStr.indexOf(")")).match /([^\s,]+)/g
+  console.log results
+  return results
+
+
 window.unique_id_counter = 0
 window.get_unique_id = ()->
   window.unique_id_counter += 1
   return window.unique_id_counter
+
+
+$(document).delegate "textarea.tabindent", "keydown", (e) ->
+  keyCode = e.keyCode or e.which
+  if keyCode is 9
+    e.preventDefault()
+    start = $(this).get(0).selectionStart
+    end = $(this).get(0).selectionEnd
+    
+    # set textarea value to: text before caret + tab + text after caret
+    $(this).val $(this).val().substring(0, start) + "\t" + $(this).val().substring(end)
+    
+    # put caret at right position again
+    $(this).get(0).selectionStart = $(this).get(0).selectionEnd = start + 1
+
+
 
 window.util = 
   #the double click thing probably will eat up memory one way or another

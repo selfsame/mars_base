@@ -68,26 +68,8 @@ $(window).ready ->
 
   slow = new E.Scripted('Norm', 'spirit', [300,300])
   slow.run_script "
-main ( \n
-  $i9 = 1;\n
-  wait(40);\n
-  if 1:(\n
-    $i5 = 1;\n
-    wait(40);\n
-    $i6 = 21;\n
-    wait(40);\n
-    $i7 = 41;\n
-    $f4 = 1.2;\n
-    if 1:(\n
-      wait(40);\n
-    )\n
-    
-  )\n
-  $i3 = 66;\n
-  wander(4);\n
-
-  
-)
+  main ( 
+  $i0 = 5;)
 "
 
     

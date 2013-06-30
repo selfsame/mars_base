@@ -15,12 +15,50 @@
     }
   };
 
+  Array.prototype.get_last = function() {
+    return this[this.length - 1];
+  };
+
+  Array.prototype.set_last = function(value) {
+    return this[this.length - 1] = value;
+  };
+
+  Array.prototype.clone = function() {
+    var i, r, _i, _len;
+    r = [];
+    for (_i = 0, _len = this.length; _i < _len; _i++) {
+      i = this[_i];
+      r.push(i);
+    }
+    return r;
+  };
+
+  window.get_function_arg_strings = function(func) {
+    var funStr, results;
+    funStr = func.toString();
+    results = funStr.slice(funStr.indexOf("(") + 1, funStr.indexOf(")")).match(/([^\s,]+)/g);
+    console.log(results);
+    return results;
+  };
+
   window.unique_id_counter = 0;
 
   window.get_unique_id = function() {
     window.unique_id_counter += 1;
     return window.unique_id_counter;
   };
+
+  $(document).delegate("textarea.tabindent", "keydown", function(e) {
+    var end, keyCode, start;
+    keyCode = e.keyCode || e.which;
+    if (keyCode === 9) {
+      e.preventDefault();
+      start = $(this).get(0).selectionStart;
+      end = $(this).get(0).selectionEnd;
+      $(this).val($(this).val().substring(0, start) + "\t" + $(this).val().substring(end));
+      return $(this).get(0).selectionStart = $(this).get(0).selectionEnd = start + 1;
+    }
+  });
 
   window.util = {
     considered: 0,

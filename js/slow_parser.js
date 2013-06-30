@@ -52,6 +52,7 @@ window.slow_parser = (function(){
         "operator": parse_operator,
         "assignment": parse_assignment,
         "comparative": parse_comparative,
+        "call": parse_call,
         "start_group": parse_start_group,
         "end_group": parse_end_group,
         "end_line": parse_end_line,
@@ -245,24 +246,13 @@ window.slow_parser = (function(){
             }
           }
           if (result1 === null) {
-            if (input.substr(pos, 4) === "then") {
-              result1 = "then";
+            if (input.substr(pos, 4) === "else") {
+              result1 = "else";
               pos += 4;
             } else {
               result1 = null;
               if (reportFailures === 0) {
-                matchFailed("\"then\"");
-              }
-            }
-            if (result1 === null) {
-              if (input.substr(pos, 4) === "else") {
-                result1 = "else";
-                pos += 4;
-              } else {
-                result1 = null;
-                if (reportFailures === 0) {
-                  matchFailed("\"else\"");
-                }
+                matchFailed("\"else\"");
               }
             }
           }
@@ -270,6 +260,7 @@ window.slow_parser = (function(){
             result2 = parse_white();
             if (result2 !== null) {
               result3 = parse_logic_block();
+              result3 = result3 !== null ? result3 : "";
               if (result3 !== null) {
                 result4 = parse_white();
                 if (result4 !== null) {
@@ -406,7 +397,7 @@ window.slow_parser = (function(){
         pos1 = pos;
         result0 = parse_white();
         if (result0 !== null) {
-          result2 = parse_word();
+          result2 = parse_call();
           if (result2 === null) {
             result2 = parse_number();
             if (result2 === null) {
@@ -432,7 +423,7 @@ window.slow_parser = (function(){
             result1 = [];
             while (result2 !== null) {
               result1.push(result2);
-              result2 = parse_word();
+              result2 = parse_call();
               if (result2 === null) {
                 result2 = parse_number();
                 if (result2 === null) {
@@ -669,7 +660,7 @@ window.slow_parser = (function(){
           literal += part.literal
          }
         
-        return {type:'statement', value:block, literal:w1+literal+end.literal} })(pos0, result0[0], result0[1], result0[2]);
+        return {type:'statement', value:block, literal:w1+literal+end.literal, end:end.literal} })(pos0, result0[0], result0[1], result0[2]);
         }
         if (result0 === null) {
           pos = pos0;
@@ -1122,6 +1113,17 @@ window.slow_parser = (function(){
                         matchFailed("\"&\"");
                       }
                     }
+                    if (result1 === null) {
+                      if (input.charCodeAt(pos) === 124) {
+                        result1 = "|";
+                        pos++;
+                      } else {
+                        result1 = null;
+                        if (reportFailures === 0) {
+                          matchFailed("\"|\"");
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -1145,6 +1147,85 @@ window.slow_parser = (function(){
         }
         if (result0 !== null) {
           result0 = (function(offset, w1, comp, w2) {return {type:'compare', value:comp, literal:w1+comp+w2}})(pos0, result0[0], result0[1], result0[2]);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_call() {
+        var result0, result1, result2, result3, result4, result5, result6, result7, result8;
+        var pos0, pos1;
+        
+        pos0 = pos;
+        pos1 = pos;
+        result0 = parse_white();
+        if (result0 !== null) {
+          result1 = parse_word();
+          if (result1 !== null) {
+            result2 = parse_white();
+            if (result2 !== null) {
+              result3 = parse_start_group();
+              if (result3 !== null) {
+                result4 = parse_white();
+                if (result4 !== null) {
+                  result5 = parse_logic_block();
+                  result5 = result5 !== null ? result5 : "";
+                  if (result5 !== null) {
+                    result6 = parse_white();
+                    if (result6 !== null) {
+                      result7 = parse_end_group();
+                      if (result7 !== null) {
+                        result8 = parse_white();
+                        if (result8 !== null) {
+                          result0 = [result0, result1, result2, result3, result4, result5, result6, result7, result8];
+                        } else {
+                          result0 = null;
+                          pos = pos1;
+                        }
+                      } else {
+                        result0 = null;
+                        pos = pos1;
+                      }
+                    } else {
+                      result0 = null;
+                      pos = pos1;
+                    }
+                  } else {
+                    result0 = null;
+                    pos = pos1;
+                  }
+                } else {
+                  result0 = null;
+                  pos = pos1;
+                }
+              } else {
+                result0 = null;
+                pos = pos1;
+              }
+            } else {
+              result0 = null;
+              pos = pos1;
+            }
+          } else {
+            result0 = null;
+            pos = pos1;
+          }
+        } else {
+          result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, w1, word, w2, start, w3, args, w4, end, w5) {
+        literal = ''; 
+         for (_i = 0, _len = args.length; _i < _len; _i++) {
+          part = args[_i];
+          literal += part.literal
+         }
+        
+        return {type:'call', value:word, args:args, 
+             literal:w1+word.literal+w2+start.literal+w3+literal+w4+end.literal+w5}})(pos0, result0[0], result0[1], result0[2], result0[3], result0[4], result0[5], result0[6], result0[7], result0[8]);
         }
         if (result0 === null) {
           pos = pos0;
