@@ -207,7 +207,12 @@
               for (j = _j = _ref2 = this.grid_area[2], _ref3 = this.grid_area[3]; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
                 obj_in_map = window.Map.get('objects', this.tile_pos[0] + i, this.tile_pos[1] + j);
                 if (obj_in_map && obj_in_map.length > 0) {
-                  _results1.push(obj_in_map.remove(this));
+                  obj_in_map.remove(this);
+                  if (obj_in_map.length === 0) {
+                    _results1.push(window.Map.set('objects', this.tile_pos[0] + i, this.tile_pos[1] + j, 0));
+                  } else {
+                    _results1.push(void 0);
+                  }
                 } else {
                   _results1.push(void 0);
                 }
@@ -219,7 +224,10 @@
         } else {
           obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
           if (obj_in_map && obj_in_map.length > 0) {
-            return obj_in_map.remove(this);
+            obj_in_map.remove(this);
+            if (obj_in_map.length === 0) {
+              return window.Map.set('objects', this.tile_pos[0], this.tile_pos[1], 0);
+            }
           }
         }
       };

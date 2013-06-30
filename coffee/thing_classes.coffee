@@ -124,10 +124,14 @@ $(window).ready ->
             obj_in_map = window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
             if obj_in_map and obj_in_map.length > 0
               obj_in_map.remove @
+              if obj_in_map.length is 0
+                window.Map.set('objects', @tile_pos[0]+i, @tile_pos[1]+j, 0)
       else
         obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
         if obj_in_map and obj_in_map.length > 0
           obj_in_map.remove @
+          if obj_in_map.length is 0
+            window.Map.set('objects', @tile_pos[0], @tile_pos[1], 0)
 
 
 
