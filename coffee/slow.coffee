@@ -368,45 +368,22 @@ $(window).ready ->
       if typeof first isnt 'object'
         console.log 'ERROR parsing first token: ', first
 
-      if first.type is 'memory'
-        pattern = 'assign'
-        register = first
 
 
-      broke = false
-      for part, i in line
-        if i isnt 0 #we allready used the first token
-          if not broke
 
-            if pattern is 'assign'
-              
-              if not assign
-                if part.type is 'assignment'
-                  assign = part.value
-              else if value_found is false
-                remains = line.slice(i,line.length)
-                value = @calculate remains
-                broke = true
-                console.log register, assign,  value
-
-                v = @self.script_vars[register.slot][register.index] 
-                if assign is '+='
-                  v += value
-                else if assign is '-='
-                  v -= value
-                else if assign is '/='
-                  v /= value
-                else if assign is '*='
-                  v *= value
-                else   
-                  v = value
-                @store_var register, value
-                window.Scripter.show_vars()
-                @code_index[@block_level] += 1
-                return
+      
 
       result = @calculate line
+
       if result
+
+        if @assign
+
+          
+          console.log 'assign: ', @self.script_vars[@assign.slot], result
+          @self.script_vars[@assign.slot][@assign.index] = result
+          @assign = false
+          window.Scripter.show_vars()
 
         #we run the code even though there is nothing further to do with the result, included function calls
         @code_index[@block_level] += 1
@@ -430,7 +407,10 @@ $(window).ready ->
       if obj.type is 'number'
         return obj.value
       if obj.type is 'memory'
-        return @self.script_vars[obj.slot][obj.index]
+        mem = @self.script_vars[obj.slot][obj.index]
+        if mem is undefined
+          mem = false
+        return mem
       if obj.type is 'call'
         funct = obj.value.value
         v = @self['_'+funct]
@@ -452,6 +432,7 @@ $(window).ready ->
       return undefined
 
     calculate: (tokens)->
+
       report = ''
       for t in tokens
         report += t.value+' '
@@ -467,10 +448,11 @@ $(window).ready ->
             value = @untoken(token, i)
 
             valid = true
+
           else
             return undefined
         else if not operator
-          if token.type is 'operator'
+          if token.type in ['operator','compare', 'assignment']
             operator = token.value
 
           else if token.type is 'compare'
@@ -509,8 +491,16 @@ $(window).ready ->
               value = (value and next)
             else if operator is '|'
               value = (value or next)
+
+            else if operator is '='
+              #console.log 'calculating assignment', tokens[i-2]
+              if tokens[i-2].type is 'memory'
+                #we know we are assigning a var, but need to wait untill all the tokens have been calc'd
+                value = next
+                @assign = tokens[i-2]
+                
             operator = false
-            console.log 'value = ', value
+
 
       for token in tokens
         delete token.result

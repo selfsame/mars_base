@@ -45,7 +45,7 @@
       advanced.sprite_size = 32;
     }
     slow = new E.Scripted('Norm', 'spirit', [300, 300]);
-    return slow.run_script("  main ( \n  $i0 = $i0 + 1;wait(200);)\n");
+    return slow.run_script("  main (   $i0 = 5;)");
   });
 
   /*

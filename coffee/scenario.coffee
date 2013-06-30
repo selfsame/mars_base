@@ -68,9 +68,8 @@ $(window).ready ->
 
   slow = new E.Scripted('Norm', 'spirit', [300,300])
   slow.run_script "
-  main ( \n
-  $i0 = $i0 + 1;wait(200);
-)\n
+  main ( 
+  $i0 = 5;)
 "
 
     

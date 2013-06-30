@@ -404,7 +404,7 @@
       };
 
       SlowParser.prototype.run_statement = function(line) {
-        var args, assign, broke, ev, first, funct, i, index, part, parts, pattern, register, remains, result, v, value, value_found, vars, _i, _len, _ref;
+        var args, assign, ev, first, funct, index, parts, pattern, register, result, value, value_found, vars, _ref;
         if ((line.type != null) && ((_ref = line.type) === 'conditional')) {
           if (line.term === 'if') {
             this.conditionals[this.block_level] = false;
@@ -447,48 +447,14 @@
         if (typeof first !== 'object') {
           console.log('ERROR parsing first token: ', first);
         }
-        if (first.type === 'memory') {
-          pattern = 'assign';
-          register = first;
-        }
-        broke = false;
-        for (i = _i = 0, _len = line.length; _i < _len; i = ++_i) {
-          part = line[i];
-          if (i !== 0) {
-            if (!broke) {
-              if (pattern === 'assign') {
-                if (!assign) {
-                  if (part.type === 'assignment') {
-                    assign = part.value;
-                  }
-                } else if (value_found === false) {
-                  remains = line.slice(i, line.length);
-                  value = this.calculate(remains);
-                  broke = true;
-                  console.log(register, assign, value);
-                  v = this.self.script_vars[register.slot][register.index];
-                  if (assign === '+=') {
-                    v += value;
-                  } else if (assign === '-=') {
-                    v -= value;
-                  } else if (assign === '/=') {
-                    v /= value;
-                  } else if (assign === '*=') {
-                    v *= value;
-                  } else {
-                    v = value;
-                  }
-                  this.store_var(register, value);
-                  window.Scripter.show_vars();
-                  this.code_index[this.block_level] += 1;
-                  return;
-                }
-              }
-            }
-          }
-        }
         result = this.calculate(line);
         if (result) {
+          if (this.assign) {
+            console.log('assign: ', this.self.script_vars[this.assign.slot], result);
+            this.self.script_vars[this.assign.slot][this.assign.index] = result;
+            this.assign = false;
+            window.Scripter.show_vars();
+          }
           return this.code_index[this.block_level] += 1;
         }
       };
@@ -504,7 +470,7 @@
       };
 
       SlowParser.prototype.untoken = function(obj, i) {
-        var args, funct, point, r, stack, v;
+        var args, funct, mem, point, r, stack, v;
         if (i == null) {
           i = 0;
         }
@@ -518,7 +484,11 @@
           return obj.value;
         }
         if (obj.type === 'memory') {
-          return this.self.script_vars[obj.slot][obj.index];
+          mem = this.self.script_vars[obj.slot][obj.index];
+          if (mem === void 0) {
+            mem = false;
+          }
+          return mem;
         }
         if (obj.type === 'call') {
           funct = obj.value.value;
@@ -540,7 +510,7 @@
       };
 
       SlowParser.prototype.calculate = function(tokens) {
-        var i, next, operator, report, t, token, valid, value, _i, _j, _k, _len, _len1, _len2;
+        var i, next, operator, report, t, token, valid, value, _i, _j, _k, _len, _len1, _len2, _ref;
         report = '';
         for (_i = 0, _len = tokens.length; _i < _len; _i++) {
           t = tokens[_i];
@@ -559,7 +529,7 @@
               return;
             }
           } else if (!operator) {
-            if (token.type === 'operator') {
+            if ((_ref = token.type) === 'operator' || _ref === 'compare' || _ref === 'assignment') {
               operator = token.value;
             } else if (token.type === 'compare') {
               operator = token.value;
@@ -594,9 +564,13 @@
                 value = value && next;
               } else if (operator === '|') {
                 value = value || next;
+              } else if (operator === '=') {
+                if (tokens[i - 2].type === 'memory') {
+                  value = next;
+                  this.assign = tokens[i - 2];
+                }
               }
               operator = false;
-              console.log('value = ', value);
             }
           }
         }
