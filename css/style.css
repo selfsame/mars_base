@@ -279,6 +279,7 @@ canvas {
 	cursor: pointer;
 	float:right;
 	padding: 0px 4px;
+	margin-left: 4px;
 }
 
 #inspect .reference{
@@ -298,3 +299,21 @@ canvas {
 #inspect .reference .prop{
 	color:#b370f7;
 }
+
+
+#inspect .saveload{
+	width:200px;
+	height: 20px;
+	float:right;
+	margin-right: 10px;
+}
+
+#inspect .saveload input{
+	float:left;
+	width: 100px;
+	font-size: 12px;
+	height: 12px;
+	background-color:black;
+	color: yellow;
+	border: 1px solid gray;
+	}

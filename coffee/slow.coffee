@@ -17,12 +17,22 @@ $(window).ready ->
       @editarea = $('<textarea class="tabindent">')
       @messages = $('<div class="messages"></div>')
       @editbutton = $('<div class="codebutton">edit</div>')
+
+      @saveload = $('<div class="saveload"><input id="file">
+        <div class="codebutton" id="save">save</div><div class="codebutton" id="load">load</div></div>')
+
+      @saveload.find('#save').click ()->
+        window.Scripter.save_script window.Scripter.saveload.find('input').val()
+      @saveload.find('#load').click ()->
+        window.Scripter.load_script window.Scripter.saveload.find('input').val()
+
       @reference = $('<div class="reference"></div>')
       @reference.hide()
       @tileinfo = $('<div class="tileinfo"></div>')
       @tileinfo.hide()
       @inspect.append @messages
       @inspect.append @editbutton
+      @inspect.append @saveload
       @inspect.append @script
       @inspect.append @tileinfo
       @inspect.append @reference
@@ -31,6 +41,19 @@ $(window).ready ->
       @editbutton.click ->
         scripter = $(this).data('scripter')
         scripter.toggle_edit()
+
+    save_script: (filename)->
+      if @watch and @watch.script and filename and filename isnt ''
+        script = @editarea.val()
+        localStorage[filename] = script
+        console.log 'saved: ', localStorage[filename]
+
+    load_script: (filename)->
+      if @watch and @watch.script and filename and filename isnt ''
+        if localStorage[filename]?
+          script = localStorage[filename]
+          @editarea.val(script)
+
 
     toggle_edit: ->
       if @watch
@@ -121,6 +144,7 @@ $(window).ready ->
         @messages.show()
         @vars.show()
         @tileinfo.hide()
+        @saveload.show()
         @code.html ''
         @messages.html ''
         @linenums.children().removeClass 'error'
@@ -193,9 +217,11 @@ $(window).ready ->
 
 
     show_tile: (x,y)->
+      @watch = false
       @script.hide()
       @messages.hide()
       @vars.hide()
+      @saveload.hide()
       @tileinfo.show()
       stats = $('<p>'+x+','+y+'</p>')
       obs = window.Map.get('objects', x, y)
@@ -209,19 +235,20 @@ $(window).ready ->
       @tileinfo.append obd
 
 
-    mouseup: ->
-      t = window.Events.tile_under_mouse
-      p = {x:t[0]*32, y:t[1]*32}
-      found = window.Entities.sentient_hash.get_within([p.x,p.y], 32)
-      results = []
-      for guy in found
-        if guy.tile_pos[0] is t[0] and guy.tile_pos[1] is t[1]
-          results.push guy
-      if results.length > 0
-        #console.log 'Selected:', results
-        @show results[0]
-      else
-        @show_tile( t[0], t[1])
+    mouseup: (e)->
+      if not $('#UI_overlay').is $(e.target).parents()
+        t = window.Events.tile_under_mouse
+        p = {x:t[0]*32, y:t[1]*32}
+        found = window.Entities.sentient_hash.get_within([p.x,p.y], 32)
+        results = []
+        for guy in found
+          if guy.tile_pos[0] is t[0] and guy.tile_pos[1] is t[1]
+            results.push guy
+        if results.length > 0
+          #console.log 'Selected:', results
+          @show results[0]
+        else
+          @show_tile( t[0], t[1])
 
   window.Scripter.init()
 
@@ -465,6 +492,7 @@ $(window).ready ->
         value = parseInt(value)
       if reg.slot is 'f'
         value = parseFloat(value).toFixed(2)
+
       @self.script_vars[reg.slot][reg.index] = value
 
 
