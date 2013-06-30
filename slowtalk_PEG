@@ -63,8 +63,8 @@ end:end  } }
 
 
 logic_block =
-  w1:white parts:( call / number /  comparative / assignment / operator /
-           memory / self / enclosure )+ w2:white
+  parts:( call / number /  comparative / assignment / operator /
+           memory / self / enclosure )+ 
    {return parts }
 
 
@@ -160,8 +160,8 @@ end_group
   {return {type:'end_line', value:end, literal:w1+end+w2} }
 
 end_line
-  = w1:white end:( ';' / ',' / '.' ) 
-  {return {type:'end_line', value:end, literal:w1+end} }
+  = w1:white end:( ';' / ',' / '.' ) w2:white
+  {return {type:'end_line', value:end, literal:w1+end+w2} }
 
 enclosure =
   w1:white start:start_group w2:white block:logic_block w3:white end:end_group w4:white

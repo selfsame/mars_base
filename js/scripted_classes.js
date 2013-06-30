@@ -156,7 +156,8 @@
         this.claimed = false;
         window.Entities.sentient.push(this);
         window.Entities.sentient_hash.add(this);
-        return this.setup();
+        this.setup();
+        return this.pocket = [];
       };
 
       SlowWalker.prototype.setup = function() {};
@@ -401,7 +402,12 @@
       function Vect2D(x, y) {
         this.x = x;
         this.y = y;
+        this.type = 'v';
       }
+
+      Vect2D.prototype.to_string = function() {
+        return '' + this.x + ',' + this.y;
+      };
 
       return Vect2D;
 
@@ -411,10 +417,15 @@
       EntityRef.name = 'EntityRef';
 
       function EntityRef(entity) {
+        this.type = 'e';
         this.e = entity.EID;
-        this.v = new Vect2D(entity.tile_pos[0], entity.tile_pos[0]);
+        this.v = new Vect2D(entity.tile_pos[0], entity.tile_pos[1]);
         this.s = entity.nombre;
       }
+
+      EntityRef.prototype.to_string = function() {
+        return '' + this.e;
+      };
 
       return EntityRef;
 
@@ -443,6 +454,52 @@
           this.path = false;
           this.target = false;
           return true;
+        }
+        return false;
+      };
+
+      SlowSentient.prototype._goto = function(v) {
+        if (typeof v === 'object' && v.x && v.y) {
+          if (!this.path || !this.target) {
+            this.target = [v.x, v.y];
+            this.path_to(this.target);
+            if (!this.path) {
+              console.log('cant make path');
+              return true;
+            }
+          }
+          if (this.walk_path()) {
+            this.path = false;
+            this.target = false;
+            return true;
+          }
+        } else {
+          return false;
+        }
+      };
+
+      SlowSentient.prototype._go_near = function(v) {
+        var mod;
+        if (typeof v === 'object' && v.x && v.y) {
+          if (!this.target) {
+            this.target = [v.x, v.y];
+            this.near_options = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [-1, -1], [1, -1], [1, 1]];
+          }
+          if (!this.path) {
+            if (this.near_options.length === 0) {
+              return false;
+            }
+            mod = this.near_options.pop();
+            this.path_to([this.target[0] + mod[0], this.target[1] + mod[1]]);
+            return;
+          }
+          if (this.walk_path()) {
+            this.path = false;
+            this.target = false;
+            return true;
+          }
+        } else {
+          return false;
         }
       };
 
@@ -524,24 +581,28 @@
         }
       };
 
-      SlowSentient.prototype._pickup = function() {
-        var found, obj, r, _i, _len;
-        r = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
+      SlowSentient.prototype._pickup = function(e_s) {
+        var found, i, j, obj, r, _i, _j, _k, _len;
+        r = [];
+        for (i = _i = -1; _i <= 1; i = ++_i) {
+          for (j = _j = -1; _j <= 1; j = ++_j) {
+            r = r.concat(window.Map.get('objects', this.tile_pos[0] + i, this.tile_pos[1] + j));
+          }
+        }
         found = false;
         if (r && r.length > 0) {
-          for (_i = 0, _len = r.length; _i < _len; _i++) {
-            obj = r[_i];
-            if (obj.nombre === this.want) {
+          for (_k = 0, _len = r.length; _k < _len; _k++) {
+            obj = r[_k];
+            if (obj.nombre === e_s) {
               found = true;
               obj.detach_from_map();
               this.pocket.push(obj);
               obj.pos = this.pos;
-              this.want = false;
-              this.state = 'idle';
-              return;
+              return true;
             }
           }
         }
+        return false;
       };
 
       return SlowSentient;

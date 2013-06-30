@@ -390,55 +390,51 @@ window.slow_parser = (function(){
       }
       
       function parse_logic_block() {
-        var result0, result1, result2;
-        var pos0, pos1;
+        var result0, result1;
+        var pos0;
         
         pos0 = pos;
-        pos1 = pos;
-        result0 = parse_white();
-        if (result0 !== null) {
-          result2 = parse_call();
-          if (result2 === null) {
-            result2 = parse_number();
-            if (result2 === null) {
-              result2 = parse_comparative();
-              if (result2 === null) {
-                result2 = parse_assignment();
-                if (result2 === null) {
-                  result2 = parse_operator();
-                  if (result2 === null) {
-                    result2 = parse_memory();
-                    if (result2 === null) {
-                      result2 = parse_self();
-                      if (result2 === null) {
-                        result2 = parse_enclosure();
-                      }
+        result1 = parse_call();
+        if (result1 === null) {
+          result1 = parse_number();
+          if (result1 === null) {
+            result1 = parse_comparative();
+            if (result1 === null) {
+              result1 = parse_assignment();
+              if (result1 === null) {
+                result1 = parse_operator();
+                if (result1 === null) {
+                  result1 = parse_memory();
+                  if (result1 === null) {
+                    result1 = parse_self();
+                    if (result1 === null) {
+                      result1 = parse_enclosure();
                     }
                   }
                 }
               }
             }
           }
-          if (result2 !== null) {
-            result1 = [];
-            while (result2 !== null) {
-              result1.push(result2);
-              result2 = parse_call();
-              if (result2 === null) {
-                result2 = parse_number();
-                if (result2 === null) {
-                  result2 = parse_comparative();
-                  if (result2 === null) {
-                    result2 = parse_assignment();
-                    if (result2 === null) {
-                      result2 = parse_operator();
-                      if (result2 === null) {
-                        result2 = parse_memory();
-                        if (result2 === null) {
-                          result2 = parse_self();
-                          if (result2 === null) {
-                            result2 = parse_enclosure();
-                          }
+        }
+        if (result1 !== null) {
+          result0 = [];
+          while (result1 !== null) {
+            result0.push(result1);
+            result1 = parse_call();
+            if (result1 === null) {
+              result1 = parse_number();
+              if (result1 === null) {
+                result1 = parse_comparative();
+                if (result1 === null) {
+                  result1 = parse_assignment();
+                  if (result1 === null) {
+                    result1 = parse_operator();
+                    if (result1 === null) {
+                      result1 = parse_memory();
+                      if (result1 === null) {
+                        result1 = parse_self();
+                        if (result1 === null) {
+                          result1 = parse_enclosure();
                         }
                       }
                     }
@@ -446,27 +442,12 @@ window.slow_parser = (function(){
                 }
               }
             }
-          } else {
-            result1 = null;
-          }
-          if (result1 !== null) {
-            result2 = parse_white();
-            if (result2 !== null) {
-              result0 = [result0, result1, result2];
-            } else {
-              result0 = null;
-              pos = pos1;
-            }
-          } else {
-            result0 = null;
-            pos = pos1;
           }
         } else {
           result0 = null;
-          pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, w1, parts, w2) {return parts })(pos0, result0[0], result0[1], result0[2]);
+          result0 = (function(offset, parts) {return parts })(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -1362,7 +1343,7 @@ window.slow_parser = (function(){
       }
       
       function parse_end_line() {
-        var result0, result1;
+        var result0, result1, result2;
         var pos0, pos1;
         
         pos0 = pos;
@@ -1401,7 +1382,13 @@ window.slow_parser = (function(){
             }
           }
           if (result1 !== null) {
-            result0 = [result0, result1];
+            result2 = parse_white();
+            if (result2 !== null) {
+              result0 = [result0, result1, result2];
+            } else {
+              result0 = null;
+              pos = pos1;
+            }
           } else {
             result0 = null;
             pos = pos1;
@@ -1411,7 +1398,7 @@ window.slow_parser = (function(){
           pos = pos1;
         }
         if (result0 !== null) {
-          result0 = (function(offset, w1, end) {return {type:'end_line', value:end, literal:w1+end} })(pos0, result0[0], result0[1]);
+          result0 = (function(offset, w1, end, w2) {return {type:'end_line', value:end, literal:w1+end+w2} })(pos0, result0[0], result0[1], result0[2]);
         }
         if (result0 === null) {
           pos = pos0;

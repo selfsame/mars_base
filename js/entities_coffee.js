@@ -52,7 +52,7 @@
 
     Hash.prototype.pos_to_bucket = function(pos) {
       var bucket;
-      return bucket = [parseInt(pos[0] / this.size), parseInt(pos[0] / this.size)];
+      return bucket = [parseInt(pos[0] / this.size), parseInt(pos[1] / this.size)];
     };
 
     Hash.prototype.put_in_data = function(obj, bucket) {

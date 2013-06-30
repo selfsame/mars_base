@@ -50,6 +50,7 @@ window.Map = {
 			window.Draw.draw_box(x*this.tilesize, y*this.tilesize, this.tilesize, this.tilesize, {fillStyle:'transparent',strokeStyle:'#BADA55',lineWidth:1});
 		}
 		
+		
 	},
 	create_layer: function(name, base) {
 		// it will create a layer with name "name" of base objects

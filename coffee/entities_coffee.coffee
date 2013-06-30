@@ -27,7 +27,7 @@ class Hash extends Hack
 
 
   pos_to_bucket: (pos)->
-    bucket = [parseInt(pos[0] / @size), parseInt(pos[0] / @size)]
+    bucket = [parseInt(pos[0] / @size), parseInt(pos[1] / @size)]
 
   put_in_data: (obj, bucket)->
     if not @data[bucket]

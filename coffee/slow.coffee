@@ -81,8 +81,11 @@ $(window).ready ->
         for type of @watch.script_vars
           $(@vars.children()[i]).append '<p>'+type+'</p>'
           for item in @watch.script_vars[type]
+
             if item is undefined
               item = ''
+            if typeof item is 'object'
+              item = item.to_string()
             $(@vars.children()[i]).append $('<div class="entry">'+item+'</div>')
           i += 1
 
@@ -130,10 +133,12 @@ $(window).ready ->
             else
               statement = $('<span class="block statement"></span>')
 
+              chars = 0
               for g in part
                 statement.append $('<span class="word">'+g.literal+'</span>')
+                chars += g.literal.length
 
-              statement.append ';'
+              statement.append obj.literals[i].slice(chars)
               block.append statement
           if obj.end
 
@@ -160,6 +165,19 @@ $(window).ready ->
             $(start.children('.word')[si]).addClass 'chunk'
 
 
+      if window.Entities.objects_hash
+        mt = window.Events.tile_under_mouse
+        local = window.Entities.objects_hash.get_within([mt[0]*32, mt[1]*32], 64)
+
+        for obj in local
+          window.Draw.use_layer 'entities'
+          window.Draw.draw_box obj.tile_pos[0] * 32, obj.tile_pos[1] * 32, 32, 32,
+            fillStyle: "transparent"
+            strokeStyle: "red"
+            lineWidth: 2
+
+
+
 
 
 
@@ -173,7 +191,7 @@ $(window).ready ->
         if guy.tile_pos[0] is t[0] and guy.tile_pos[1] is t[1]
           results.push guy
       if results.length > 0
-        console.log 'Selected:', results
+        #console.log 'Selected:', results
         @show results[0]
 
   window.Scripter.init()
@@ -193,7 +211,7 @@ $(window).ready ->
         @parsed_script = window.slow_parser.parse @script
       catch error
         console.log 'parse error: ', error, @script
-      console.log @parsed_script
+      #console.log @parsed_script
       if @parsed_script
         @parser = new SlowParser(@, @parsed_script)
 
@@ -210,7 +228,7 @@ $(window).ready ->
         @error = {line:error.line, column:error.column, message:error.name+': '+error.found}
 
       if @parsed_script
-        console.log @parsed_script
+        #console.log @parsed_script
         @parser = new SlowParser(@, @parsed_script)
         @script_vars =
         i:[]
@@ -380,7 +398,22 @@ $(window).ready ->
         if @assign
 
           
-          console.log 'assign: ', @self.script_vars[@assign.slot], result
+          #console.log 'assign: ', @self.script_vars[@assign.slot], result
+          #console.log typeof result
+          if @assign.slot is 'e'
+            if result.e
+              result = result
+            else
+              result = result + ''
+          if @assign.slot is 's'
+            if result.s
+              result = result.s
+            else
+              result = result + ''
+          if @assign.slot is 'v'
+            if result.v
+              result = result.v
+
           @self.script_vars[@assign.slot][@assign.index] = result
           @assign = false
           window.Scripter.show_vars()
@@ -410,6 +443,7 @@ $(window).ready ->
         mem = @self.script_vars[obj.slot][obj.index]
         if mem is undefined
           mem = false
+
         return mem
       if obj.type is 'call'
         funct = obj.value.value
@@ -421,7 +455,7 @@ $(window).ready ->
           else
 
             args = @calculate obj.args
-            console.log args
+            #console.log args
             stack = @code_index.clone()
             #console.log 'new callpoint', '_'+funct
             point = new CallPoint(stack, obj, @self, '_'+funct, args)
@@ -435,7 +469,7 @@ $(window).ready ->
 
       report = ''
       for t in tokens
-        report += t.value+' '
+        report += t.type+' '
       #console.log 'calc:', report
       value = undefined
       valid = false
@@ -446,7 +480,6 @@ $(window).ready ->
         if value is undefined
           if not valid
             value = @untoken(token, i)
-
             valid = true
 
           else
@@ -455,16 +488,13 @@ $(window).ready ->
           if token.type in ['operator','compare', 'assignment']
             operator = token.value
 
-          else if token.type is 'compare'
-            operator = token.value
-          else
 
-            return undefined
+
         else
 
           next = @untoken(token, i)
-          if next
-            console.log value, operator, next
+          if next?
+            #console.log value, operator, next
             if operator is '+'
               value += next
             else if operator is '-'
