@@ -26,9 +26,12 @@
         this.editbutton = $('<div class="codebutton">edit</div>');
         this.reference = $('<div class="reference"></div>');
         this.reference.hide();
+        this.tileinfo = $('<div class="tileinfo"></div>');
+        this.tileinfo.hide();
         this.inspect.append(this.messages);
         this.inspect.append(this.editbutton);
         this.inspect.append(this.script);
+        this.inspect.append(this.tileinfo);
         this.inspect.append(this.reference);
         this.editbutton.data('scripter', this);
         return this.editbutton.click(function() {
@@ -138,6 +141,10 @@
           this.linenums.children().removeClass('error');
           return $(this.linenums.children()[line - 1]).addClass('error');
         } else if (thing.script && thing.parsed_script) {
+          this.script.show();
+          this.messages.show();
+          this.vars.show();
+          this.tileinfo.hide();
           this.code.html('');
           this.messages.html('');
           this.linenums.children().removeClass('error');
@@ -177,6 +184,10 @@
             _results.push(this.code.append(make_block(routine)));
           }
           return _results;
+        } else {
+          this.script.hide();
+          this.messages.hide();
+          return this.vars.hide();
         }
       },
       update: function() {
@@ -212,6 +223,25 @@
         */
 
       },
+      show_tile: function(x, y) {
+        var ob, obd, obs, stats, _i, _len;
+        this.script.hide();
+        this.messages.hide();
+        this.vars.hide();
+        this.tileinfo.show();
+        stats = $('<p>' + x + ',' + y + '</p>');
+        obs = window.Map.get('objects', x, y);
+        obd = $('<ul></ul>');
+        if (obs) {
+          for (_i = 0, _len = obs.length; _i < _len; _i++) {
+            ob = obs[_i];
+            obd.append('<li>' + ob.nombre + '</li>');
+          }
+        }
+        this.tileinfo.html('');
+        this.tileinfo.append(stats);
+        return this.tileinfo.append(obd);
+      },
       mouseup: function() {
         var found, guy, p, results, t, _i, _len;
         t = window.Events.tile_under_mouse;
@@ -229,6 +259,8 @@
         }
         if (results.length > 0) {
           return this.show(results[0]);
+        } else {
+          return this.show_tile(t[0], t[1]);
         }
       }
     };
@@ -301,11 +333,18 @@
 
       Scripted.prototype.walk_path = function() {
         var near, p1, p2, tilesize;
-        if (!(this.path != null) || this.path.length === 0) {
+        if (!(this.path != null)) {
           return false;
         }
-        if (this.path[0].length === 0) {
+        if (this.path.length === 0) {
           return false;
+        }
+        try {
+          if (this.path[0].length === 0) {
+            return false;
+          }
+        } catch (error) {
+          console.log('bad bad bad ', this.path);
         }
         tilesize = window.Map.tilesize;
         p1 = this.path[0][0] * tilesize;

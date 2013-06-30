@@ -29,6 +29,7 @@
         this.block_build = false;
         this.needs_draw = true;
         this.persistant_draw = true;
+        this.grid_area = false;
         this.init();
         this.init_2();
       }
@@ -148,7 +149,7 @@
       };
 
       Thing.prototype.attach_to_map = function(tpos) {
-        var obj_in_map;
+        var i, j, obj_in_map, _i, _ref, _ref1, _results;
         if (tpos == null) {
           tpos = false;
         }
@@ -158,24 +159,68 @@
         this.show();
         window.Entities.objects.push(this);
         window.Entities.objects_hash.add(this);
-        obj_in_map = window.Map.get('objects', tpos[0], tpos[1]);
-        if (!obj_in_map) {
-          return window.Map.set('objects', tpos[0], tpos[1], [this]);
+        if (this.grid_area) {
+          _results = [];
+          for (i = _i = _ref = this.grid_area[0], _ref1 = this.grid_area[1]; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
+            _results.push((function() {
+              var _j, _ref2, _ref3, _results1;
+              _results1 = [];
+              for (j = _j = _ref2 = this.grid_area[2], _ref3 = this.grid_area[3]; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
+                obj_in_map = window.Map.get('objects', tpos[0] + i, tpos[1] + j);
+                if (!obj_in_map) {
+                  _results1.push(window.Map.set('objects', tpos[0] + i, tpos[1] + j, [this]));
+                } else {
+                  if (__indexOf.call(obj_in_map, this) < 0) {
+                    _results1.push(obj_in_map.push(this));
+                  } else {
+                    _results1.push(void 0);
+                  }
+                }
+              }
+              return _results1;
+            }).call(this));
+          }
+          return _results;
         } else {
-          if (__indexOf.call(obj_in_map, this) < 0) {
-            return obj_in_map.push(this);
+          obj_in_map = window.Map.get('objects', tpos[0], tpos[1]);
+          if (!obj_in_map) {
+            return window.Map.set('objects', tpos[0], tpos[1], [this]);
+          } else {
+            if (__indexOf.call(obj_in_map, this) < 0) {
+              return obj_in_map.push(this);
+            }
           }
         }
       };
 
       Thing.prototype.detach_from_map = function() {
-        var obj_in_map;
+        var i, j, obj_in_map, _i, _ref, _ref1, _results;
         this.hide();
         window.Entities.objects.remove(this);
         window.Entities.objects_hash.remove(this);
-        obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
-        if (obj_in_map && obj_in_map.length > 0) {
-          return obj_in_map.remove(this);
+        if (this.grid_area) {
+          _results = [];
+          for (i = _i = _ref = this.grid_area[0], _ref1 = this.grid_area[1]; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
+            _results.push((function() {
+              var _j, _ref2, _ref3, _results1;
+              _results1 = [];
+              for (j = _j = _ref2 = this.grid_area[2], _ref3 = this.grid_area[3]; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
+                obj_in_map = window.Map.get('objects', this.tile_pos[0] + i, this.tile_pos[1] + j);
+                if (obj_in_map && obj_in_map.length > 0) {
+                  _results1.push(obj_in_map.remove(this));
+                } else {
+                  _results1.push(void 0);
+                }
+              }
+              return _results1;
+            }).call(this));
+          }
+          return _results;
+        } else {
+          obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
+          if (obj_in_map && obj_in_map.length > 0) {
+            return obj_in_map.remove(this);
+          }
         }
       };
 
@@ -330,21 +375,10 @@
       }
 
       Launchpad.prototype.init = function() {
-        var i, j, _i, _results;
         this.persistant_draw = true;
         this.block_build = true;
-        _results = [];
-        for (i = _i = -2; _i <= 1; i = ++_i) {
-          _results.push((function() {
-            var _j, _results1;
-            _results1 = [];
-            for (j = _j = -2; _j <= 1; j = ++_j) {
-              _results1.push(this.attach_to_map([this.tile_pos[0] + i, this.tile_pos[1] + j]));
-            }
-            return _results1;
-          }).call(this));
-        }
-        return _results;
+        this.grid_area = [-2, 1, -2, 1];
+        return this.attach_to_map([this.tile_pos[0], this.tile_pos[1]]);
       };
 
       return Launchpad;
