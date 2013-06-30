@@ -66,10 +66,38 @@ $(window).ready ->
     advanced.sprite_offset = [0, 0]
     advanced.sprite_size = 32
 
-  slow = new E.Scripted('Norm', 'spirit', [300,300])
+  slow = new E.Scripted('Norm', 'spirit', [400,400])
+
+  slow.speed = 2
+  slow.footprint_img = 'tracks';
   slow.run_script "
-  main ( 
-  $i0 = 5;)
+main (   \n
+  if $i0:()else:($i0 = 1;)\n
+
+\n
+  $e0 = search(32);\n
+  $v0 = $e0;\n
+  $s0 = $e0;\n
+
+  wait(30);\n
+  if $v0 < 0:(\n
+    wander(10);\n
+  )else:(\n
+
+    
+    go_near( $v0);\n
+    wait(30);\n
+    $i9 = pickup($s0);\n
+    if $i9 > 0:(\n
+      $i9 = -1;
+      $i0 = $i0 + 1;\n
+      $e0 = -1;\n
+      $v0 = -1;\n
+      $s0 = -1;\n
+    )\n
+    wait(30);\n
+  )\n
+)\n
 "
 
     

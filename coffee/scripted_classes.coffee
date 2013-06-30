@@ -111,6 +111,8 @@ $(window).ready ->
       window.Entities.sentient_hash.add @
       @setup()
 
+      @pocket = []
+
     setup: ()->
 
     get_objects_here: ()->
@@ -293,12 +295,19 @@ $(window).ready ->
 
   class Vect2D
     constructor: (@x, @y)->
+      @type = 'v'
+    to_string: ->
+      return ''+@x+','+@y
 
   class EntityRef
     constructor: (entity)->
+      @type = 'e'
       @e = entity.EID
-      @v = new Vect2D(entity.tile_pos[0], entity.tile_pos[0])
+      @v = new Vect2D(entity.tile_pos[0], entity.tile_pos[1])
+
       @s = entity.nombre
+    to_string: ->
+      return ''+@e
 
   class SlowSentient extends SlowWalker
 
@@ -312,6 +321,47 @@ $(window).ready ->
         @path = false
         @target = false
         return true
+      return false
+
+    _goto: (v)->
+      if typeof v is 'object' and v.x and v.y
+        if not @path or not @target
+          @target = [v.x, v.y]
+          
+          @path_to @target
+          if not @path
+            console.log 'cant make path'
+            return true
+
+        if @walk_path()
+          @path = false
+          @target = false
+          return true
+      else
+        return false
+
+    _go_near: (v)->
+      if typeof v is 'object' and v.x and v.y
+        if not @target
+          @target = [v.x, v.y]
+          @near_options = [ [0,0],[-1,0],[1,0],[0,-1],[0,1],[-1,1],[-1,-1],[1,-1],[1,1] ]
+        if not @path 
+          if @near_options.length is 0
+            return false
+          mod = @near_options.pop()
+
+          @path_to [@target[0]+mod[0],@target[1]+mod[1]]
+          return undefined
+
+          
+
+        if @walk_path()
+          @path = false
+          @target = false
+          return true
+      else
+        return false
+
 
     _wait: (i=10)->
       time = i
@@ -369,21 +419,22 @@ $(window).ready ->
 
 
 
-    _pickup: ->
-
-      r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+    _pickup: (e_s)->
+      r = []
+      for i in [-1..1]
+        for j in [-1..1]
+          r = r.concat window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
       found = false
       
       if r and r.length > 0
         for obj in r
-          if obj.nombre is @want
+          if obj.nombre is e_s
             found = true       
             obj.detach_from_map()
             @pocket.push obj
             obj.pos = @pos
-            @want = false
-            @state = 'idle'
-            return
+            return true
+      return false
 
 
 

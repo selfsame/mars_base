@@ -111,6 +111,9 @@
               if (item === void 0) {
                 item = '';
               }
+              if (typeof item === 'object') {
+                item = item.to_string();
+              }
               $(this.vars.children()[i]).append($('<div class="entry">' + item + '</div>'));
             }
             _results.push(i += 1);
@@ -140,7 +143,7 @@
           this.linenums.children().removeClass('error');
           parsed = thing.parsed_script;
           make_block = function(obj) {
-            var block, g, i, part, statement, sub, _i, _j, _len, _len1, _ref, _ref1;
+            var block, chars, g, i, part, statement, sub, _i, _j, _len, _len1, _ref, _ref1;
             block = $('<span class="block"></span>');
             if (obj.begin) {
               block.append(obj.begin);
@@ -153,11 +156,13 @@
                 block.append(sub);
               } else {
                 statement = $('<span class="block statement"></span>');
+                chars = 0;
                 for (_j = 0, _len1 = part.length; _j < _len1; _j++) {
                   g = part[_j];
                   statement.append($('<span class="word">' + g.literal + '</span>'));
+                  chars += g.literal.length;
                 }
-                statement.append(';');
+                statement.append(obj.literals[i].slice(chars));
                 block.append(statement);
               }
             }
@@ -175,7 +180,7 @@
         }
       },
       update: function() {
-        var cp, i, index, si, start, _i, _ref;
+        var cp, i, index, local, mt, obj, si, start, _i, _j, _len, _ref, _results;
         if (this.watch && this.script && this.watch.parser) {
           this.code.find('.block').removeClass('current');
           this.code.find('.word').removeClass('chunk');
@@ -189,9 +194,24 @@
           if (cp) {
             si = cp.statement_index;
             if (si != null) {
-              return $(start.children('.word')[si]).addClass('chunk');
+              $(start.children('.word')[si]).addClass('chunk');
             }
           }
+        }
+        if (window.Entities.objects_hash) {
+          mt = window.Events.tile_under_mouse;
+          local = window.Entities.objects_hash.get_within([mt[0] * 32, mt[1] * 32], 64);
+          _results = [];
+          for (_j = 0, _len = local.length; _j < _len; _j++) {
+            obj = local[_j];
+            window.Draw.use_layer('entities');
+            _results.push(window.Draw.draw_box(obj.tile_pos[0] * 32, obj.tile_pos[1] * 32, 32, 32, {
+              fillStyle: "transparent",
+              strokeStyle: "red",
+              lineWidth: 2
+            }));
+          }
+          return _results;
         }
       },
       mouseup: function() {
@@ -210,7 +230,6 @@
           }
         }
         if (results.length > 0) {
-          console.log('Selected:', results);
           return this.show(results[0]);
         }
       }
@@ -237,7 +256,6 @@
         } catch (error) {
           console.log('parse error: ', error, this.script);
         }
-        console.log(this.parsed_script);
         if (this.parsed_script) {
           return this.parser = new SlowParser(this, this.parsed_script);
         }
@@ -263,7 +281,6 @@
           };
         }
         if (this.parsed_script) {
-          console.log(this.parsed_script);
           this.parser = new SlowParser(this, this.parsed_script);
           this.script_vars = {
             i: [],
@@ -450,7 +467,25 @@
         result = this.calculate(line);
         if (result) {
           if (this.assign) {
-            console.log('assign: ', this.self.script_vars[this.assign.slot], result);
+            if (this.assign.slot === 'e') {
+              if (result.e) {
+                result = result;
+              } else {
+                result = result + '';
+              }
+            }
+            if (this.assign.slot === 's') {
+              if (result.s) {
+                result = result.s;
+              } else {
+                result = result + '';
+              }
+            }
+            if (this.assign.slot === 'v') {
+              if (result.v) {
+                result = result.v;
+              }
+            }
             this.self.script_vars[this.assign.slot][this.assign.index] = result;
             this.assign = false;
             window.Scripter.show_vars();
@@ -499,7 +534,6 @@
               return r;
             } else {
               args = this.calculate(obj.args);
-              console.log(args);
               stack = this.code_index.clone();
               point = new CallPoint(stack, obj, this.self, '_' + funct, args);
               point.statement_index = i;
@@ -514,7 +548,7 @@
         report = '';
         for (_i = 0, _len = tokens.length; _i < _len; _i++) {
           t = tokens[_i];
-          report += t.value + ' ';
+          report += t.type + ' ';
         }
         value = void 0;
         valid = false;
@@ -531,15 +565,10 @@
           } else if (!operator) {
             if ((_ref = token.type) === 'operator' || _ref === 'compare' || _ref === 'assignment') {
               operator = token.value;
-            } else if (token.type === 'compare') {
-              operator = token.value;
-            } else {
-              return;
             }
           } else {
             next = this.untoken(token, i);
-            if (next) {
-              console.log(value, operator, next);
+            if (next != null) {
               if (operator === '+') {
                 value += next;
               } else if (operator === '-') {
