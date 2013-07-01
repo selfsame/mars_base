@@ -44,7 +44,7 @@
       advanced.sprite_offset = [0, 0];
       advanced.sprite_size = 32;
     }
-    slow = new E.Scripted('Norm', 'spirit', [400, 400]);
+   // slow = new E.Scripted('Norm', 'spirit', [400, 400]);
     slow.speed = 2;
     slow.footprint_img = 'tracks';
     return slow.run_script("main: (   \n  if $i0:()else:(\n    $s8 = @name;\n    $i0 = 1;)\n\n  $e0 = search(64); wait(10);\n  $v0 = $e0; wait(10);\n  $s0 = $e0; wait(10);\n  \n  if $v0:(\n    go_near( $v0);\n    wait(10);\n    $i9 = pickup($s0);\n    if $i9 > 0:(\n      $i0 = $i0 + 1; wait(10);\n    )\n    DELETE $i9; wait(10);\n    DELETE $e0; wait(10);\n    DELETE $v0; wait(10);\n    DELETE $s0; wait(10);\n      )\n  else:(\n    wander(10);\n    )\n)\n\nrelocate: (\n  wander(20);\n)\n");

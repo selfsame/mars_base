@@ -21,10 +21,21 @@ window.Map = {
 		// create pathfinding map
 		this.create_layer('pathfinding', 0);
 		this.create_layer('objects', 0);
-
+	},
+	
+	generate: function(options) {
+		
+		if (options == null) {
+          options = {
+            crater_oc: .025,
+            rock_oc: .2,
+            rock2_oc: .1
+          };
+        }
+		
 		// Using array[y][x] so it syncs with how pathfinding works, but our get and set functions will be (x,y)
 		this.arrays['background'] = []
-		for (i = 0; i <= this.height-1; i += 1) {
+		for (var i = 0; i <= this.height-1; i += 1) {
 			this.arrays['background'].push([]);
 			for (j = 0; j <= this.width-1; j += 1) {
 				tile = 0;
@@ -38,7 +49,42 @@ window.Map = {
 				this.arrays['background'][i].push(tile);
 			}
 		}
+
+		var middle = [this.height/12, this.width/12, this.height/6, this.width/6] // 1/3 square in the middle. no-crater zone
+		
+		
+		//var i, _i;
+		//for (i = _i = 0; _i <= 270; i = ++_i) {
+		//	rock = new Rock('rock', 'rock', [parseInt(Math.random()*window.Map.width)*window.Map.tilesize, parseInt(Math.random()*window.Map.height)*window.Map.tilesize]);
+		//	rock.setup();
+		//}
+		
+		for (var i = 0; i <= (this.height/4); i++) {
+			for (var j = 0; j <= (this.width/4); j++) {
+				if ((i < middle[0] || j < middle[1] || i >= middle[2] || j >= middle[3])) { // not in the middle square
+					if (Math.random() <= options.crater_oc) {
+						crater = new Crater('crater', 'crater', [j * this.tilesize * 4, i * this.tilesize * 4]);
+						
+						crater.draw();
+					}
+				}
+			}
+		}
+		
+		
+		var i, _i;
+		for (i = _i = 0; _i <= 270; i = ++_i) {
+			var x = parseInt(Math.random()*window.Map.width)*window.Map.tilesize;
+			var y = parseInt(Math.random()*window.Map.height)*window.Map.tilesize;
+			//console.log(this.get('objects', x, y));
+			if (this.get('objects', x, y) == 0) {
+				rock = new Rock('rock', 'rock', [x, y]);
+				rock.setup();
+			}
+		}
+			
 	},
+	
 	draw: function(){
 		this.draw_background();
 		// indicate the tile under the mouse

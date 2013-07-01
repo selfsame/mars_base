@@ -206,6 +206,7 @@
     window.Draw.add_image('shadow', "./textures/astronauts/shadow.png");
     window.Draw.add_image('engineer', "./textures/astronauts/engineer.png");
     window.Draw.add_image('rock', "./textures/objects/rock.png");
+	window.Draw.add_image('crater', "./textures/ground/crater.png");
     window.Draw.add_image('wrench', "./textures/objects/wrench.png");
     window.Draw.add_image('launchpad', "./textures/objects/launchpad.png");
     window.Draw.add_image('corpse', "./textures/astronauts/corpse.png");
