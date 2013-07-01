@@ -29,6 +29,7 @@ $(window).ready ->
     init_2: ->
     __update: (delta)->
       @pos_to_tile_pos()
+      @props['pos'] = new Vect2D(@tile_pos[0], @tile_pos[1])
       @delta_time = delta
       @total_time += delta
       @frame_count += 1
@@ -317,11 +318,13 @@ $(window).ready ->
       if not @path or not @target
         @target = @get_random_tile(distance)
         @path_to @target
+        if not @path
+          @target = false
       if @walk_path()
         @path = false
         @target = false
         return true
-      return false
+      return undefined
 
     _goto: (v)->
       if typeof v is 'object' and v.x and v.y
@@ -428,12 +431,13 @@ $(window).ready ->
       
       if r and r.length > 0
         for obj in r
-          if obj.nombre is e_s
-            found = true       
-            obj.detach_from_map()
-            @pocket.push obj
-            obj.pos = @pos
-            return true
+          if obj isnt 'undefined' and typeof obj is 'object'
+            if obj.nombre is e_s
+              found = true       
+              obj.detach_from_map()
+              @pocket.push obj
+              obj.pos = @pos
+              return true
       return false
 
 

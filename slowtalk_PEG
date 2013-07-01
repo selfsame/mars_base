@@ -2,7 +2,7 @@ start
   = action+
 
 action
-  = w1:white action:word w2:white start:start_group w3:white statement:(statement / conditional)* w4:white end:end_group w5:white
+  = w1:white action:word w2:white ':' w9:white start:start_group w3:white statement:(statement / conditional)* w4:white end:end_group w5:white
   {
 data = [];
 literals = [];
@@ -18,12 +18,12 @@ literals = [];
  }
 
 return {type:'routine', action:action.value, block:data, literals:literals,
-begin:w1+action.literal+w2+start.literal+w3,
+begin:w1+action.literal+w2+':'+w9+start.literal+w3,
 end:w4+end.literal+w5}}
 
 conditional =
   w1:white  
-  logic:('if' / 'else' ) w2:white eval: logic_block?
+  logic:('if'i / 'else'i ) w2:white eval: logic_block?
   w3:white ':'
   w4:white start:start_group w5:white
   statement:(statement / conditional)*
@@ -63,14 +63,16 @@ end:end  } }
 
 
 logic_block =
-  parts:( call / number /  comparative / assignment / operator /
+  parts:( reserved / call / number /  comparative / assignment / operator /
            memory / self / enclosure )+ 
    {return parts }
 
 
 
 
-
+reserved
+  = w1:white string:( 'delete'i ) w2:white 
+  {return {type:'reserved', value:string, literal:w1+string+w2}}
 
 
 word
@@ -186,11 +188,11 @@ ifend =
 /* game stuff */ 
 
 memory
- = w1:white sym:'$' slot:('i' / 'f' / 's' / 'v' / 'e') index:[0-9] w2:white {return {type:'memory', slot:slot, index:index, 
+ = w1:white sym:'$' slot:('i' / 'f' / 's' / 'v' / 'e') index:[0-9] w2:white {return {type:'memory', slot:slot, index:parseInt(index), 
 literal:w1+sym+slot+index+w2}}
 
 self
-  = white amp:'@' self:[a-zA-Z_]+ white {return {type:'self', value:self.join('') } }
+  = w1:white amp:'@' self:[a-zA-Z_]+ w2:white {return {type:'self', value:self.join(''), literal:w1+amp+self.join('')+w2 } }
 
 
 

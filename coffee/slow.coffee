@@ -44,12 +44,14 @@ $(window).ready ->
 
     save_script: (filename)->
       if @watch and @watch.script and filename and filename isnt ''
+        filename = 'SLOWCODE'+filename
         script = @editarea.val()
         localStorage[filename] = script
         console.log 'saved: ', localStorage[filename]
 
     load_script: (filename)->
       if @watch and @watch.script and filename and filename isnt ''
+        filename = 'SLOWCODE'+filename
         if localStorage[filename]?
           script = localStorage[filename]
           @editarea.val(script)
@@ -66,6 +68,7 @@ $(window).ready ->
           @editarea.val @watch.script
           @editarea.height @code.height()
           @code.replaceWith @editarea
+          console.log localStorage
         else
           
           @watch.run_script @editarea.val()
@@ -84,7 +87,22 @@ $(window).ready ->
       if @watch
 
         for prop of @watch.props
-          @reference.append '<p class="prop">@'+prop+' = '+@watch.props[prop]+'</p>'
+          data = @watch.props[prop]
+          v = '?'
+          if typeof data is 'object'
+            if data.type?
+              v = data.type
+          else if typeof data is 'string'
+            v = 's'
+          else if typeof data is 'string'
+            v = 's'
+          else if typeof data is 'number'
+            if '.' in v+''
+              v = 'f'
+            else
+              v = 'i'
+
+          @reference.append '<p class="prop">@'+prop+' = '+v+'</p>'
 
 
         for prop of @watch
@@ -301,11 +319,17 @@ $(window).ready ->
 
     walk_path: ->
       if not @path?
+        @target = false
         return false
+
       if @path.length is 0
+        @target = false
+        @path = false
         return false
       try
         if @path[0].length is 0
+          @target = false
+          @path = false
           return false
       catch error
         console.log 'bad bad bad ', @path
@@ -327,11 +351,19 @@ $(window).ready ->
           return true
       else
         @move(1)
-      return false
+      return undefined
 
     
   class CallPoint
     constructor: (@index_stack=undefined, @word=undefined, @callee=false, @callee_funct=false, @callee_args=[], @callee_return=undefined)->
+      @index = 0
+      @word = undefined
+
+  class SlowException
+    constructor: (@message)->
+      @error = true
+    to_string: ->
+      'ERROR'
 
   class SlowParser
     constructor: (@self, @json)->
@@ -424,6 +456,7 @@ $(window).ready ->
         if @conditionals[@block_level]?
           delete @conditionals[@block_level]
       
+      
 
 
       index = 0
@@ -450,34 +483,28 @@ $(window).ready ->
         console.log 'ERROR parsing first token: ', first
 
 
+      if first.type? and first.type in ['reserved']
+        if first.value.toLowerCase() is 'delete'
+          slot = line[1]
+          if slot.type is 'memory'
+            @delete_var(slot)
+            window.Scripter.show_vars()
+            @code_index[@block_level] += 1
+            return
 
 
       
 
       result = @calculate line
 
-      if result
+      if result not in [undefined, null] and not result.error?
 
         if @assign
 
           
           #console.log 'assign: ', @self.script_vars[@assign.slot], result
           #console.log typeof result
-          if @assign.slot is 'e'
-            if result.e
-              result = result
-            else
-              result = result + ''
-          if @assign.slot is 's'
-            if result.s
-              result = result.s
-            else
-              result = result + ''
-          if @assign.slot is 'v'
-            if result.v
-              result = result.v
-
-          @self.script_vars[@assign.slot][@assign.index] = result
+          @store_var(@assign, result)
           @assign = false
           window.Scripter.show_vars()
 
@@ -488,12 +515,42 @@ $(window).ready ->
 
 
     store_var: (reg, value)->
+      if reg.slot is 'e'
+        if value.e
+          value = value
+        else
+          result = result + ''
+      if reg.slot is 's'
+        if value.s
+          value = value.s
+        else
+          value = value + ''
+      if reg.slot is 'v'
+        if value.v
+          value = value.v
+
       if reg.slot is 'i'
-        value = parseInt(value)
+        if typeof value is 'object' or value is true
+          value = 1
+        else if value is false
+          value = 0
+        else
+          value = parseInt(value)
       if reg.slot is 'f'
-        value = parseFloat(value).toFixed(2)
+        if typeof value is 'object' or value is true
+          value = 1
+        else if value is false
+          value = 0
+        else
+          value = parseFloat(value).toFixed(2)
 
       @self.script_vars[reg.slot][reg.index] = value
+
+    delete_var: (reg)->
+      try
+        @self.script_vars[reg.slot][parseInt(reg.index)] = undefined
+      catch error
+        console.log 'cant delete register ', reg, error
 
 
     untoken: (obj, i=0)->
@@ -503,8 +560,11 @@ $(window).ready ->
         return @calculate obj.value
       if obj.type is 'number'
         return obj.value
+      if obj.type is 'self'
+        if @self.props[obj.value]?
+          return @self.props[obj.value]
       if obj.type is 'memory'
-        mem = @self.script_vars[obj.slot][obj.index]
+        mem = @self.script_vars[obj.slot][parseInt(obj.index)]
         if mem is undefined
           mem = false
 
@@ -512,7 +572,17 @@ $(window).ready ->
       if obj.type is 'call'
         funct = obj.value.value
         v = @self['_'+funct]
+
         if @self['_'+funct]? and typeof @self['_'+funct] is 'function'
+          # (@index_stack=undefined, @word=undefined, @callee=false, @callee_funct=false, @callee_args=[], @callee_return=undefined)
+          callee = @self
+          callee_funct = '_'+funct
+
+        else if @routines[funct]?
+          callee = @routines[funct]
+          callee_funct = 'SLOW_ROUT'
+
+        if callee and callee_funct
           if obj.result?
             r = obj.result
             return r
@@ -548,6 +618,7 @@ $(window).ready ->
 
           else
             return undefined
+
         else if not operator
           if token.type in ['operator','compare', 'assignment']
             operator = token.value
