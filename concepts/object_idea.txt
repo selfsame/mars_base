@@ -1,0 +1,65 @@
+// CRATER MEDIUM
+name: crater_medium
+extends: crater
+custom_prop1:
+custom_prop2: // other custom properties
+custom_propN:
+sprite_size: 128, 128
+animated: false
+usable: false
+tile_size: 4, 4
+placable: false
+other: 55
+image_src: /textures/ground/crater_medium.png
+on_use_img: none
+sound_src: /sounds/amb/void.wav
+on_use_sound: none
+
+pathing:
+[0, 1, 1, 0]
+[1, 1, 1, 1]
+[1, 1, 1, 1]
+[0, 1, 1, 0]
+
+clear:
+[0, 1, 1, 0]
+[1, 1, 1, 1]
+[1, 1, 1, 1]
+[0, 1, 1, 0]
+
+
+// DOUBLE LOCKER
+name: locker_double
+extends: locker
+custom_prop1:
+custom_prop2:
+custom_propN:
+sprite_size: 128, 64
+animate_on_use: true
+usable: true
+tile_size: 4, 2
+other: 2
+placable: true
+image_src: /textures/ground/crater_medium.png
+on_use_img: /textures/objects/locker_opening.png
+colonist_anim: /textures/astronaut/animations/open.png // have a few basic astro animations ready
+sound_src: none
+on_use_sound: /sounds/obj/locker_open.wav
+
+
+// u = a square that can be used
+// a = square animated on corresponding use
+// when u3 is used, a3 gets animated?
+// use squares can also be animated, hence inner brackets
+use:
+[[u1,a1], [u2,a2], [u3,a3], [u4, a4]]
+[a1, a2, a3, a4]]
+
+
+// 0 = open
+// 2 = a use square (objects can share use squares?)
+// like two lockers facing eachother seperated by one tile?
+clear:
+[2, 2, 2, 2]
+[1, 1, 1, 1]
+
