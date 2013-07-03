@@ -201,6 +201,7 @@
 		if (this.check_clear(location)) {
 			this.apply_layout();
 			this.world_coords = location;
+			// this is where it should be called to draw
 			this.placed = true;
 			return true;
 		} else {
@@ -345,6 +346,7 @@
 			if (this.check_clear(location)) {
 				this.apply_layout();
 				this.world_coords = location;
+				// this is where it should be called to draw
 				this.placed = true;
 				return true;
 			} else {
