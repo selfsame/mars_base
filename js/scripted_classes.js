@@ -483,6 +483,7 @@
 
       SlowSentient.prototype._go_near = function(v) {
         var mod;
+        this.debug = ['GO NEAR'];
         if (typeof v === 'object' && v.x && v.y) {
           if (!this.target) {
             this.target = [v.x, v.y];

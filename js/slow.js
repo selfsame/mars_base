@@ -26,7 +26,9 @@
         this.messages = $('<div class="messages"></div>');
         this.editbutton = $('<div class="codebutton">edit</div>');
         this.saveload = $('<div class="saveload"><input id="file">\
-        <div class="codebutton" id="save">save</div><div class="codebutton" id="load">load</div></div>');
+        <div id="pause"class="codebutton">||</div>\
+          <div id="step"class="codebutton">|></div>\
+            <div class="codebutton" id="save">save</div><div class="codebutton" id="load">load</div></div>');
         this.saveload.find('#save').click(function() {
           return window.Scripter.save_script(window.Scripter.saveload.find('input').val());
         });
@@ -43,6 +45,16 @@
         this.inspect.append(this.script);
         this.inspect.append(this.tileinfo);
         this.inspect.append(this.reference);
+        this.saveload.find('#pause').click(function() {
+          if (!window.pause_code) {
+            return window.pause_code = true;
+          } else {
+            return window.pause_code = false;
+          }
+        });
+        this.saveload.find('#step').click(function() {
+          return window.next_frame = true;
+        });
         this.editbutton.data('scripter', this);
         return this.editbutton.click(function() {
           var scripter;
@@ -198,22 +210,36 @@
           this.linenums.children().removeClass('error');
           parsed = thing.parsed_script;
           make_block = function(obj) {
-            var block, chars, g, i, part, statement, sub, _i, _j, _len, _len1, _ref, _ref1;
+            var b, begin, block, chars, g, group, head, i, part, statement, sub, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
             block = $('<span class="block"></span>');
             if (obj.begin) {
-              block.append(obj.begin);
+              begin = obj.begin;
+              if (obj.bfirst) {
+                group = '';
+                _ref = obj["eval"];
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                  b = _ref[_i];
+                  group += '<span class="word">' + b.literal + '</span>';
+                }
+                begin = obj.bfirst + group + obj.blast;
+              }
+              head = $('<span class="head">' + begin + '</span>');
+              obj._html_head = head;
+              block.append(head);
             }
-            _ref = obj.block;
-            for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-              part = _ref[i];
-              if ((_ref1 = part.type) === 'action' || _ref1 === 'routine' || _ref1 === 'conditional') {
+            _ref1 = obj.block;
+            for (i = _j = 0, _len1 = _ref1.length; _j < _len1; i = ++_j) {
+              part = _ref1[i];
+              if ((_ref2 = part.type) === 'action' || _ref2 === 'routine' || _ref2 === 'conditional') {
                 sub = make_block(part);
+                part._html_head = sub;
                 block.append(sub);
               } else {
                 statement = $('<span class="block statement"></span>');
+                part._html_line = statement;
                 chars = 0;
-                for (_j = 0, _len1 = part.length; _j < _len1; _j++) {
-                  g = part[_j];
+                for (_k = 0, _len2 = part.length; _k < _len2; _k++) {
+                  g = part[_k];
                   statement.append($('<span class="word">' + g.literal + '</span>'));
                   chars += g.literal.length;
                 }
@@ -239,37 +265,41 @@
         }
       },
       update: function() {
-        var cp, i, index, si, start, _i, _ref;
+        var cp, i, index, last_slow, p, report, si, start, word, _i, _len;
         if (this.watch && this.script && this.watch.parser) {
-          this.code.find('.block').removeClass('current');
+          this.code.find('.block, .head').removeClass('current');
           this.code.find('.word').removeClass('chunk');
+          this.code.find('.block, .head').removeClass('active_head');
           start = this.code;
-          for (i = _i = 0, _ref = this.watch.parser.block_level; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-            index = this.watch.parser.code_index[i];
-            start = $(start.children('.block')[index]);
-          }
-          start.addClass('current');
-          cp = this.watch.parser.callpoints.get_last();
-          if (cp) {
-            si = cp.statement_index;
+          report = '';
+          cp = this.watch.parser.callpoints;
+          if (cp.length > 0) {
+            start = $(this.code.children()[cp[0].call.routine_index]);
+            start.children('.head').addClass('active_head');
+            $(start.children()[cp[0].index]).addClass('current');
+            for (i = _i = 0, _len = cp.length; _i < _len; i = ++_i) {
+              p = cp[i];
+              if (p.call._html_head != null) {
+                p.call._html_head.children('.head').addClass('active_head');
+                $(p.call._html_head.children('.block')[p.index]).addClass('current');
+                p.call._html_head.removeClass('current');
+              }
+              index = p.index;
+              if (index < 0) {
+                index = 0;
+              }
+              report += p.to_string();
+              if (p.type !== 'native') {
+                last_slow = p;
+              }
+            }
+            si = last_slow.token_index;
             if (si != null) {
-              return $(start.children('.word')[si]).addClass('chunk');
+              word = $(start.find('.word')[si]);
             }
           }
+          return this.messages.html('callpoints:' + report + '');
         }
-        /*
-              if window.Entities.objects_hash
-                mt = window.Events.tile_under_mouse
-                local = window.Entities.objects_hash.get_within([mt[0]*32, mt[1]*32], 64)
-        
-                for obj in local
-                  window.Draw.use_layer 'entities'
-                  window.Draw.draw_box obj.tile_pos[0] * 32, obj.tile_pos[1] * 32, 32, 32,
-                    fillStyle: "transparent"
-                    strokeStyle: "red"
-                    lineWidth: 2
-        */
-
       },
       show_tile: function(x, y) {
         var ob, obd, obs, stats, _i, _len;
@@ -429,16 +459,33 @@
 
       CallPoint.name = 'CallPoint';
 
-      function CallPoint(index_stack, word, callee, callee_funct, callee_args, callee_return) {
-        this.index_stack = index_stack != null ? index_stack : void 0;
-        this.word = word != null ? word : void 0;
-        this.callee = callee != null ? callee : false;
-        this.callee_funct = callee_funct != null ? callee_funct : false;
-        this.callee_args = callee_args != null ? callee_args : [];
-        this.callee_return = callee_return != null ? callee_return : void 0;
+      function CallPoint() {
+        this.type = 'slow';
         this.index = 0;
-        this.word = void 0;
+        this.call_token = void 0;
+        this.call = void 0;
+        this.call_funct = void 0;
+        this.call_args = void 0;
+        this._return = void 0;
+        this.if_group = false;
       }
+
+      CallPoint.prototype.to_string = function() {
+        return this.type + ': ' + this.call_funct + ' [' + this.index + ']';
+      };
+
+      CallPoint.prototype["return"] = function(result) {
+        if (result == null) {
+          result = void 0;
+        }
+        if (this.call_token != null) {
+          if (result != null) {
+            return this.call_token.result = result;
+          } else {
+            return this.call_token.result = this._return;
+          }
+        }
+      };
 
       return CallPoint;
 
@@ -464,20 +511,16 @@
       SlowParser.name = 'SlowParser';
 
       function SlowParser(self, json) {
-        var r, _i, _len, _ref;
+        var i, r, _i, _len, _ref;
         this.self = self;
         this.json = json;
-        this.scope = false;
-        this.scope_stack = [];
-        this.code_index = [0];
-        this.block_level = 0;
         this.routines = {};
         _ref = this.json;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          r = _ref[_i];
+        for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+          r = _ref[i];
+          r.routine_index = i;
           this.routines[r.action] = r;
         }
-        this.conditionals = {};
         this.callpoints = [];
       }
 
@@ -507,76 +550,139 @@
       };
 
       SlowParser.prototype.exec = function() {
-        var cp, lines, result;
-        if (!this.scope) {
-          if (this.routines['main']) {
-            this.enter_block(this.routines['main']);
+        var cp, lines, result, target;
+        if (!window.pause_code || window.pause_code && window.next_frame) {
+          if (!this.callpoints.get_last()) {
+            if (this.routines['main']) {
+              cp = new CallPoint();
+              cp.type = 'slow';
+              cp.call = this.routines['main'];
+              cp.call_funct = 'main';
+              cp.index = 0;
+              this.callpoints.push(cp);
+            }
           }
-        }
-        if (this.callpoints.length > 0) {
-          cp = this.callpoints.get_last();
-          result = cp.callee[cp.callee_funct](cp.callee_args);
-          if (result === void 0) {
-            return;
-          } else {
-            cp.word.result = result;
-            cp.callee_return = result;
-            this.callpoints.pop();
-          }
-        }
-        if (this.scope) {
-          lines = this.scope.block;
-          if (lines.length > this.code_index[this.block_level]) {
-            return this.run_statement(lines[this.code_index[this.block_level]]);
-          } else {
-            return this.leave_block();
+          if (this.callpoints.length > 0) {
+            cp = this.callpoints.get_last();
+            if (cp.type === 'native') {
+              result = cp.call[cp.call_funct](cp.call_args);
+              if (result === void 0) {
+
+              } else {
+                cp["return"](result);
+                return this.callpoints.pop();
+              }
+            } else {
+              lines = cp.call.block;
+              if (lines.length > cp.index) {
+                target = lines[cp.index];
+                result = this.run_statement(lines[cp.index]);
+                if (result !== void 0) {
+                  this.recurse_clean_line(target);
+                  cp.index += 1;
+                  if (window.pause_code) {
+                    return window.next_frame = false;
+                  }
+                }
+              } else {
+                cp["return"](true);
+                return this.callpoints.pop();
+              }
+            }
           }
         }
       };
 
+      SlowParser.prototype.recurse_clean_line = function(obj) {
+        var part, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _results;
+        if (!(obj != null)) {
+          return;
+        }
+        if (obj instanceof Array) {
+          for (_i = 0, _len = obj.length; _i < _len; _i++) {
+            part = obj[_i];
+            this.recurse_clean_line(part);
+          }
+        }
+        if (obj.result != null) {
+          console.log(obj.type, ':delete result');
+          delete obj.result;
+        }
+        if (obj.block != null) {
+          _ref = obj.block;
+          for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+            part = _ref[_j];
+            this.recurse_clean_line(part);
+          }
+        }
+        if (obj["eval"] != null) {
+          _ref1 = obj["eval"];
+          for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+            part = _ref1[_k];
+            this.recurse_clean_line(part);
+          }
+        }
+        if (obj.args != null) {
+          _ref2 = obj.args;
+          _results = [];
+          for (_l = 0, _len3 = _ref2.length; _l < _len3; _l++) {
+            part = _ref2[_l];
+            _results.push(this.recurse_clean_line(part));
+          }
+          return _results;
+        }
+      };
+
       SlowParser.prototype.run_statement = function(line) {
-        var args, assign, ev, first, funct, index, parts, pattern, register, result, slot, value, value_found, vars, _ref, _ref1;
+        var cp, ev, first, result, slot, _ref, _ref1;
+        cp = this.callpoints.get_last();
         if ((line.type != null) && ((_ref = line.type) === 'conditional')) {
           if (line.term === 'if') {
-            this.conditionals[this.block_level] = false;
+            cp.if_group = false;
           }
-          if (this.conditionals[this.block_level] === false) {
+          if (cp.if_group === false) {
+            if (line.result != null) {
+              return true;
+            }
             if (line.term === 'else' && line["eval"] === '') {
-              this.conditionals[this.block_level] = true;
-              this.enter_block(line);
+              cp.if_group = true;
+              cp.index += 1;
+              cp = new CallPoint();
+              cp.type = 'slow';
+              cp.call = line;
+              cp.call_funct = line.term;
+              cp.call_token = line;
+              this.callpoints.push(cp);
               return;
             }
             ev = this.calculate(line["eval"]);
+            console.log(line.term + ' is ' + ev);
             if (ev !== false && ev !== 0 && ev !== (void 0)) {
-              this.conditionals[this.block_level] = true;
-              this.enter_block(line);
+              this.recurse_clean_line(line);
+              cp.if_group = true;
+              cp.index += 1;
+              cp = new CallPoint();
+              cp.type = 'slow';
+              cp.call = line;
+              cp.call_funct = line.term;
+              cp.call_token = line;
+              this.callpoints.push(cp);
               return;
             } else {
-              this.code_index[this.block_level] += 1;
-              return;
+              return true;
             }
           } else {
-            this.code_index[this.block_level] += 1;
-            return;
+            return true;
           }
         } else {
-          if (this.conditionals[this.block_level] != null) {
-            delete this.conditionals[this.block_level];
+          if (cp.if_group) {
+            cp.if_group = false;
           }
         }
-        index = 0;
-        parts = line.length;
-        pattern = false;
-        funct = false;
-        register = false;
-        assign = false;
-        value = void 0;
-        value_found = false;
-        args = false;
-        vars = [];
         first = line[0];
         if (typeof first !== 'object') {
           console.log('ERROR parsing first token: ', first);
+          return true;
         }
         if ((first.type != null) && ((_ref1 = first.type) === 'reserved')) {
           if (first.value.toLowerCase() === 'delete') {
@@ -584,8 +690,7 @@
             if (slot.type === 'memory') {
               this.delete_var(slot);
               window.Scripter.show_vars();
-              this.code_index[this.block_level] += 1;
-              return;
+              return true;
             }
           }
         }
@@ -596,8 +701,8 @@
             this.assign = false;
             window.Scripter.show_vars();
           }
-          return this.code_index[this.block_level] += 1;
         }
+        return true;
       };
 
       SlowParser.prototype.store_var = function(reg, value) {
@@ -651,7 +756,7 @@
       };
 
       SlowParser.prototype.untoken = function(obj, i) {
-        var args, callee, callee_funct, funct, mem, point, r, stack, v;
+        var args, cp, funct, mem, r;
         if (i == null) {
           i = 0;
         }
@@ -677,32 +782,37 @@
           return mem;
         }
         if (obj.type === 'call') {
-          funct = obj.value.value;
-          v = this.self['_' + funct];
-          if ((this.self['_' + funct] != null) && typeof this.self['_' + funct] === 'function') {
-            callee = this.self;
-            callee_funct = '_' + funct;
-          } else if (this.routines[funct] != null) {
-            callee = this.routines[funct];
-            callee_funct = 'SLOW_ROUT';
+          if (obj.result != null) {
+            r = obj.result;
+            return r;
           }
-          if (callee && callee_funct) {
-            if (obj.result != null) {
-              r = obj.result;
-              return r;
-            } else {
-              args = this.calculate(obj.args);
-              stack = this.code_index.clone();
-              point = new CallPoint(stack, obj, this.self, '_' + funct, args);
-              point.statement_index = i;
-              this.callpoints.push(point);
-            }
+          funct = obj.value.value;
+          if ((this.self['_' + funct] != null) && typeof this.self['_' + funct] === 'function') {
+            args = this.calculate(obj.args);
+            cp = new CallPoint();
+            cp.type = 'native';
+            cp.call_token = obj;
+            cp.call = this.self;
+            cp.call_funct = '_' + funct;
+            cp.call_args = args;
+            this.callpoints.push(cp);
+            console.log(cp.to_string());
+          } else if (this.routines[funct] != null) {
+            cp = new CallPoint();
+            cp.type = 'slow';
+            cp.call_token = obj;
+            cp.call = this.routines[funct];
+            cp.call_funct = funct;
+            cp.call_args = 0;
+            this.callpoints.push(cp);
+            console.log(cp.to_string());
           }
         }
       };
 
       SlowParser.prototype.calculate = function(tokens) {
-        var i, next, operator, report, t, token, valid, value, _i, _j, _k, _len, _len1, _len2, _ref;
+        var cp, i, next, operator, report, t, token, valid, value, _i, _j, _len, _len1, _ref;
+        cp = this.callpoints.get_last();
         report = '';
         for (_i = 0, _len = tokens.length; _i < _len; _i++) {
           t = tokens[_i];
@@ -713,6 +823,7 @@
         operator = false;
         for (i = _j = 0, _len1 = tokens.length; _j < _len1; i = ++_j) {
           token = tokens[i];
+          cp.token_index = i;
           if (value === void 0) {
             if (!valid) {
               value = this.untoken(token, i);
@@ -760,10 +871,6 @@
               operator = false;
             }
           }
-        }
-        for (_k = 0, _len2 = tokens.length; _k < _len2; _k++) {
-          token = tokens[_k];
-          delete token.result;
         }
         return value;
       };

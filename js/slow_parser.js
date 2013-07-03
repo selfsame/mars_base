@@ -402,6 +402,9 @@ window.slow_parser = (function(){
         return {type:'conditional', term:logic, eval:eval,
         block:data, literals:literals, literal: begin+lits+end,
         begin:begin,
+        bfirst:w1+logic+w2,
+        
+        blast: w3+':'+w4+start.literal+w5,
         end:end  } })(pos0, result0[0], result0[1], result0[2], result0[3], result0[4], result0[6], result0[7], result0[8], result0[9], result0[10], result0[11], result0[12]);
         }
         if (result0 === null) {

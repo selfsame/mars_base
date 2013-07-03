@@ -210,15 +210,26 @@ canvas {
 
 #inspect .script_display { -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; }
 
+
+#inspect .active_head{
+	color:#7FD1D1 ;
+}
+
+#inspect .active_head.current{
+	color:gray ;
+}
+
 #inspect .current{
-	background-color: #441245;
+	color: white;
 
 }
 
 #inspect .chunk{
-	background-color:#6d1c6e;
-	color:white;
+
+	color:yellow !important;
 }
+
+
 
 #inspect .script_vars{
 	width:280px;
@@ -307,7 +318,7 @@ canvas {
 
 
 #inspect .saveload{
-	width:200px;
+	width:270px;
 	height: 20px;
 	float:right;
 	margin-right: 10px;

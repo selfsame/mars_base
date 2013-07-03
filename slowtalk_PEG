@@ -57,6 +57,9 @@ end = w6+end.literal+w7;
 return {type:'conditional', term:logic, eval:eval,
 block:data, literals:literals, literal: begin+lits+end,
 begin:begin,
+bfirst:w1+logic+w2,
+
+blast: w3+':'+w4+start.literal+w5,
 end:end  } }
 
 

@@ -344,6 +344,7 @@ $(window).ready ->
         return false
 
     _go_near: (v)->
+      @debug = ['GO NEAR']
       if typeof v is 'object' and v.x and v.y
         if not @target
           @target = [v.x, v.y]

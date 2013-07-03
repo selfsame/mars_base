@@ -19,7 +19,9 @@ $(window).ready ->
       @editbutton = $('<div class="codebutton">edit</div>')
 
       @saveload = $('<div class="saveload"><input id="file">
-        <div class="codebutton" id="save">save</div><div class="codebutton" id="load">load</div></div>')
+        <div id="pause"class="codebutton">||</div>
+          <div id="step"class="codebutton">|></div>
+            <div class="codebutton" id="save">save</div><div class="codebutton" id="load">load</div></div>')
 
       @saveload.find('#save').click ()->
         window.Scripter.save_script window.Scripter.saveload.find('input').val()
@@ -36,6 +38,18 @@ $(window).ready ->
       @inspect.append @script
       @inspect.append @tileinfo
       @inspect.append @reference
+
+      @saveload.find('#pause').click ()->
+        if not window.pause_code
+          window.pause_code = true
+          
+        else
+          window.pause_code = false
+
+      @saveload.find('#step').click ()->
+        window.next_frame = true
+       
+          
 
       @editbutton.data('scripter', @)
       @editbutton.click ->
@@ -172,16 +186,27 @@ $(window).ready ->
         make_block = (obj)->
           block = $('<span class="block"></span>')
           if obj.begin
-            block.append obj.begin
+            begin = obj.begin
+            if obj.bfirst
+              group = ''
+              for b in obj.eval
+                group += '<span class="word">'+b.literal+'</span>'
+              begin = obj.bfirst+group+obj.blast
+
+            head = $('<span class="head">'+begin+'</span>')
+            obj._html_head = head
+            block.append head
           for part, i in obj.block
             if part.type in ['action', 'routine', 'conditional']
 
               sub = make_block(part)
+
+              part._html_head = sub
  
               block.append sub
             else
               statement = $('<span class="block statement"></span>')
-
+              part._html_line = statement
               chars = 0
               for g in part
                 statement.append $('<span class="word">'+g.literal+'</span>')
@@ -205,32 +230,54 @@ $(window).ready ->
 
     update: ->
       if @watch and @script and @watch.parser
-        @code.find('.block').removeClass 'current'
+        @code.find('.block, .head').removeClass 'current'
         @code.find('.word').removeClass 'chunk'
+        @code.find('.block, .head').removeClass 'active_head'
         start = @code
-        for i in [0..@watch.parser.block_level]
-          index = @watch.parser.code_index[i]
-          start = $(start.children('.block')[index])
-        start.addClass 'current'
-        cp = @watch.parser.callpoints.get_last()
-        if cp
-          si = cp.statement_index
+
+        report = ''
+
+        
+        cp = @watch.parser.callpoints
+        if cp.length > 0
+          start = $(@code.children()[cp[0].call.routine_index])
+          start.children('.head').addClass 'active_head'
+          $(start.children()[cp[0].index]).addClass 'current'
+
+          for p, i in cp
+            if p.call._html_head?
+              p.call._html_head.children('.head').addClass 'active_head'
+
+              $( p.call._html_head.children('.block')[p.index]).addClass 'current'
+              p.call._html_head.removeClass 'current'
+            
+            #p.call._html_line.addClass 'current'
+
+            index = p.index
+
+            if index < 0
+              index = 0
+            report += p.to_string()
+            if p.type isnt 'native'
+              #start = $(start.children('.block')[index])
+
+              last_slow = p
+            #start.children('.head').addClass 'active_head'
+          #start = start.prev()
+          #start.addClass 'current'
+
+
+          si = last_slow.token_index
+          
           if si?
+            word = $(start.find('.word')[si])
 
-            $(start.children('.word')[si]).addClass 'chunk'
+            #word.addClass 'chunk'
+            
 
-      ###
-      if window.Entities.objects_hash
-        mt = window.Events.tile_under_mouse
-        local = window.Entities.objects_hash.get_within([mt[0]*32, mt[1]*32], 64)
+        @messages.html   'callpoints:'+ report+''
 
-        for obj in local
-          window.Draw.use_layer 'entities'
-          window.Draw.draw_box obj.tile_pos[0] * 32, obj.tile_pos[1] * 32, 32, 32,
-            fillStyle: "transparent"
-            strokeStyle: "red"
-            lineWidth: 2
-      ###
+
 
 
 
@@ -355,9 +402,29 @@ $(window).ready ->
 
     
   class CallPoint
-    constructor: (@index_stack=undefined, @word=undefined, @callee=false, @callee_funct=false, @callee_args=[], @callee_return=undefined)->
+    constructor: ()->
+      @type = 'slow' # or 'native'
       @index = 0
-      @word = undefined
+      @call_token = undefined # the parse object that called me
+      @call = undefined # the parse block or native object to call
+      @call_funct = undefined # the string function name to call
+      @call_args = undefined #
+      @_return = undefined
+      @if_group = false # is true if a condition has been met, and we can ignore consecutive elses
+
+
+    to_string: ()->
+      return @type + ': '+@call_funct+' ['+@index+']'
+
+
+    return: (result=undefined)->
+      if @call_token?
+        if result?
+          @call_token.result = result
+        else
+          @call_token.result = @_return
+
+
 
   class SlowException
     constructor: (@message)->
@@ -367,15 +434,11 @@ $(window).ready ->
 
   class SlowParser
     constructor: (@self, @json)->
-      @scope = false
-      @scope_stack = []
-      @code_index = [0]
-      @block_level = 0
-      @routines = {}
-      for r in @json
-        @routines[r.action] = r
 
-      @conditionals = {} #a conditional can be open per block level, hash to get that based on block level
+      @routines = {}
+      for r, i in @json
+        r.routine_index = i
+        @routines[r.action] = r
 
       @callpoints = []
 
@@ -406,82 +469,133 @@ $(window).ready ->
 
 
 
-    exec: ->
-      if not @scope
-        if @routines['main']
-          @enter_block @routines['main']
-          
-      if @callpoints.length > 0
-        cp = @callpoints.get_last()
+    exec: -> 
+      if not window.pause_code or window.pause_code and window.next_frame
 
-        result = cp.callee[cp.callee_funct](cp.callee_args)
-        if result is undefined
-          return
-        else
-          cp.word.result = result
-          cp.callee_return = result
-          @callpoints.pop()
+        if not @callpoints.get_last()
+          if @routines['main']
+            cp = new CallPoint()
+            cp.type = 'slow'
+            cp.call = @routines['main']
+            cp.call_funct = 'main'
+            cp.index = 0
+            @callpoints.push cp
+            #console.log 'EOF, creating: ', cp.to_string()
 
-      if @scope
-        lines = @scope.block
-        if lines.length > @code_index[@block_level]
-          @run_statement lines[@code_index[@block_level]]
-        else
-          @leave_block()
+            
+        if @callpoints.length > 0
+          cp = @callpoints.get_last()
 
+          if cp.type is 'native'
+            #console.log 'native cp'
+            result = cp.call[cp.call_funct](cp.call_args)
+            if result is undefined
+              return
+            else
+              #console.log 'leaving: ', cp.to_string()
+              cp.return result
+              @callpoints.pop()
+          else
+            #console.log 'slow cp'
+            lines = cp.call.block
+            #console.log cp.index+'/'+ lines.length
+            if lines.length > cp.index
+              target = lines[cp.index]
+
+              result = @run_statement lines[cp.index]
+              if result isnt undefined
+
+
+                @recurse_clean_line target
+                cp.index += 1
+                if window.pause_code
+                  window.next_frame = false
+              #else it probably encountered a call
+
+            else
+              #console.log 'leaving: ', cp.to_string()
+
+              cp.return true
+              @callpoints.pop()
+
+    recurse_clean_line: (obj)->
+      if not obj?
+        return
+
+      if obj instanceof Array
+        for part in obj
+          @recurse_clean_line part
+      
+      
+
+      if obj.result?
+        console.log obj.type, ':delete result'
+        delete obj.result
+      if obj.block?
+        for part in obj.block
+          @recurse_clean_line part
+      if obj.eval?
+        for part in obj.eval
+          @recurse_clean_line part
+      if obj.args?
+        for part in obj.args
+          @recurse_clean_line part
 
     run_statement: (line)->
+      cp = @callpoints.get_last()
+
       if line.type? and line.type in ['conditional']
+        
         if line.term is 'if'
-          @conditionals[@block_level] = false
+          cp.if_group = false
 
 
-        if @conditionals[@block_level] is false
+        if cp.if_group is false
+          if line.result?
+            return true
           if line.term is 'else' and line.eval is ''
-            @conditionals[@block_level] = true
-            @enter_block line
-            return
+            cp.if_group = true
+            cp.index += 1
+
+
+            cp = new CallPoint()
+            cp.type = 'slow'  
+            cp.call = line
+            cp.call_funct = line.term
+            cp.call_token = line
+
+            @callpoints.push cp
+
+
+            return undefined
           ev = @calculate( line.eval )
+          console.log line.term + ' is ' + ev
           if ev not in [false, 0, undefined]
-            @conditionals[@block_level] = true
-            @enter_block line
-            return
+            @recurse_clean_line line
+            cp.if_group = true
+            cp.index += 1
+
+
+            cp = new CallPoint()
+            cp.type = 'slow'  
+            cp.call = line
+            cp.call_funct = line.term
+            cp.call_token = line
+            @callpoints.push cp
+            return undefined
           else
-            @code_index[@block_level] += 1
-            return
+            return true
         else
-          @code_index[@block_level] += 1
-          return
+          return true
       else
-        if @conditionals[@block_level]?
-          delete @conditionals[@block_level]
+        if cp.if_group
+          cp.if_group = false
       
-      
-
-
-      index = 0
-      parts = line.length
-      pattern = false
-
-
-
-      funct = false
-      register = false
-      assign = false
-      value = undefined
-      value_found = false
-
-      args = false
-      vars = []
-
-      # determine the type of statement being executed
-      # var, function call, if, interrupt
-
       first = line[0]
       
       if typeof first isnt 'object'
         console.log 'ERROR parsing first token: ', first
-
+        return true
 
       if first.type? and first.type in ['reserved']
         if first.value.toLowerCase() is 'delete'
@@ -489,27 +603,18 @@ $(window).ready ->
           if slot.type is 'memory'
             @delete_var(slot)
             window.Scripter.show_vars()
-            @code_index[@block_level] += 1
-            return
-
-
-      
+            return true
 
       result = @calculate line
 
       if result not in [undefined, null] and not result.error?
-
         if @assign
-
-          
-          #console.log 'assign: ', @self.script_vars[@assign.slot], result
-          #console.log typeof result
           @store_var(@assign, result)
           @assign = false
           window.Scripter.show_vars()
 
-        #we run the code even though there is nothing further to do with the result, included function calls
-        @code_index[@block_level] += 1
+      return true
+
 
 
 
@@ -570,37 +675,42 @@ $(window).ready ->
 
         return mem
       if obj.type is 'call'
+
+        if obj.result?
+          r = obj.result
+          return r
+
         funct = obj.value.value
-        v = @self['_'+funct]
 
         if @self['_'+funct]? and typeof @self['_'+funct] is 'function'
-          # (@index_stack=undefined, @word=undefined, @callee=false, @callee_funct=false, @callee_args=[], @callee_return=undefined)
-          callee = @self
-          callee_funct = '_'+funct
+
+          args = @calculate obj.args
+
+          cp = new CallPoint()
+          cp.type = 'native' 
+          cp.call_token = obj 
+          cp.call = @self 
+          cp.call_funct = '_'+funct 
+          cp.call_args = args 
+          @callpoints.push cp
+          console.log cp.to_string()
 
         else if @routines[funct]?
-          callee = @routines[funct]
-          callee_funct = 'SLOW_ROUT'
+          cp = new CallPoint()
+          cp.type = 'slow' 
+          cp.call_token = obj 
+          cp.call = @routines[funct] 
+          cp.call_funct = funct 
+          cp.call_args = 0 
+          @callpoints.push cp
+          console.log cp.to_string()
 
-        if callee and callee_funct
-          if obj.result?
-            r = obj.result
-            return r
-          else
-
-            args = @calculate obj.args
-            #console.log args
-            stack = @code_index.clone()
-            #console.log 'new callpoint', '_'+funct
-            point = new CallPoint(stack, obj, @self, '_'+funct, args)
-            point.statement_index = i
-            @callpoints.push point
 
 
       return undefined
 
     calculate: (tokens)->
-
+      cp = @callpoints.get_last()
       report = ''
       for t in tokens
         report += t.type+' '
@@ -609,6 +719,7 @@ $(window).ready ->
       valid = false
       operator = false
       for token, i in tokens
+        cp.token_index = i
         
 
         if value is undefined
@@ -667,8 +778,7 @@ $(window).ready ->
             operator = false
 
 
-      for token in tokens
-        delete token.result
+      
       
       return value
 
