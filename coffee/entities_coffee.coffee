@@ -136,6 +136,12 @@ window.Entities =
 
       return @classes[name]
 
+  object_from_UID: (id)->
+    for thing in @objects
+      if thing.UID is id
+        return thing
+    return false
+
 
 $(window).ready ->
   window.Draw.add_image('tracks', "./textures/tracks.png")

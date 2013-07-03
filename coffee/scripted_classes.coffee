@@ -355,9 +355,7 @@ $(window).ready ->
           mod = @near_options.pop()
 
           @path_to [@target[0]+mod[0],@target[1]+mod[1]]
-          return undefined
-
-          
+          return undefined 
 
         if @walk_path()
           @path = false
@@ -365,7 +363,6 @@ $(window).ready ->
           return true
       else
         return false
-
 
     _wait: (i=10)->
       time = i
@@ -376,9 +373,6 @@ $(window).ready ->
         @test_timer = 0
         return true
       return undefined 
-
-    _test: ()->
-      return 8
 
     _search: (i, s=false)->
       distance = i
@@ -411,25 +405,13 @@ $(window).ready ->
           @state = 'job_fail'
       @state = 'job_fail'
 
-
-    _find_object: ->
-      if @want
-        found = @find_unclaimed_object(@want)
-        if found
-          @que_add_first 'moving'
-          @_found_obj = @want
-
-          return
-
-
-
     _pickup: (e_s)->
       r = []
       for i in [-1..1]
         for j in [-1..1]
-          r = r.concat window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
+          if r isnt 0
+            r = r.concat window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
       found = false
-      
       if r and r.length > 0
         for obj in r
           if obj isnt 'undefined' and typeof obj is 'object'
@@ -439,6 +421,31 @@ $(window).ready ->
               @pocket.push obj
               obj.pos = @pos
               return true
+      return false
+
+
+
+
+    _drop: (i_s_e)->
+      if typeof i_s_e is 'number'
+        if @pocket[i_s_e]?
+          found = @pocket[i_s_e]
+          @pocket.remove found
+          found.attach_to_map()
+          return true
+      else
+        for obj in @pocket
+          if obj isnt 'undefined' and typeof obj is 'object'
+            if typeof i_s_e is 'object' and i_s_e.type is 'e'
+              if i_s_e.e is obj.UID
+                obj.attach_to_map()
+                @pocket.remove obj
+                return true
+            if typeof i_s_e is 'string'
+              if obj.nombre is i_s_e
+                obj.attach_to_map()
+                @pocket.remove obj
+                return true
       return false
 
 

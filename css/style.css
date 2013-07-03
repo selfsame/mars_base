@@ -230,6 +230,11 @@ canvas {
 }
 
 
+#inspect .current .block{
+	color: silver !important;
+
+}
+
 
 #inspect .script_vars{
 	width:280px;

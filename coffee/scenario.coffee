@@ -72,15 +72,20 @@ $(window).ready ->
   slow.footprint_img = 'tracks';
   slow.run_script "
 main: (   \n
-  wait(30);\n
-  if wait(30) & wait(40):(\n
-    wait(30);\n
-  )\n
-  if $i0 > 0 :()else:(\n
-    $s8 = @name;\n
+  
+  if $i0 > 5 : ( $i9 = -1; )\n
+  if $i9 == -1 :(\n
+    drop_stuff();\n
+  ) else $i0 > 0 :(\n
+    gather_stuff();\n
+  )else:(\n
     $i0 = 1;\n
-    $i4 = 1;)\n
-\n
+    $v9 = @pos;\n
+  )\n
+  
+)\n
+
+gather_stuff: (
   $e0 = search(128); wait(10);\n
   $v0 = $e0; wait(10);\n
   $s0 = $e0; wait(10);\n
@@ -88,20 +93,30 @@ main: (   \n
   if $v0:(\n
     go_near( $v0);\n
     wait(10);\n
-    $i9 = pickup($s0);\n
-    if $i9 > 0:(\n
+
+    if pickup($s0) : (\n
       $i0 = $i0 + 1; wait(10);\n
     )\n
-    DELETE $i9; wait(10);\n
     DELETE $e0; wait(10);\n
     DELETE $v0; wait(10);\n
     DELETE $s0; wait(10);\n
       )\n
   else:(\n
     wander(10);\n
-      $i4 = $i4 + 1;  )\n
+  )\n
 )\n
 
+drop_stuff: (\n
+  go_near( $v9);\n
+  if drop(0):(\n
+    $i0 = $i0 - 1;\n
+  ) else : (\n
+    wander(5);\n
+  )\n
+  if $i0 <= 0 : (\n
+    $i9 = 1;\n
+  )\n
+)\n
 
 "
 

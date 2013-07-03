@@ -92,8 +92,9 @@ $(window).ready ->
       @attach_to_map()
 
     attach_to_map: (tpos=false)->
-      if not tpos
-        tpos = @tile_pos
+      @pos = [@pos[0], @pos[1]]
+      @pos_to_tile_pos()
+      tpos = @tile_pos
       @show()
       window.Entities.objects.push @
       window.Entities.objects_hash.add @

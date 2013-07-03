@@ -194,7 +194,10 @@ $(window).ready ->
               begin = obj.bfirst+group+obj.blast
 
             head = $('<span class="head">'+begin+'</span>')
-            obj._html_head = head
+            obj._html_head = block
+            head.data('codeblock', obj)
+            head.click ()->
+              console.log 'BLOCK: ', $(this).data('codeblock')
             block.append head
           for part, i in obj.block
             if part.type in ['action', 'routine', 'conditional']
@@ -202,6 +205,9 @@ $(window).ready ->
               sub = make_block(part)
 
               part._html_head = sub
+              sub.data('codeblock', part)
+              sub.click ()->
+                console.log 'BLOCK: ', $(this).data('codeblock')
  
               block.append sub
             else
@@ -233,49 +239,41 @@ $(window).ready ->
         @code.find('.block, .head').removeClass 'current'
         @code.find('.word').removeClass 'chunk'
         @code.find('.block, .head').removeClass 'active_head'
-        start = @code
 
         report = ''
-
         
         cp = @watch.parser.callpoints
         if cp.length > 0
-          start = $(@code.children()[cp[0].call.routine_index])
-          start.children('.head').addClass 'active_head'
-          $(start.children()[cp[0].index]).addClass 'current'
+
 
           for p, i in cp
             if p.call._html_head?
               p.call._html_head.children('.head').addClass 'active_head'
+              index = p.index
 
-              $( p.call._html_head.children('.block')[p.index]).addClass 'current'
+              statement = $( p.call._html_head.children('.block')[index])
+              statement.addClass 'current'
               p.call._html_head.removeClass 'current'
-            
-            #p.call._html_line.addClass 'current'
 
-            index = p.index
+              last_slow_call = p
+              last_slow_statement = statement
 
-            if index < 0
-              index = 0
             report += p.to_string()
-            if p.type isnt 'native'
-              #start = $(start.children('.block')[index])
-
-              last_slow = p
-            #start.children('.head').addClass 'active_head'
-          #start = start.prev()
-          #start.addClass 'current'
 
 
-          si = last_slow.token_index
+
+
+          si = last_slow_call.token_index
           
           if si?
-            word = $(start.find('.word')[si])
-
-            #word.addClass 'chunk'
+            if last_slow_statement.children('.head').length > 0
+              word = $(last_slow_statement.children('.head').find('.word')[si])
+            else
+              word = $(last_slow_statement.find('.word')[si])
+            word.addClass 'chunk'
             
 
-        @messages.html   'callpoints:'+ report+''
+        @messages.html   'callpoints:'+ report+' token_index='+si
 
 
 
@@ -411,10 +409,15 @@ $(window).ready ->
       @call_args = undefined #
       @_return = undefined
       @if_group = false # is true if a condition has been met, and we can ignore consecutive elses
+      @token_index = 0
 
 
     to_string: ()->
-      return @type + ': '+@call_funct+' ['+@index+']'
+      if @type is 'native'
+        index = @index
+      else
+        index = @index 
+      return @call_funct+' ['+index+']: '
 
 
     return: (result=undefined)->
@@ -431,6 +434,10 @@ $(window).ready ->
       @error = true
     to_string: ->
       'ERROR'
+
+  class ESCAPE
+    constructor: ()->
+      @escape = true
 
   class SlowParser
     constructor: (@self, @json)->
@@ -503,18 +510,18 @@ $(window).ready ->
               target = lines[cp.index]
 
               result = @run_statement lines[cp.index]
-              if result isnt undefined
-
-
-                @recurse_clean_line target
+              if typeof result is 'object' and result.escape is true
+                return
+              else
                 cp.index += 1
+                cp.token_index = 0
                 if window.pause_code
                   window.next_frame = false
-              #else it probably encountered a call
+
 
             else
               #console.log 'leaving: ', cp.to_string()
-
+              @recurse_clean_line cp.call.block
               cp.return true
               @callpoints.pop()
 
@@ -527,9 +534,11 @@ $(window).ready ->
           @recurse_clean_line part
       
       
-
+      if obj.type is 'enclosure'
+        for part in obj.value
+          @recurse_clean_line part
       if obj.result?
-        console.log obj.type, ':delete result'
+        #console.log obj.type, ':delete result'
         delete obj.result
       if obj.block?
         for part in obj.block
@@ -543,7 +552,7 @@ $(window).ready ->
 
     run_statement: (line)->
       cp = @callpoints.get_last()
-
+      cp.token_index = -1
       if line.type? and line.type in ['conditional']
         
         if line.term is 'if'
@@ -567,11 +576,13 @@ $(window).ready ->
             @callpoints.push cp
 
 
-            return undefined
+            return new ESCAPE()
           ev = @calculate( line.eval )
-          console.log line.term + ' is ' + ev
+          #console.log line.term + ' is ' , ev
+          if ev.escape?
+            return ev
           if ev not in [false, 0, undefined]
-            @recurse_clean_line line
+            
             cp.if_group = true
             cp.index += 1
 
@@ -582,7 +593,7 @@ $(window).ready ->
             cp.call_funct = line.term
             cp.call_token = line
             @callpoints.push cp
-            return undefined
+            return new ESCAPE()
           else
             return true
         else
@@ -605,9 +616,11 @@ $(window).ready ->
             window.Scripter.show_vars()
             return true
 
-      result = @calculate line
-
-      if result not in [undefined, null] and not result.error?
+      cp.token_index = -1
+      result = @calculate line, true
+      if result.escape? or result.error?
+        return result
+      else
         if @assign
           @store_var(@assign, result)
           @assign = false
@@ -693,7 +706,7 @@ $(window).ready ->
           cp.call_funct = '_'+funct 
           cp.call_args = args 
           @callpoints.push cp
-          console.log cp.to_string()
+          return new ESCAPE()
 
         else if @routines[funct]?
           cp = new CallPoint()
@@ -703,13 +716,12 @@ $(window).ready ->
           cp.call_funct = funct 
           cp.call_args = 0 
           @callpoints.push cp
-          console.log cp.to_string()
-
-
+          return new ESCAPE()
+        
 
       return undefined
 
-    calculate: (tokens)->
+    calculate: (tokens, top=false)->
       cp = @callpoints.get_last()
       report = ''
       for t in tokens
@@ -719,12 +731,16 @@ $(window).ready ->
       valid = false
       operator = false
       for token, i in tokens
-        cp.token_index = i
+        if top
+          cp.token_index += 1
         
 
         if value is undefined
           if not valid
             value = @untoken(token, i)
+            if value.error? or value.escape?
+              return value
+
             valid = true
 
           else
@@ -739,6 +755,8 @@ $(window).ready ->
         else
 
           next = @untoken(token, i)
+          if next.error? or next.escape?
+            return next
           if next?
             #console.log value, operator, next
             if operator is '+'
