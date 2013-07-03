@@ -209,6 +209,7 @@
 	window.Draw.add_image('crater', "./textures/ground/crater.png");
     window.Draw.add_image('wrench', "./textures/objects/wrench.png");
     window.Draw.add_image('launchpad', "./textures/objects/launchpad.png");
+	window.Draw.add_image('derpifier', "./textures/objects/derpifier.png");
     window.Draw.add_image('corpse', "./textures/astronauts/corpse.png");
     window.Draw.add_image('suitcorpse', "./textures/astronauts/colonist_suit_dead.png");
     window.Draw.add_image('crate', "./textures/objects/crate_closed.png");

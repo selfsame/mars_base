@@ -5,7 +5,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   $(window).ready(function() {
-    var Airtank, Door, Entity, Launchpad, Locker, Placeable, Thing;
+    var Airtank, Door, Entity, Launchpad, Locker, Derpifier, Placeable, Thing;
     Entity = (function() {
 
       Entity.name = 'Entity';
@@ -141,12 +141,72 @@
       Thing.name = 'Thing';
 
       function Thing() {
-        return Thing.__super__.constructor.apply(this, arguments);
-      }
-
-      Thing.prototype.init = function() {
+        Thing.__super__.constructor.apply(this, arguments);
+		this.world_coords = []; // top left corner, in world coordinates
+		this.layout = []; // 2d layout of this object
+		this.placed = false;
+	  }
+	  
+	  Thing.prototype.init = function() {
         return this.attach_to_map();
       };
+	  
+	  // convert local coordinates to world coordinates
+	  Thing.prototype.local_to_world = function(local) {
+		return [this.world_coords[0] + local[0], this.world_coords[1] + local[1]];
+	  }
+	  
+	  // convert world coordinates to local coordinates
+	  Thing.prototype.world_to_local = function(world) {
+		return [world[0] - this.world_coords[0], world[1] - this.world_coords[1]];
+	  }
+	  
+	  // attach this object's layout to the correct world maps
+	  Thing.prototype.apply_layout = function() {
+		if (layout != []) {
+			for (var i = 0; i < layout.length; i++) {
+				for (var j = 0; j < layout[i].length; j++) {
+					var coords = this.local_to_world([i, j]);
+					if (this.layout[i][j] == 1) { // collision and placement
+						window.Map.set('pathfinding', coords[0], coords[1], 1);
+						window.Map.set('objects', coords[0], coords[1], this);
+					} else if (this.layout[i][j] != 0) {
+						window.Map.set('objects', coords[0], coords[1], this);
+					}
+				}
+			}
+		}
+	  }
+	  
+	  // check if it can be placed at given location
+	  Thing.prototype.check_clear = function(location) {
+		if (layout != []) {
+			for (var i = 0; i < layout.length; i++) {
+				for (var j = 0; j < layout[i].length; j++) {
+					var coords = [location[0] + layout[0], location[1] + layout[1]];
+					if (this.layout[i][j] != 0) {
+						var ob = window.Map.get('objects', coords[0], coords[1]);
+						if (ob != 0) { // an object already exists here
+							return false;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	  }
+	  
+	  // place this object at a given location
+	  Thing.prototype.place = function(location) {
+		if (this.check_clear(location)) {
+			this.apply_layout();
+			this.world_coords = location;
+			this.placed = true;
+			return true;
+		} else {
+			return false;
+		}
+	  }
 
       Thing.prototype.attach_to_map = function(tpos) {
         var i, j, obj_in_map, _i, _ref, _ref1, _results;
@@ -271,6 +331,32 @@
       return Placeable;
 
     })(Thing);
+	Derpifier = (function(_super) {
+		__extends(Derpifier, _super);
+		Derpifier.name = 'Derpifier';
+		function Derpifier() {
+			return Derpifier.__super__.constructor.apply(this, arguments);
+			this.sprite_size = [128, 64];
+			this.layout = [[1, 0, 0, 2],
+						   [1, 1, 1, 2]];
+		}
+		
+		Derpifier.prototype.place = function(location) {
+			if (this.check_clear(location)) {
+				this.apply_layout();
+				this.world_coords = location;
+				this.placed = true;
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+		return Derpifier;
+		
+		
+		
+	})(Placeable);
     Door = (function(_super) {
 
       __extends(Door, _super);
@@ -444,6 +530,7 @@
     window.Entities.classes.Door = Door;
     window.Entities.classes.Launchpad = Launchpad;
     window.Entities.classes.Airtank = Airtank;
+	window.Entities.classes.Derpifier = Derpifier;
     return window.Entities.classes.Locker = Locker;
   });
 
