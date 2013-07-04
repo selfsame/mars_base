@@ -45,6 +45,7 @@
       advanced.sprite_offset = [0, 0];
       advanced.sprite_size = 32;
     }
+	
     slow = new E.Scripted('Norm', 'spirit', [400, 400]);
     slow.speed = 2;
     slow.footprint_img = 'tracks';

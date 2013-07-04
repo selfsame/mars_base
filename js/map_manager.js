@@ -13,6 +13,7 @@ window.Map = {
 	
 		// create the canvas layers
 		window.Draw.create_layer('background', true);
+		window.Draw.create_layer('objects', true);
 		window.Draw.create_layer('entities', false);
 
 		this.px_w = this.width*this.tilesize
@@ -53,16 +54,24 @@ window.Map = {
 		var middle = [this.height/12, this.width/12, this.height/6, this.width/6] // 1/3 square in the middle. no-crater zone
 		
 		
-		//var i, _i;
-		//for (i = _i = 0; _i <= 270; i = ++_i) {
-		//	rock = new Rock('rock', 'rock', [parseInt(Math.random()*window.Map.width)*window.Map.tilesize, parseInt(Math.random()*window.Map.height)*window.Map.tilesize]);
-		//	rock.setup();
-		//}
+		//Rock = window.Entities.classes.Rock;
 		
-		//crater_1 = new Crater_Large([40, 15]);
-		//crater_2 = new Crater_Medium([30, 15]);
-		//crater_3 = new Crater_Small([35, 20]);
-		//derp_1 = new Derpifier([30, 20]);
+		var r; 
+		
+		for (var i = 0; i <= 270; i++) {
+			var x = parseInt(Math.random()* this.width)*this.tilesize;
+			var y = parseInt(Math.random()* this.height)*this.tilesize;
+			//r = new Rock([x, y]);
+			//alert(x + " " + y);
+		}
+	
+		//var crater_1 = new Crater_Large([40, 15]);
+		//crater_1.draw();
+		//var crater_2 = new Crater_Medium([30, 15]);
+		//var crater_3 = new Crater_Small([35, 20]);
+		//var crater_4 = new Crater_Small([45, 20]);
+		//var derp_1 = new Derpifier([30, 20]);
+
 		
 		/**var i, _i;
 		for (i = _i = 0; _i <= 270; i = ++_i) {
@@ -155,7 +164,8 @@ window.Map = {
 
 
 
-$(window).ready( function(){	
+$(window).ready( function() {	
+	
 	window.Draw.add_image('dirt', "./textures/ground/dirt.png");
 	window.Draw.add_image('dirt2', "./textures/ground/dirt2.png");
 	window.Draw.add_image('dirt3', "./textures/ground/dirt3.png");

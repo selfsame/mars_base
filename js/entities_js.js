@@ -7,7 +7,7 @@
 
 	$(window).ready(function() {
 		
-		Entity = window.Entities.classes.Entity
+		Entity = window.Entities.classes.Entity;
 		
 		Thing = (function(_super) {
 
@@ -21,6 +21,7 @@
 				this.layout = []; // 2d layout of this object
 				this.placable = false;
 				this.placed = false; // if this object has been placed yet
+				this.name = 'Thing';
 			}
 			
 			// draw this to the map
@@ -33,13 +34,32 @@
 					var t_size = window.Map.tilesize;
 					
 					window.Draw.use_layer('objects');
-					window.Draw.image(this.image, this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size);
-					window.Draw.draw_box(this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size);
-					return true;
+					return (window.Draw.image(this.image, this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size));
+					//window.Draw.draw_box(this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size);
+					
+				} else if (!this.placed && this.layout != []) {
+					window.Draw.use_layer('objects');
+					var t_size = window.Map.tilesize;
+					
+					for (var i = 0; i < this.layout.length; i++) {
+						for (var j = 0; j < this.layout[i].length; j++) {
+							var coords = this.local_to_world([j, i]);
+							window.Draw.use_layer('objects');
+							if (this.layout[i][j] != 0) { // non-empty square
+								window.Draw.clear_box(coords[0] * t_size, coords[1] * t_size, t_size, t_size);
+							}
+						}
+					}
+					
 				} else {
 					return false; // nothing to draw
 				}
 			}	
+			
+			// add a tag to this object
+			Thing.prototype.add_tag = function(type) {
+				return true;
+			}
 			
 			 // convert local coordinates to world coordinates
 			Thing.prototype.local_to_world = function(local) {
@@ -54,28 +74,43 @@
 			// attach this object's layout to the correct world maps
 			Thing.prototype.apply_layout = function() {
 				if (this.layout != []) {
-					for (var i = 0; i < this.layout.length; i++) {
-						for (var j = 0; j < this.layout[i].length; j++) {
-							var coords = this.local_to_world([j, i]);
-							if (this.layout[i][j] == 1) { // collision and placement
-								window.Map.set('pathfinding', coords[0], coords[1], 1);
-								window.Map.set('objects', coords[0], coords[1], this);
-							} else if (this.layout[i][j] != 0) {
-								window.Map.set('objects', coords[0], coords[1], this);
+					if (this.placed) {
+						for (var i = 0; i < this.layout.length; i++) {
+							for (var j = 0; j < this.layout[i].length; j++) {
+								var coords = this.local_to_world([j, i]);
+								if (this.layout[i][j] == 1) { // collision and placement
+									window.Map.set('pathfinding', coords[0], coords[1], 1);
+									window.Map.set('objects', coords[0], coords[1], this);
+								} else if (this.layout[i][j] != 0) {
+									window.Map.set('objects', coords[0], coords[1], this);
+								}
 							}
 						}
+						return true;
+					} else {
+						for (var i = 0; i < this.layout.length; i++) {
+							for (var j = 0; j < this.layout[i].length; j++) {
+								var coords = this.local_to_world([j, i]);
+								if (this.layout[i][j] == 1) { // collision and placement
+									window.Map.set('pathfinding', coords[0], coords[1], 0);
+									window.Map.set('objects', coords[0], coords[1], 0);
+								} else if (this.layout[i][j] != 0) {
+									window.Map.set('objects', coords[0], coords[1], 0);
+								}
+							}
+						}
+						return true;
 					}
-					return true;
 				}
 				return false;
 			}
-
+			
 			// check if it can be placed at given location
 			Thing.prototype.check_clear = function(location) {
 				if (this.layout) {
 					for (var i = 0; i < this.layout.length; i++) {
 						for (var j = 0; j < this.layout[i].length; j++) {
-							var coords = [location[0] + i, location[1] + j];
+							var coords = [location[0] + j, location[1] + i];
 							if (this.layout[i][j] != 0) {
 								var ob = window.Map.get('objects', coords[0], coords[1]);
 								if (ob != 0) { // an object already exists here
@@ -92,19 +127,54 @@
 			Thing.prototype.place = function(location) {
 				if (this.check_clear(location)) {
 					this.world_coords = location;
-					this.placed = this.apply_layout();
-					
-					if (this.placed) {
+					this.placed = true;
+					if (this.apply_layout()) {
 						this.draw();
 						return true
+					} else {
+						this.world_coords = [];
+						this.placed = false;
 					}
 				}
 				return false;
 			}
 			
+			// remove the object
+			Thing.prototype.remove = function() {
+				var p = this.placed;
+				this.placed = false;
+				if (this.apply_layout()) {
+					this.draw();
+					return true;
+				}
+				this.placed = p;
+				return false;
+			}
+			
+			
 			return Thing;
 			
 		})(Entity); 
+		
+		Rock = (function(_super) {
+			
+			__extends(Rock, _super);
+			
+			Rock.name = 'Rock';
+			
+			function Rock(coords) {
+				Rock.__super__.constructor.apply(this, arguments);
+				this.layout = [[1]];
+				this.image = 'rock';
+				this.name = 'Rock'
+				if (coords) {
+					return this.place(coords);
+				}
+				return true;
+			}
+			
+			return Rock;
+		})(Thing);
 		
 		Crater_Small = (function(_super) {
 			
@@ -118,6 +188,7 @@
 							   [1, 1, 1],
 							   [1, 1, 1]];
 				this.image = 'crater_small';
+				this.name = 'Small Crater'
 				if (coords) {
 					return this.place(coords);
 				}
@@ -140,6 +211,7 @@
 							   [1, 1, 1, 1],
 							   [2, 1, 1, 2]];
 				this.image = 'crater_medium';
+				this.name = 'Medium Crater'
 				if (coords) {
 					return this.place(coords);
 				}
@@ -157,12 +229,13 @@
 			
 			function Crater_Large(coords) {
 				Crater_Large.__super__.constructor.apply(this, arguments);
-				this.layout = [[0, 1, 1, 1, 0],
+				this.layout = [[2, 1, 1, 1, 2],
 							   [1, 1, 1, 1, 1],
 							   [1, 1, 1, 1, 1],
 							   [1, 1, 1, 1, 1],
-							   [0, 1, 1, 1, 0]];
+							   [2, 1, 1, 1, 2]];
 				this.image = 'crater_large';
+				this.name = 'Large Crater'
 				if (coords) {
 					return this.place(coords);
 				}
@@ -182,6 +255,7 @@
 				Derpifier.__super__.constructor.apply(this, arguments);
 				this.layout = [[1, 0, 0, 2],
 							   [1, 1, 1, 2]];
+				this.name = 'Derpifier'
 				this.image = 'derpifier';
 				if (coords) {
 					return this.place(coords);
@@ -191,19 +265,19 @@
 			
 			return Derpifier;
 		})(Thing);
-		
-		
+	
+		window.Draw.add_image('rock', "./textures/ground/crater_small.png");
 		window.Draw.add_image('crater_small', "./textures/ground/crater_small.png");
 		window.Draw.add_image('crater_medium', "./textures/ground/crater_medium.png");
 		window.Draw.add_image('crater_large', "./textures/ground/crater_large.png");
 		window.Draw.add_image('derpifier', "./textures/objects/derpifier.png");
 		
 		window.Entities.classes.Thing = Thing;
+		window.Entities.classes.Rock = Rock;
 		window.Entities.classes.Crater_Small = Crater_Small
 		window.Entities.classes.Crater_Medium = Crater_Medium
 		window.Entities.classes.Crater_Large = Crater_Large
 		window.Entities.classes.Derpifier = Derpifier;
-		
 	
 	});
 }).call(this);
