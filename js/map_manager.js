@@ -59,7 +59,10 @@ window.Map = {
 		//	rock.setup();
 		//}
 		
-		//crater_1 = new Crater_Small([15, 15]);
+		//crater_1 = new Crater_Large([40, 15]);
+		//crater_2 = new Crater_Medium([30, 15]);
+		//crater_3 = new Crater_Small([35, 20]);
+		//derp_1 = new Derpifier([30, 20]);
 		
 		/**var i, _i;
 		for (i = _i = 0; _i <= 270; i = ++_i) {

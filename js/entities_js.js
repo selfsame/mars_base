@@ -19,6 +19,7 @@
 				Thing.__super__.constructor.apply(this, arguments);
 				this.world_coords = []; // top left corner, in world coordinates
 				this.layout = []; // 2d layout of this object
+				this.placable = false;
 				this.placed = false; // if this object has been placed yet
 			}
 			
@@ -27,8 +28,8 @@
 			Thing.prototype.draw = function() {
 				if (this.placed && this.layout != []) {
 					
-					var width = this.layout.length;
-					var height = this.layout[0].length;
+					var width = this.layout[0].length;
+					var height = this.layout.length;
 					var t_size = window.Map.tilesize;
 					
 					window.Draw.use_layer('objects');
@@ -55,7 +56,7 @@
 				if (this.layout != []) {
 					for (var i = 0; i < this.layout.length; i++) {
 						for (var j = 0; j < this.layout[i].length; j++) {
-							var coords = this.local_to_world([i, j]);
+							var coords = this.local_to_world([j, i]);
 							if (this.layout[i][j] == 1) { // collision and placement
 								window.Map.set('pathfinding', coords[0], coords[1], 1);
 								window.Map.set('objects', coords[0], coords[1], this);
@@ -74,10 +75,10 @@
 				if (this.layout) {
 					for (var i = 0; i < this.layout.length; i++) {
 						for (var j = 0; j < this.layout[i].length; j++) {
-							var coords = [location[0] + this.layout[0], location[1] + this.layout[1]];
+							var coords = [location[0] + i, location[1] + j];
 							if (this.layout[i][j] != 0) {
 								var ob = window.Map.get('objects', coords[0], coords[1]);
-								if (ob) { // an object already exists here
+								if (ob != 0) { // an object already exists here
 									return false;
 								}
 							}
@@ -126,13 +127,82 @@
 			return Crater_Small;
 		})(Thing);
 		
+		Crater_Medium = (function(_super) {
+			
+			__extends(Crater_Medium, _super);
+			
+			Crater_Medium.name = 'Crater_Small';
+			
+			function Crater_Medium(coords) {
+				Crater_Medium.__super__.constructor.apply(this, arguments);
+				this.layout = [[2, 1, 1, 2],
+							   [1, 1, 1, 1],
+							   [1, 1, 1, 1],
+							   [2, 1, 1, 2]];
+				this.image = 'crater_medium';
+				if (coords) {
+					return this.place(coords);
+				}
+				return true;
+			}
+			
+			return Crater_Medium;
+		})(Thing);
+		
+		Crater_Large = (function(_super) {
+			
+			__extends(Crater_Large, _super);
+			
+			Crater_Large.name = 'Crater_Large';
+			
+			function Crater_Large(coords) {
+				Crater_Large.__super__.constructor.apply(this, arguments);
+				this.layout = [[0, 1, 1, 1, 0],
+							   [1, 1, 1, 1, 1],
+							   [1, 1, 1, 1, 1],
+							   [1, 1, 1, 1, 1],
+							   [0, 1, 1, 1, 0]];
+				this.image = 'crater_large';
+				if (coords) {
+					return this.place(coords);
+				}
+				return true;
+			}
+			
+			return Crater_Large;
+		})(Thing);
+		
+		Derpifier = (function(_super) {
+			
+			__extends(Derpifier, _super);
+			
+			Derpifier.name = 'Derpifier';
+			
+			function Derpifier(coords) {
+				Derpifier.__super__.constructor.apply(this, arguments);
+				this.layout = [[1, 0, 0, 2],
+							   [1, 1, 1, 2]];
+				this.image = 'derpifier';
+				if (coords) {
+					return this.place(coords);
+				}
+				return true;
+			}
+			
+			return Derpifier;
+		})(Thing);
+		
+		
 		window.Draw.add_image('crater_small', "./textures/ground/crater_small.png");
 		window.Draw.add_image('crater_medium', "./textures/ground/crater_medium.png");
 		window.Draw.add_image('crater_large', "./textures/ground/crater_large.png");
+		window.Draw.add_image('derpifier', "./textures/objects/derpifier.png");
 		
 		window.Entities.classes.Thing = Thing;
 		window.Entities.classes.Crater_Small = Crater_Small
-		//window.Entities.classes.Derpifier = Derpifier;
+		window.Entities.classes.Crater_Medium = Crater_Medium
+		window.Entities.classes.Crater_Large = Crater_Large
+		window.Entities.classes.Derpifier = Derpifier;
 		
 	
 	});
