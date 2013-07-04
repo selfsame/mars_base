@@ -196,6 +196,17 @@
         eval("this.classes[name] = (function(_super) {          __extends(" + name + ", _super);          function " + name + "() {            return " + name + ".__super__.constructor.apply(this, arguments);          }          return " + name + ";        })(this.classes[ancestor]);");
         return this.classes[name];
       }
+    },
+    object_from_UID: function(id) {
+      var thing, _i, _len, _ref;
+      _ref = this.objects;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        thing = _ref[_i];
+        if (thing.UID === id) {
+          return thing;
+        }
+      }
+      return false;
     }
   };
 
@@ -206,10 +217,8 @@
     window.Draw.add_image('shadow', "./textures/astronauts/shadow.png");
     window.Draw.add_image('engineer', "./textures/astronauts/engineer.png");
     window.Draw.add_image('rock', "./textures/objects/rock.png");
-	window.Draw.add_image('crater', "./textures/ground/crater.png");
     window.Draw.add_image('wrench', "./textures/objects/wrench.png");
     window.Draw.add_image('launchpad', "./textures/objects/launchpad.png");
-	window.Draw.add_image('derpifier', "./textures/objects/derpifier.png");
     window.Draw.add_image('corpse', "./textures/astronauts/corpse.png");
     window.Draw.add_image('suitcorpse', "./textures/astronauts/colonist_suit_dead.png");
     window.Draw.add_image('crate', "./textures/objects/crate_closed.png");

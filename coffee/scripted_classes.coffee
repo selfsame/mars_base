@@ -293,12 +293,97 @@ $(window).ready ->
                   return true
       return false
 
-
   class Vect2D
     constructor: (@x, @y)->
       @type = 'v'
     to_string: ->
       return ''+@x+','+@y
+    add: (thing, apply=false)->
+      @operate 'add', thing, apply
+    subtract: (thing, apply=false)->
+      @operate 'subtract', thing, apply
+    multiply: (thing, apply=false)->
+      @operate 'multiply', thing, apply
+    divide: (thing, apply=false)->
+      @operate 'divide', thing, apply
+    modulo: (thing, apply=false)->
+      @operate 'modulo', thing, apply
+
+    operate: (op, thing, apply)->
+      value = false
+      if op in ['add', 'subtract']
+        if typeof thing is 'number'
+          return value
+      if typeof thing is 'object'
+        if thing.axis?
+          value = parseInt(thing.value)
+          if thing.axis in ['x','y']
+            if op is 'add'
+              value = @[thing.axis] + value
+              if apply
+                @[thing.axis] = value
+              nv = new Vect2D(@x, @y)
+              nv[thing.axis] = value
+              console.log nv
+              return nv
+            if op is 'subtract'
+              value = @[thing.axis] - value
+              if apply
+                @[thing.axis] = value
+              nv = new Vect2D(@x, @y)
+              nv[thing.axis] = value
+              return nv
+            if op is 'multiply'
+              value = @[thing.axis] * value
+              if apply
+                @[thing.axis] = value
+              nv = new Vect2D(@x, @y)
+              nv[thing.axis] = value
+              return nv
+            if op is 'divide'
+              value = @[thing.axis] / value
+              if apply
+                @[thing.axis] = value
+              nv = new Vect2D(@x, @y)
+              nv[thing.axis] = value
+              return nv
+            if op is 'modulo'
+              value = @[thing.axis] % value
+              if apply
+                @[thing.axis] = value
+              nv = new Vect2D(@x, @y)
+              nv[thing.axis] = value
+              return nv
+      if typeof thing is 'number'
+        value = parseInt(thing)
+        if op is 'multiply'
+          xx = @x * value
+          yy = @y * value
+          if apply
+            @x = xx
+            @y = yy
+          return new Vect2D(xx,yy)
+        if op is 'divide'
+          xx = @x / value
+          yy = @y / value
+          if apply
+            @x = xx
+            @y = yy
+          return new Vect2D(xx,yy)
+        if op is 'modulo'
+          xx = @x % value
+          yy = @y % value
+          if apply
+            @x = xx
+            @y = yy
+          return new Vect2D(xx,yy)
+
+  class AxisNum
+    constructor: (@value, @axis)->
+
+      @type = 'axisnum'
+    to_string: ->
+      return @value+@axis
 
   class EntityRef
     constructor: (entity)->
@@ -309,6 +394,22 @@ $(window).ready ->
       @s = entity.nombre
     to_string: ->
       return ''+@e
+
+  class RegisterStack
+    constructor: ()->
+      @array = []
+      @type = 'stack'
+    to_string: ->
+      return '[x'+@array.length+']'
+
+  window.SlowDataTypes =
+    Vect2D: Vect2D
+    AxisNum: AxisNum
+    EntityRef: EntityRef
+    RegisterStack: RegisterStack
+
+
+  
 
   class SlowSentient extends SlowWalker
 

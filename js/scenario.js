@@ -44,22 +44,45 @@
       advanced.sprite_offset = [0, 0];
       advanced.sprite_size = 32;
     }
-   // slow = new E.Scripted('Norm', 'spirit', [400, 400]);
+    slow = new E.Scripted('Norm', 'spirit', [400, 400]);
     slow.speed = 2;
     slow.footprint_img = 'tracks';
-    return slow.run_script("main: (   \n  if $i0:()else:(\n    $s8 = @name;\n    $i0 = 1;)\n\n  $e0 = search(64); wait(10);\n  $v0 = $e0; wait(10);\n  $s0 = $e0; wait(10);\n  \n  if $v0:(\n    go_near( $v0);\n    wait(10);\n    $i9 = pickup($s0);\n    if $i9 > 0:(\n      $i0 = $i0 + 1; wait(10);\n    )\n    DELETE $i9; wait(10);\n    DELETE $e0; wait(10);\n    DELETE $v0; wait(10);\n    DELETE $s0; wait(10);\n      )\n  else:(\n    wander(10);\n    )\n)\n\nrelocate: (\n  wander(20);\n)\n");
+    return slow.run_script("main: (   \n  if I0 == null : (\n    I0 = 0;\n    V9 = @pos;\n  )\n  if I0 > 5 : ( I9 = -1; )\n  if I9 == -1 :(\n    build_house();\n  ) else :(\n    gather_stuff();\n  )\n)\ngather_stuff: (  E0 = search(128); wait(10);\n  V0 = E0; wait(10);\n  S0 = E0; wait(10);\n  \n  if V0:(\n    go_near( V0);\n    wait(10);\n    if pickup(S0) : (\n      I0 = I0 + 1; wait(10);\n    )\n    E0 = null; wait(10);\n    V0 = null; wait(10);\n    S0 = null; wait(10);\n      )\n  else:(\n    wander(10);\n  )\n)\nbuild_house: (\n  if V7 == null | I7 > 15: (\n    V7 = V9 - 2x - 2y;\n    I7 = 0;\n  )\n  if I7 > 12 : (V7 = V7 - 1y;)\n  else I7 > 8 : (V7 = V7 - 1x;)\n  else I7 > 4 : (V7 = V7 + 1y;)\n  else : (V7 = V7 + 1x;)\n  goto( V7 );\n  if drop(0):(\n    I0 = I0 - 1;\n    I7 = I7 + 1;\n  ) \n  if I0 <= 0 : (\n    I9 = 1;\n    V7 = null;\n  )\n)\n");
   });
 
   /*
-  if $i1 == 10:(\n
-      $i3 = 6;\n
+  main: (   \n
+    wait(30);\n
+    if wait(30) & wait(40):(\n
+      wait(30);\n
     )\n
-    wait($i1*5); wait( $i1*2+(3*10));\n
+    if $i0 > 0 :()else:(\n
+      $s8 = @name;\n
+      $i0 = 1;\n
+      $i4 = 1;)\n
+  \n
+    $e0 = search(64); wait(10);\n
+    $v0 = $e0; wait(10);\n
+    $s0 = $e0; wait(10);\n
     \n
-    wander(5);\n
-    $f5 = 89 * (2 / 3);\n
-    $i1 /= $f5 * .5;\n
-    wait(50);\n
+    if $v0:(\n
+      go_near( $v0);\n
+      wait(10);\n
+      $i9 = pickup($s0);\n
+      if $i9 > 0:(\n
+        $i0 = $i0 + 1; wait(10);\n
+      )\n
+      DELETE $i9; wait(10);\n
+      DELETE $e0; wait(10);\n
+      DELETE $v0; wait(10);\n
+      DELETE $s0; wait(10);\n
+        )\n
+    else:(\n
+      wander(10);\n
+        $i4 = $i4 + 1;  )\n
+  )\n
+  
+  "
   */
 
 

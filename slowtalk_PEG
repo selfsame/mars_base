@@ -66,16 +66,22 @@ end:end  } }
 
 
 logic_block =
-  parts:( reserved / call / number /  comparative / assignment / operator /
+  parts:( reserved / null / call / axisnumber / number /  comparative / assignment / operator /
            memory / self / enclosure )+ 
    {return parts }
 
 
-
+comment =
+  "//"  string:[a-zA-Z0-9]*  newline:newline
+{return '//'+string.join('')+newline}
 
 reserved
   = w1:white string:( 'delete'i ) w2:white 
-  {return {type:'reserved', value:string, literal:w1+string+w2}}
+  {return {type:'reserved', value:string.toLowerCase(), literal:w1+string+w2}}
+
+null
+  = w1:white string:( 'null'i / 'undefined'i ) w2:white 
+  {return {type:'null', value:string.toLowerCase(), literal:w1+string+w2}}
 
 
 word
@@ -83,7 +89,7 @@ word
   {return {type:'word', value:string.join(''), literal:w1+string.join('')+w2}}
 
 white
-  = string:(" " / newline / tab)* {return string.join('')}
+  = string:(" " / newline / tab / comment)* {return string.join('')}
 
 newline =
   [\n] {return "\n" }
@@ -103,7 +109,9 @@ literal = '';
 return {type:'statement', value:block, literal:w1+literal+end.literal, end:end.literal} }
 
 
-
+axisnumber
+  = w1:white number:(float / integer) axis:('x'i / 'y'i) w2:white
+    {return {type:'axisnumber', value:number, axis:axis, literal:w1+number+axis+w2}}
 
 number
   = w1:white number:(float / integer) w2:white
@@ -191,8 +199,8 @@ ifend =
 /* game stuff */ 
 
 memory
- = w1:white sym:'$' slot:('i' / 'f' / 's' / 'v' / 'e') index:[0-9] w2:white {return {type:'memory', slot:slot, index:parseInt(index), 
-literal:w1+sym+slot+index+w2}}
+ = w1:white slot:('I' / 'F' / 'S' / 'V' / 'E') index:([0-9] / '&' ) w2:white {return {type:'memory', slot:slot, index:index, 
+literal:w1+slot+index+w2}}
 
 self
   = w1:white amp:'@' self:[a-zA-Z_]+ w2:white {return {type:'self', value:self.join(''), literal:w1+amp+self.join('')+w2 } }

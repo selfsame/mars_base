@@ -165,7 +165,7 @@ canvas {
 	width:330px;
 	right: 20px;
 	top: 20px;
-	height: 800px;
+	height: 900px;
 	padding: 10px;
 	background-color: rgba(0, 0, 0, 0.8);
 	overflow:hidden;
@@ -176,6 +176,8 @@ canvas {
 	visibility: hidden;
 }
 
+
+
 #inspect .script_display{
 	padding: 6px;
 	padding-left: 20px;
@@ -185,10 +187,13 @@ canvas {
 	white-space: pre;
 	height:auto;
 	min-height: 450px;
-	overflow:hidden;
-	overflow-y:auto;
 	clear: both;
 
+}
+
+#inspect .script_display code{
+	overflow:hidden;
+	overflow-y:auto;
 }
 
 #inspect .script_display textarea{
@@ -238,7 +243,7 @@ canvas {
 
 #inspect .script_vars{
 	width:280px;
-	height:240px;
+	height:260px;
 	color: red;
 	font-size: 12px;
 	float:right;
@@ -250,6 +255,14 @@ canvas {
 	width: 54px;
 	
 	}
+
+#inspect .script_vars .column p{
+	text-align: center;
+	color:silver;
+	margin: 0px;
+	height: 14px;
+
+}
 
 #inspect .script_vars .entry{
 	height:15px;
@@ -287,10 +300,24 @@ canvas {
 
 #inspect .messages{
 	height:40px;
-	color: red;
+	color: silver;
 	font-size: 12px;
+	float:right;
+	width: 300px;
 	clear:both;
 }
+
+#inspect .buttonrow{
+	height:20px;
+	color: silver;
+	font-size: 12px;
+	float:right;
+	width: 325px;
+	margin-top: 8px;
+	clear:both;
+}
+
+
 
 #inspect .codebutton{
 	border: 1px solid gray;
@@ -299,8 +326,14 @@ canvas {
 	font-size:12px;
 	cursor: pointer;
 	float:right;
+
 	padding: 0px 4px;
 	margin-left: 4px;
+}
+
+#inspect .codebutton:hover{
+	background-color:gray;
+	color:white;
 }
 
 #inspect .reference{
@@ -323,15 +356,16 @@ canvas {
 
 
 #inspect .saveload{
-	width:270px;
+	width:180px;
 	height: 20px;
-	float:right;
+	float:left;
 	margin-right: 10px;
+
 }
 
 #inspect .saveload input{
 	float:left;
-	width: 100px;
+	width: 85px;
 	font-size: 12px;
 	height: 12px;
 	background-color:black;

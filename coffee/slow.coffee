@@ -16,13 +16,15 @@ $(window).ready ->
       @code = @script.find('code')
       @editarea = $('<textarea class="tabindent">')
       @messages = $('<div class="messages"></div>')
+      @filebuttons = $('<div class="buttonrow"></div>')
       @editbutton = $('<div class="codebutton">edit</div>')
 
       @saveload = $('<div class="saveload"><input id="file">
-        <div id="pause"class="codebutton">||</div>
-          <div id="step"class="codebutton">|></div>
+        
             <div class="codebutton" id="save">save</div><div class="codebutton" id="load">load</div></div>')
-
+      @filebuttons.append $('<div id="pause"class="codebutton">||</div>
+          <div id="step"class="codebutton">|></div>')
+      
       @saveload.find('#save').click ()->
         window.Scripter.save_script window.Scripter.saveload.find('input').val()
       @saveload.find('#load').click ()->
@@ -33,20 +35,22 @@ $(window).ready ->
       @tileinfo = $('<div class="tileinfo"></div>')
       @tileinfo.hide()
       @inspect.append @messages
-      @inspect.append @editbutton
-      @inspect.append @saveload
+      @inspect.append @filebuttons
+      @filebuttons.prepend @editbutton
+      @filebuttons.append @saveload
+      @saveload.css('visibility', 'hidden')
       @inspect.append @script
       @inspect.append @tileinfo
       @inspect.append @reference
 
-      @saveload.find('#pause').click ()->
+      @filebuttons.find('#pause').click ()->
         if not window.pause_code
           window.pause_code = true
           
         else
           window.pause_code = false
 
-      @saveload.find('#step').click ()->
+      @filebuttons.find('#step').click ()->
         window.next_frame = true
        
           
@@ -78,18 +82,20 @@ $(window).ready ->
           @reference.show()
             
           @editbutton.html 'compile'
+          @saveload.css('visibility', 'visible')
           @edit_mode = true
           @editarea.val @watch.script
           @editarea.height @code.height()
           @code.replaceWith @editarea
           console.log localStorage
         else
-          
+          @saveload.css('visibility', 'hidden')
           @watch.run_script @editarea.val()
           if @watch.error
             @show( @watch )
           else
             @reference.hide()
+            
             @inspect.animate({width:330}, 300)
             @editbutton.html 'edit'
             @edit_mode = false
@@ -315,7 +321,10 @@ $(window).ready ->
 
   window.Scripter.init()
 
-  
+  Vect2D =   window.SlowDataTypes.Vect2D
+  AxisNum =   window.SlowDataTypes.AxisNum
+  EntityRef =   window.SlowDataTypes.EntityRef
+  RegisterStack =   window.SlowDataTypes.RegisterStack
 
 
   class Scripted extends window.Entities.classes.SlowSentient
@@ -349,18 +358,12 @@ $(window).ready ->
       if @parsed_script
         #console.log @parsed_script
         @parser = new SlowParser(@, @parsed_script)
-        @script_vars =
-        i:[]
-        f:[]
-        s:[]
-        v:[]
-        e:[]
-        for i in [0..9]
-          @script_vars.i.push undefined
-          @script_vars.f.push undefined
-          @script_vars.s.push undefined
-          @script_vars.v.push undefined
-          @script_vars.e.push undefined
+        @script_vars = {}
+        for i in ['I','F','S','V','E']
+          @script_vars[i] = []
+          for j in [0..9]
+            @script_vars[i].push undefined
+          @script_vars[i].push new RegisterStack
 
     walk_path: ->
       if not @path?
@@ -382,8 +385,13 @@ $(window).ready ->
 
       tilesize = window.Map.tilesize
 
-      p1 = @path[0][0]*tilesize
-      p2 = @path[0][1]*tilesize
+      try
+        p1 = @path[0][0]*tilesize
+        p2 = @path[0][1]*tilesize
+      catch error
+        console.log "BAD PATH:", error
+        console.log @path
+        return false
       @vect_to_target = new Vector((@path[0][0]*tilesize)-@pos[0], (@path[0][1]*tilesize)-@pos[1], 0)
       @dist_to_target = @vect_to_target.length()
       @target_vect = @normalize_vector( @vect_to_target )
@@ -428,6 +436,7 @@ $(window).ready ->
           @call_token.result = @_return
 
 
+  
 
   class SlowException
     constructor: (@message)->
@@ -438,6 +447,7 @@ $(window).ready ->
   class ESCAPE
     constructor: ()->
       @escape = true
+
 
   class SlowParser
     constructor: (@self, @json)->
@@ -579,7 +589,7 @@ $(window).ready ->
             return new ESCAPE()
           ev = @calculate( line.eval )
           #console.log line.term + ' is ' , ev
-          if ev.escape?
+          if ev? and ev.escape?
             return ev
           if ev not in [false, 0, undefined]
             
@@ -618,10 +628,11 @@ $(window).ready ->
 
       cp.token_index = -1
       result = @calculate line, true
-      if result.escape? or result.error?
+      if result? and (result.escape? or result.error?)
         return result
       else
         if @assign
+          #console.log @assign, result
           @store_var(@assign, result)
           @assign = false
           window.Scripter.show_vars()
@@ -633,34 +644,40 @@ $(window).ready ->
 
 
     store_var: (reg, value)->
-      if reg.slot is 'e'
+      if value is undefined
+        value = undefined
+      else if reg.slot is 'E'
         if value.e
           value = value
         else
           result = result + ''
-      if reg.slot is 's'
+      else if reg.slot is 'S'
         if value.s
           value = value.s
         else
           value = value + ''
-      if reg.slot is 'v'
+      else if reg.slot is 'V'
         if value.v
           value = value.v
+        else
+          value = value
 
-      if reg.slot is 'i'
+      else if reg.slot is 'I'
         if typeof value is 'object' or value is true
           value = 1
         else if value is false
           value = 0
         else
           value = parseInt(value)
-      if reg.slot is 'f'
+      else if reg.slot is 'F'
         if typeof value is 'object' or value is true
           value = 1
         else if value is false
           value = 0
         else
           value = parseFloat(value).toFixed(2)
+
+      #console.log reg.slot+reg.index+' = ', value
 
       @self.script_vars[reg.slot][reg.index] = value
 
@@ -673,20 +690,25 @@ $(window).ready ->
 
     untoken: (obj, i=0)->
       if typeof obj isnt 'object'
-        return undefined
+        return new ERROR('unknown meaning')
       if obj.type is 'enclosure'
         return @calculate obj.value
+      if obj.type is 'null'
+        return undefined
       if obj.type is 'number'
         return obj.value
       if obj.type is 'self'
         if @self.props[obj.value]?
           return @self.props[obj.value]
       if obj.type is 'memory'
+        if obj.index is '&'
+          indx = 10 #the stack register
+        else
+          indx = parseInt(obj.index)
         mem = @self.script_vars[obj.slot][parseInt(obj.index)]
-        if mem is undefined
-          mem = false
-
         return mem
+      if obj.type is 'axisnumber'
+        return new AxisNum(obj.value, obj.axis)
       if obj.type is 'call'
 
         if obj.result?
@@ -735,16 +757,12 @@ $(window).ready ->
           cp.token_index += 1
         
 
-        if value is undefined
-          if not valid
-            value = @untoken(token, i)
-            if value.error? or value.escape?
-              return value
-
-            valid = true
-
+        if not valid
+          value = @untoken(token, i)
+          if value? and (value.error? or value.escape?)
+            return value
           else
-            return undefined
+            valid = true
 
         else if not operator
           if token.type in ['operator','compare', 'assignment']
@@ -755,45 +773,66 @@ $(window).ready ->
         else
 
           next = @untoken(token, i)
-          if next.error? or next.escape?
+
+
+          if next? and (next.error? or next.escape?)
             return next
-          if next?
-            #console.log value, operator, next
-            if operator is '+'
-              value += next
-            else if operator is '-'
-              value -= next
-            else if operator is '*'
-              value *= next
-            else if operator is '/'
-              value /= next
-            else if operator is '%'
-              value %= next
+          #console.log value, operator, next
+          if typeof value is 'object' and value.type is 'v'
+            if typeof next is 'number'
+              if operator is '*'
+                value = value.multiply(next)
+              else if operator is '/'
+                value = value.divide(next)
+              else
+                value = undefined
+            else if typeof next is 'object' and next.type is 'axisnum'
+              if operator is '+'
+                value = value.add(next)
+              if operator is '-'
+                value = value.subtract(next)
+              if operator is '*'
+                value = value.multiply(next)
+              if operator is '/'
+                value = value.divide(next)
+            else
+              value = undefined
+          else if operator is '+'
+            value += next
+          else if operator is '-'
+            value -= next
+          else if operator is '*'
+            value *= next
+          else if operator is '/'
+            value /= next
+          else if operator is '%'
+            value %= next
 
-            else if operator is '=='
-              value = (value is next)
-            else if operator is '<='
-              value = (value <= next)
-            else if operator is '>='
-              value = (value >= next)
-            else if operator is '<'
-              value = (value < next)
-            else if operator is '>'
-              value = (value > next)
+          else if operator is '=='
+            value = (value is next)
+          else if operator is '<='
+            value = (value <= next)
+          else if operator is '>='
+            value = (value >= next)
+          else if operator is '<'
+            value = (value < next)
+          else if operator is '>'
+            value = (value > next)
 
-            else if operator is '&'
-              value = (value and next)
-            else if operator is '|'
-              value = (value or next)
+          else if operator is '&'
+            value = (value and next)
+          else if operator is '|'
+            value = (value or next)
 
-            else if operator is '='
-              #console.log 'calculating assignment', tokens[i-2]
-              if tokens[i-2].type is 'memory'
-                #we know we are assigning a var, but need to wait untill all the tokens have been calc'd
-                value = next
-                @assign = tokens[i-2]
-                
-            operator = false
+          if operator is '='
+            #console.log 'calculating assignment', tokens[i-2]
+            if tokens[i-2].type is 'memory'
+              #we know we are assigning a var, but need to wait untill all the tokens have been calc'd
+              console.log value, '=', next
+              value = next
+              @assign = tokens[i-2]
+              
+          operator = false
 
 
       
