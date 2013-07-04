@@ -92,7 +92,10 @@ $(window).ready ->
       @attach_to_map()
 
     attach_to_map: (tpos=false)->
-      @pos = [@pos[0], @pos[1]]
+      if tpos
+        @pos = [tpos[0]*32, tpos[1]*32]
+      else
+        @pos = [@pos[0], @pos[1]]
       @pos_to_tile_pos()
       tpos = @tile_pos
       @show()
@@ -114,6 +117,9 @@ $(window).ready ->
         else 
           if @ not in obj_in_map
             obj_in_map.push @
+      if @no_path
+        window.Map.set 'pathfinding', @tile_pos[0], @tile_pos[1], 1
+
 
     detach_from_map: ()->
       @hide()
@@ -133,6 +139,8 @@ $(window).ready ->
           obj_in_map.remove @
           if obj_in_map.length is 0
             window.Map.set('objects', @tile_pos[0], @tile_pos[1], 0)
+      if @no_path
+        window.Map.set 'pathfinding', @tile_pos[0], @tile_pos[1], 0
 
 
 

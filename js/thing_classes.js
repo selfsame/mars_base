@@ -149,86 +149,76 @@
       };
 
       Thing.prototype.attach_to_map = function(tpos) {
-        var i, j, obj_in_map, _i, _ref, _ref1, _results;
+        var i, j, obj_in_map, _i, _j, _ref, _ref1, _ref2, _ref3;
         if (tpos == null) {
           tpos = false;
         }
-        this.pos = [this.pos[0], this.pos[1]];
+        if (tpos) {
+          this.pos = [tpos[0] * 32, tpos[1] * 32];
+        } else {
+          this.pos = [this.pos[0], this.pos[1]];
+        }
         this.pos_to_tile_pos();
         tpos = this.tile_pos;
         this.show();
         window.Entities.objects.push(this);
         window.Entities.objects_hash.add(this);
         if (this.grid_area) {
-          _results = [];
           for (i = _i = _ref = this.grid_area[0], _ref1 = this.grid_area[1]; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
-            _results.push((function() {
-              var _j, _ref2, _ref3, _results1;
-              _results1 = [];
-              for (j = _j = _ref2 = this.grid_area[2], _ref3 = this.grid_area[3]; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
-                obj_in_map = window.Map.get('objects', tpos[0] + i, tpos[1] + j);
-                if (!obj_in_map) {
-                  _results1.push(window.Map.set('objects', tpos[0] + i, tpos[1] + j, [this]));
-                } else {
-                  if (__indexOf.call(obj_in_map, this) < 0) {
-                    _results1.push(obj_in_map.push(this));
-                  } else {
-                    _results1.push(void 0);
-                  }
+            for (j = _j = _ref2 = this.grid_area[2], _ref3 = this.grid_area[3]; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
+              obj_in_map = window.Map.get('objects', tpos[0] + i, tpos[1] + j);
+              if (!obj_in_map) {
+                window.Map.set('objects', tpos[0] + i, tpos[1] + j, [this]);
+              } else {
+                if (__indexOf.call(obj_in_map, this) < 0) {
+                  obj_in_map.push(this);
                 }
               }
-              return _results1;
-            }).call(this));
+            }
           }
-          return _results;
         } else {
           obj_in_map = window.Map.get('objects', tpos[0], tpos[1]);
           if (!obj_in_map) {
-            return window.Map.set('objects', tpos[0], tpos[1], [this]);
+            window.Map.set('objects', tpos[0], tpos[1], [this]);
           } else {
             if (__indexOf.call(obj_in_map, this) < 0) {
-              return obj_in_map.push(this);
+              obj_in_map.push(this);
             }
           }
+        }
+        if (this.no_path) {
+          return window.Map.set('pathfinding', this.tile_pos[0], this.tile_pos[1], 1);
         }
       };
 
       Thing.prototype.detach_from_map = function() {
-        var i, j, obj_in_map, _i, _ref, _ref1, _results;
+        var i, j, obj_in_map, _i, _j, _ref, _ref1, _ref2, _ref3;
         this.hide();
         window.Entities.objects.remove(this);
         window.Entities.objects_hash.remove(this);
         if (this.grid_area) {
-          _results = [];
           for (i = _i = _ref = this.grid_area[0], _ref1 = this.grid_area[1]; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
-            _results.push((function() {
-              var _j, _ref2, _ref3, _results1;
-              _results1 = [];
-              for (j = _j = _ref2 = this.grid_area[2], _ref3 = this.grid_area[3]; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
-                obj_in_map = window.Map.get('objects', this.tile_pos[0] + i, this.tile_pos[1] + j);
-                if (obj_in_map && obj_in_map.length > 0) {
-                  obj_in_map.remove(this);
-                  if (obj_in_map.length === 0) {
-                    _results1.push(window.Map.set('objects', this.tile_pos[0] + i, this.tile_pos[1] + j, 0));
-                  } else {
-                    _results1.push(void 0);
-                  }
-                } else {
-                  _results1.push(void 0);
+            for (j = _j = _ref2 = this.grid_area[2], _ref3 = this.grid_area[3]; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
+              obj_in_map = window.Map.get('objects', this.tile_pos[0] + i, this.tile_pos[1] + j);
+              if (obj_in_map && obj_in_map.length > 0) {
+                obj_in_map.remove(this);
+                if (obj_in_map.length === 0) {
+                  window.Map.set('objects', this.tile_pos[0] + i, this.tile_pos[1] + j, 0);
                 }
               }
-              return _results1;
-            }).call(this));
+            }
           }
-          return _results;
         } else {
           obj_in_map = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
           if (obj_in_map && obj_in_map.length > 0) {
             obj_in_map.remove(this);
             if (obj_in_map.length === 0) {
-              return window.Map.set('objects', this.tile_pos[0], this.tile_pos[1], 0);
+              window.Map.set('objects', this.tile_pos[0], this.tile_pos[1], 0);
             }
           }
+        }
+        if (this.no_path) {
+          return window.Map.set('pathfinding', this.tile_pos[0], this.tile_pos[1], 0);
         }
       };
 

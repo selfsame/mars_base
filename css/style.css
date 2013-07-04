@@ -185,8 +185,8 @@ canvas {
 	width:300px;
 	float:right;
 	white-space: pre;
-	height:auto;
-	min-height: 450px;
+	height:400px;
+	min-height: 350px;
 	clear: both;
 
 }

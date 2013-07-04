@@ -532,19 +532,19 @@ $(window).ready ->
         if @pocket[i_s_e]?
           found = @pocket[i_s_e]
           @pocket.remove found
-          found.attach_to_map()
+          found.attach_to_map([@tile_pos[0], @tile_pos[1]])
           return true
       else
         for obj in @pocket
           if obj isnt 'undefined' and typeof obj is 'object'
             if typeof i_s_e is 'object' and i_s_e.type is 'e'
               if i_s_e.e is obj.UID
-                obj.attach_to_map()
+                obj.attach_to_map([@tile_pos[0], @tile_pos[1]])
                 @pocket.remove obj
                 return true
             if typeof i_s_e is 'string'
               if obj.nombre is i_s_e
-                obj.attach_to_map()
+                obj.attach_to_map([@tile_pos[0], @tile_pos[1]])
                 @pocket.remove obj
                 return true
       return false

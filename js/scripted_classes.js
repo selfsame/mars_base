@@ -771,7 +771,7 @@
           if (this.pocket[i_s_e] != null) {
             found = this.pocket[i_s_e];
             this.pocket.remove(found);
-            found.attach_to_map();
+            found.attach_to_map([this.tile_pos[0], this.tile_pos[1]]);
             return true;
           }
         } else {
@@ -781,14 +781,14 @@
             if (obj !== 'undefined' && typeof obj === 'object') {
               if (typeof i_s_e === 'object' && i_s_e.type === 'e') {
                 if (i_s_e.e === obj.UID) {
-                  obj.attach_to_map();
+                  obj.attach_to_map([this.tile_pos[0], this.tile_pos[1]]);
                   this.pocket.remove(obj);
                   return true;
                 }
               }
               if (typeof i_s_e === 'string') {
                 if (obj.nombre === i_s_e) {
-                  obj.attach_to_map();
+                  obj.attach_to_map([this.tile_pos[0], this.tile_pos[1]]);
                   this.pocket.remove(obj);
                   return true;
                 }

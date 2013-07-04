@@ -80,8 +80,11 @@ main: (   \n
     V9 = @pos;\n
 
   )\n
-  if I0 > 5 : ( I9 = -1; )\n
-  if I9 == -1 :(\n
+  if I0 > 4 : ( I9 = -1; )\n
+  if F7 > 1 : (\n
+    hang_out();\n
+  )
+  else I9 == -1 :(\n
     build_house();\n
   ) else :(\n
     gather_stuff();\n
@@ -110,12 +113,12 @@ gather_stuff: (
 )\n
 
 build_house: (\n
-  if V7 == null | I7 > 15: (\n
+  if V7 == null: (\n
     V7 = V9 - 2x - 2y;\n
     I7 = 0;\n
   )\n
-
-  if I7 > 12 : (V7 = V7 - 1y;)\n
+  if I7 > 14 : (V7 = V7 - 1x; F7 = 2;)\n
+  else I7 > 12 : (V7 = V7 - 1y;)\n
   else I7 > 8 : (V7 = V7 - 1x;)\n
   else I7 > 4 : (V7 = V7 + 1y;)\n
   else : (V7 = V7 + 1x;)\n
@@ -127,9 +130,18 @@ build_house: (\n
 
   if I0 <= 0 : (\n
     I9 = 1;\n
-    V7 = null;\n
+    go_near( V9 + 20x + 10y );\n
+
   )\n
+
+  
+
 )\n
+hang_out : (\n
+    goto(V7);\n
+    wait(30);\n
+    wander(5);\n
+  )\n
 
 "
 

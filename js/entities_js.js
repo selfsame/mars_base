@@ -8,7 +8,7 @@ $(window).ready(function() {
 	// adding a method to the new class
 	Rock.prototype.setup = function() {
 	  window.Map.set("pathfinding", this.tile_pos[0], this.tile_pos[1], 1);
-	  this.no_path = false;
+	  this.no_path = true;
 	  
 	};
 
