@@ -2,9 +2,10 @@
 (function() {
   var names;
 
-  names = ['Jack', 'Rupert', 'Iona', 'Jennie', 'Casie', 'Numbers', 'Naomi', 'Milissa', 'Janina', 'Lauren', 'Herman', 'Tawnya', 'Bernadine', 'Marjory', 'Jennell', 'Ricardo', 'Rita', 'Coreen', 'Tennille', 'Shondra', 'Donny', 'Florine'];
+  names = ['Jack', 'Rupert', 'Iona', 'Dalton', 'Rahne', 'Jennie', 'Casie', 'Numbers', 'Naomi', 'Milissa', 'Janina', 'Lauren', 'Herman', 'Tawnya', 'Bernadine', 'Marjory', 'Jennell', 'Ricardo', 'Rita', 'Coreen', 'Tennille', 'Shondra', 'Donny', 'Florine'];
 
   $(window).ready(function() {
+	window.Map.generate();
     var E, advanced, cx, cy, door, i, j, launchpad, name, slow, solarpanel, suit, wrench, x, y, _i, _j, _k, _l, _m, _n, _o, _p, _q;
     E = window.Entities.classes;
     cx = (window.Map.width * 32) / 2;

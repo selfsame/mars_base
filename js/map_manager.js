@@ -59,20 +59,9 @@ window.Map = {
 		//	rock.setup();
 		//}
 		
-		for (var i = 0; i <= (this.height/4); i++) {
-			for (var j = 0; j <= (this.width/4); j++) {
-				if ((i < middle[0] || j < middle[1] || i >= middle[2] || j >= middle[3])) { // not in the middle square
-					if (Math.random() <= options.crater_oc) {
-						crater = new Crater('crater', 'crater', [j * this.tilesize * 4, i * this.tilesize * 4]);
-						
-						crater.draw();
-					}
-				}
-			}
-		}
+		//crater_1 = new Crater_Small([15, 15]);
 		
-		
-		var i, _i;
+		/**var i, _i;
 		for (i = _i = 0; _i <= 270; i = ++_i) {
 			var x = parseInt(Math.random()*window.Map.width)*window.Map.tilesize;
 			var y = parseInt(Math.random()*window.Map.height)*window.Map.tilesize;
@@ -81,7 +70,7 @@ window.Map = {
 				rock = new Rock('rock', 'rock', [x, y]);
 				rock.setup();
 			}
-		}
+		}*/
 			
 	},
 	
