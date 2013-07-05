@@ -211,8 +211,8 @@ task_place:(\n
 
   E0 = pickup(go_near(search(@task)));\n
   get_task();
-  if goto(@task) : ()
-  else : ( go_near(@task); )
+
+   go_near(@task); 
   place(drop(E0));
   get_task();\n
 )\n
