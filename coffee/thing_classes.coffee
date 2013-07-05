@@ -74,7 +74,7 @@ $(window).ready ->
 
     pos_to_tile_pos: ()->
       if @pos?
-        @tile_pos = [parseInt((@pos[0]+@half_size)/window.Map.tilesize), parseInt((@pos[1]+@half_size)/window.Map.tilesize)]
+        @tile_pos = [parseInt((@pos[0]+@half_size-1)/window.Map.tilesize), parseInt((@pos[1]+@half_size-1)/window.Map.tilesize)]
 
     destroy: ()->
       console.log 'destroying ', @
@@ -162,7 +162,6 @@ $(window).ready ->
     place: ()->
       console.log @nombre, 'getting placed'
       @placed = true
-      @pos_to_tile_pos()
       @image = @placed_image
     unplace: ()->
       @placed = false
@@ -180,6 +179,7 @@ $(window).ready ->
       window.Draw.clear_box(@pos[0], @pos[1], 32, 32);
 
     place: ()->
+      console.log 'Door placed'
       @placed = true
       @pos_to_tile_pos()
       pos = @tile_pos

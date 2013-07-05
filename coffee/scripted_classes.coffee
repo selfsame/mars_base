@@ -25,6 +25,7 @@ $(window).ready ->
       @block_build = false
       @needs_draw = true
       @persistant_draw = true
+      @friction = .95
       @flags = {}
       @init()
       @init_2()
@@ -37,7 +38,7 @@ $(window).ready ->
       @delta_time = delta
       @total_time += delta
       @frame_count += 1
-      @move()
+      @move(@friction)
       #if @['_'+@state]?
       #  @['_'+@state]()
       if not @hidden
@@ -163,12 +164,15 @@ $(window).ready ->
       @dist_to_target = @vect_to_target.length()
       @target_vect = @normalize_vector( @vect_to_target )
       @vector = Vector.lerp(@vector, @target_vect, @turn_speed)
-      near = 10
+      near = 4
       if @pos[0] > p1-near and @pos[0] < p1+near and @pos[1] > p2-near and @pos[1] < p2+near
         @path = @path.splice(1,@path.length)
         @velocity = .1
+
         if @path.length is 0
+          @friction = .5
           return true
+        @friction = .95
 
       return undefined
 
@@ -399,7 +403,8 @@ $(window).ready ->
         if not @target
           @target = [v.v.x, v.v.y]
 
-      @near_options = [ [0,0],[-1,0],[1,0],[0,-1],[0,1],[-1,1],[-1,-1],[1,-1],[1,1] ]
+      if not @near_options? or @near_options.length is 0
+        @near_options = [ [-1,0],[1,0],[0,-1],[0,1],[-1,1],[-1,-1],[1,-1],[1,1],[0,0]]
       if not @path and @target
         if @near_options.length is 0
           return false
@@ -451,6 +456,8 @@ $(window).ready ->
         return
       local = window.Entities.objects_hash.get_within( [@pos[0], @pos[1]], distance )
       for obj in local
+        if obj.claimed
+          console.log obj.nombre, ' claimed!'
         if not obj.claimed and not obj.placed
           if filter
             if i_s is obj.nombre
@@ -541,9 +548,10 @@ $(window).ready ->
 
         EID = e.e
         for o in window.Entities.objects
-          if o.EID = EID
+          if o.EID == EID
             if not o.claimed
-              o.claimed = @EID
+
+              o.claimed = true
               return e
 
       return false
@@ -597,7 +605,6 @@ $(window).ready ->
       if @job
         task = @job.instructions.pop()
         if task
-          console.log 'assign task: ', task
           @props['task'] = task
           return task
         else
@@ -622,19 +629,25 @@ $(window).ready ->
 
 
     _place: (e)->
+
       if @job and @job.place_proxy
+        console.log 'place called', e
         if e? and typeof e is 'object' and e.type is 'e'
-          r = window.Entities.sentient_hash.get_within([@pos[0], @pos[1]], 64)
+          r = window.Entities.objects_hash.get_within([@pos[0], @pos[1]], 64)
+          console.log r
           if r is 0
             return false
           for obj in r
-            if obj.EID is r.EID
-              console.log 'found place object ', e.s
+            if obj.EID is e.e
+              console.log 'found place object ', obj.tile_pos
+              obj.pos = [@job.place_proxy[1][0]*32, @job.place_proxy[1][1]*32]
+              obj.tile_pos = [@job.place_proxy[1][0], @job.place_proxy[1][1]]
+              console.log 'moved to ', obj.tile_pos
               if window.Placer.job_done( @job.place_proxy )
+
                 @job.approved = true
+                
                 if obj.place?
-                  obj.pos = [@job.place_proxy[1][0]*32, @job.place_proxy[1][1]*32]
-                  obj.pos_to_tile_pos()
                   obj.place()
                   return true
       return false

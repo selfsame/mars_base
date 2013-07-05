@@ -112,7 +112,7 @@
 
       Entity.prototype.pos_to_tile_pos = function() {
         if (this.pos != null) {
-          return this.tile_pos = [parseInt((this.pos[0] + this.half_size) / window.Map.tilesize), parseInt((this.pos[1] + this.half_size) / window.Map.tilesize)];
+          return this.tile_pos = [parseInt((this.pos[0] + this.half_size - 1) / window.Map.tilesize), parseInt((this.pos[1] + this.half_size - 1) / window.Map.tilesize)];
         }
       };
 
@@ -254,7 +254,6 @@
       Placeable.prototype.place = function() {
         console.log(this.nombre, 'getting placed');
         this.placed = true;
-        this.pos_to_tile_pos();
         return this.image = this.placed_image;
       };
 
@@ -287,6 +286,7 @@
 
       Door.prototype.place = function() {
         var bottom, center, left, pos, right, top;
+        console.log('Door placed');
         this.placed = true;
         this.pos_to_tile_pos();
         pos = this.tile_pos;

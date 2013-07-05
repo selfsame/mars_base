@@ -192,6 +192,7 @@ main : (\n
   wait(random(50));\n
   survival();\n
   do_work();\n
+  wander(8);\n
 )\n
 
 
@@ -199,7 +200,6 @@ main : (\n
 do_work: (\n
   get_task();
   if @job == 0 : (
-    wander(4);\n
     drop(0);\n
   ) else : (\n
     if @job == 'build' : ( task_build(); )\n
@@ -210,10 +210,14 @@ do_work: (\n
 task_place:(\n
 
   E0 = pickup(go_near(search(@task)));\n
-  get_task();
+  get_task();\n
 
-   go_near(@task); 
-  place(drop(E0));
+  if go_near(@task) : (\n
+    drop(E0);\n
+    place(E0);\n
+  )\n
+
+  
   get_task();\n
 )\n
 
@@ -223,7 +227,6 @@ task_build:(\n
   build();\n
   get_task();\n
 )\n
-
 
 
 goto_object : (\n

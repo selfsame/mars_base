@@ -114,13 +114,13 @@
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         thing = _ref1[_j];
         job = new Job('place');
-        job.place_proxy = job;
+        job.place_proxy = thing;
         job.instructions.push(new window.SlowDataTypes.Vect2D(thing[1][0], thing[1][1]));
         job.instructions.push(thing[0]);
         this.open_jobs.push(job);
         job.is_done = function() {
           if (this.approved) {
-            console.log('job.place.is_done: ', this.tile);
+            console.log('job.place.is_done: ');
             return true;
           }
           return false;

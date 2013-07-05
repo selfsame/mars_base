@@ -73,13 +73,13 @@ window.Jobs =
     for thing in window.Placer.jobs
       #[@type, pos]
       job = new Job('place')
-      job.place_proxy = job
+      job.place_proxy = thing
       job.instructions.push new window.SlowDataTypes.Vect2D(thing[1][0], thing[1][1])
       job.instructions.push thing[0]
       @open_jobs.push job
       job.is_done = ()->
         if @approved
-          console.log 'job.place.is_done: ', @tile
+          console.log 'job.place.is_done: '
           return true
         return false
     window.Placer.jobs = []

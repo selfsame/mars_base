@@ -31,8 +31,11 @@ window.object_manager = {
 			if (this.edit_style == 'select') {
 				var coords = window.Events.tile_under_mouse;
 				this.selected = window.Map.get('objects', coords[0], coords[1]);
-				if (this.selected != 0) {
-					alert('Selected: ' + this.selected.name);
+				if (this.selected != 0 && ! this.selected.length) {
+
+					alert('Selected: ' + this.selected + this.selected.name);
+				} else {
+					this.selected = 0
 				}
 			} else if (this.edit_style == 'move') {
 				

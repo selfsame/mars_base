@@ -37,6 +37,7 @@
         this.block_build = false;
         this.needs_draw = true;
         this.persistant_draw = true;
+        this.friction = .95;
         this.flags = {};
         this.init();
         this.init_2();
@@ -52,7 +53,7 @@
         this.delta_time = delta;
         this.total_time += delta;
         this.frame_count += 1;
-        this.move();
+        this.move(this.friction);
         if (!this.hidden) {
           this.draw();
         }
@@ -231,13 +232,15 @@
         this.dist_to_target = this.vect_to_target.length();
         this.target_vect = this.normalize_vector(this.vect_to_target);
         this.vector = Vector.lerp(this.vector, this.target_vect, this.turn_speed);
-        near = 10;
+        near = 4;
         if (this.pos[0] > p1 - near && this.pos[0] < p1 + near && this.pos[1] > p2 - near && this.pos[1] < p2 + near) {
           this.path = this.path.splice(1, this.path.length);
           this.velocity = .1;
           if (this.path.length === 0) {
+            this.friction = .5;
             return true;
           }
+          this.friction = .95;
         }
       };
 
@@ -566,7 +569,9 @@
             this.target = [v.v.x, v.v.y];
           }
         }
-        this.near_options = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [-1, -1], [1, -1], [1, 1]];
+        if (!(this.near_options != null) || this.near_options.length === 0) {
+          this.near_options = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [-1, -1], [1, -1], [1, 1], [0, 0]];
+        }
         if (!this.path && this.target) {
           if (this.near_options.length === 0) {
             return false;
@@ -638,6 +643,9 @@
         local = window.Entities.objects_hash.get_within([this.pos[0], this.pos[1]], distance);
         for (_i = 0, _len = local.length; _i < _len; _i++) {
           obj = local[_i];
+          if (obj.claimed) {
+            console.log(obj.nombre, ' claimed!');
+          }
           if (!obj.claimed && !obj.placed) {
             if (filter) {
               if (i_s === obj.nombre) {
@@ -761,9 +769,9 @@
           _ref = window.Entities.objects;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             o = _ref[_i];
-            if (o.EID = EID) {
+            if (o.EID === EID) {
               if (!o.claimed) {
-                o.claimed = this.EID;
+                o.claimed = true;
                 return e;
               }
             }
@@ -846,7 +854,6 @@
         if (this.job) {
           task = this.job.instructions.pop();
           if (task) {
-            console.log('assign task: ', task);
             this.props['task'] = task;
             return task;
           } else {
@@ -876,20 +883,23 @@
       SlowSentient.prototype._place = function(e) {
         var obj, r, _i, _len;
         if (this.job && this.job.place_proxy) {
+          console.log('place called', e);
           if ((e != null) && typeof e === 'object' && e.type === 'e') {
-            r = window.Entities.sentient_hash.get_within([this.pos[0], this.pos[1]], 64);
+            r = window.Entities.objects_hash.get_within([this.pos[0], this.pos[1]], 64);
+            console.log(r);
             if (r === 0) {
               return false;
             }
             for (_i = 0, _len = r.length; _i < _len; _i++) {
               obj = r[_i];
-              if (obj.EID === r.EID) {
-                console.log('found place object ', e.s);
+              if (obj.EID === e.e) {
+                console.log('found place object ', obj.tile_pos);
+                obj.pos = [this.job.place_proxy[1][0] * 32, this.job.place_proxy[1][1] * 32];
+                obj.tile_pos = [this.job.place_proxy[1][0], this.job.place_proxy[1][1]];
+                console.log('moved to ', obj.tile_pos);
                 if (window.Placer.job_done(this.job.place_proxy)) {
                   this.job.approved = true;
                   if (obj.place != null) {
-                    obj.pos = [this.job.place_proxy[1][0] * 32, this.job.place_proxy[1][1] * 32];
-                    obj.pos_to_tile_pos();
                     obj.place();
                     return true;
                   }
