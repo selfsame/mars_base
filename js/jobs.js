@@ -118,6 +118,13 @@
         job.instructions.push(new window.SlowDataTypes.Vect2D(thing[1][0], thing[1][1]));
         job.instructions.push(thing[0]);
         this.open_jobs.push(job);
+        job.is_done = function() {
+          if (this.approved) {
+            console.log('job.place.is_done: ', this.tile);
+            return true;
+          }
+          return false;
+        };
       }
       return window.Placer.jobs = [];
     }

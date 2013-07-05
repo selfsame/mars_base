@@ -174,7 +174,6 @@ $(window).ready ->
 
   class SlowWalker extends Scripted
     init: ->
-      @state = 'idle'
       @speed = 4
       @turn_speed = .04
       @target = 0
@@ -623,15 +622,21 @@ $(window).ready ->
 
 
     _place: (e)->
-      if e? and typeof e is 'object' and e.type is 'e'
-        r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
-        if r is 0
-          return false
-        for obj in r
-          if obj.EID is r.EID
-            if obj.place?
-              obj.place()
-              return true
+      if @job and @job.place_proxy
+        if e? and typeof e is 'object' and e.type is 'e'
+          r = window.Entities.sentient_hash.get_within([@pos[0], @pos[1]], 64)
+          if r is 0
+            return false
+          for obj in r
+            if obj.EID is r.EID
+              console.log 'found place object ', e.s
+              if window.Placer.job_done( @job.place_proxy )
+                @job.approved = true
+                if obj.place?
+                  obj.pos = [@job.place_proxy[1][0]*32, @job.place_proxy[1][1]*32]
+                  obj.pos_to_tile_pos()
+                  obj.place()
+                  return true
       return false
 
 

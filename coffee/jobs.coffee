@@ -77,6 +77,11 @@ window.Jobs =
       job.instructions.push new window.SlowDataTypes.Vect2D(thing[1][0], thing[1][1])
       job.instructions.push thing[0]
       @open_jobs.push job
+      job.is_done = ()->
+        if @approved
+          console.log 'job.place.is_done: ', @tile
+          return true
+        return false
     window.Placer.jobs = []
 
 
