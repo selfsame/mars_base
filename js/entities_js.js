@@ -9,12 +9,12 @@ $(window).ready(function() {
 		this.world_coords = []; // top left corner, in world coordinates
 		this.layout = []; // 2d layout of this object
 		this.tag_loc = [0, 0]; // location relative to layout, where the tag goes
+		this.ghost_loc = false; // show object ghost
 		
 		this.moveable = false; // can the colonists move this object?
 		this.buildable = false; // can the colonists build this object?
 		this.removable = false; // can the astronauts remove this object?
 		this.selectable = true; // can this object be selected?
-		
 		
 		this.placed = false; // if this object has been placed yet
 		this.name = 'Plain Thingy';
@@ -29,6 +29,9 @@ $(window).ready(function() {
 	// draw this to the map
 	// should be updated
 	DThing.prototype.draw = function() {
+		if (this.ghost_loc) {
+			this.draw_ghost(this.ghost_loc);
+		}
 		if (this.placed && this.layout != []) {
 			
 			var width = this.layout[0].length;
@@ -36,8 +39,7 @@ $(window).ready(function() {
 			var t_size = window.Map.tilesize;
 			
 			window.Draw.use_layer('objects');
-			return (window.Draw.image(this.image, this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size));
-			//window.Draw.draw_box(this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size);
+			return (window.Draw.image(this.image, this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size, false, .75));
 			
 		} else if (!this.placed && this.layout != []) {
 			window.Draw.use_layer('objects');
@@ -58,14 +60,42 @@ $(window).ready(function() {
 		}
 	}
 	
+	// draw a ghost of this object at given location
+	DThing.prototype.draw_ghost = function(location) {
+		this.ghost_loc = location;
+		if (this.layout != []) {
+			var width = this.layout[0].length;
+			var height = this.layout.length;
+			var t_size = window.Map.tilesize;
+			
+			window.Draw.use_layer('entities');
+			return (window.Draw.image(this.image, this.ghost_loc[0] * t_size, this.ghost_loc[1] * t_size, width * t_size, height * t_size, false, .5));
+		}
+	}
+	
 	// add a tag to this object
-	DThing.prototype.add_tag = function(type) {
-		return true;
+	DThing.prototype.draw_tag = function(type) {
+		if (type == 'move') {
+			var t_size = window.Map.tilesize;
+			var loc = [(this.world_coords[0] + this.tag_loc[0]) * t_size, (this.world_coords[1] + this.tag_loc[1]) * t_size];
+			window.Draw.use_layer('tags');
+			console.log(window.Draw.image('tag_move', loc[0], loc[1], t_size, t_size));
+		}
+	}
+	
+	DThing.prototype.remove_tag = function() {
+		var t_size = window.Map.tilesize;
+		var loc = [(this.world_coords[0] + this.tag_loc[0]) * t_size, (this.world_coords[1] + this.tag_loc[1]) * t_size];
+		window.Draw.use_layer('tags');
+		window.Draw.clear_box(loc[0], loc[1], t_size, t_size);
 	}
 	
 	 // convert local coordinates to world coordinates
-	DThing.prototype.local_to_world = function(local) {
-		return [this.world_coords[0] + local[0], this.world_coords[1] + local[1]];
+	DThing.prototype.local_to_world = function(local, world) {
+		if (world == undefined) {
+			world = this.world_coords;
+		}
+		return [world[0] + local[0], world[1] + local[1]];
 	}
 
 	// convert world coordinates to local coordinates
@@ -74,12 +104,15 @@ $(window).ready(function() {
 	}
 
 	// attach this object's layout to the correct world maps
-	DThing.prototype.apply_layout = function() {
+	DThing.prototype.apply_layout = function(location) {
+		if (!location) {
+			location = this.world_coords;
+		}
 		if (this.layout != []) {
 			if (this.placed) {
 				for (var i = 0; i < this.layout.length; i++) {
 					for (var j = 0; j < this.layout[i].length; j++) {
-						var coords = this.local_to_world([j, i]);
+						var coords = this.local_to_world([j, i], location);
 						if (this.layout[i][j] == 1) { // collision and placement
 							window.Map.push('objects', coords[0], coords[1], this);
 							window.Map.set('pathfinding', coords[0], coords[1], 1);
@@ -184,7 +217,9 @@ $(window).ready(function() {
 	window.Draw.add_image('crater_large', "./textures/ground/crater_large.png");
 	window.Draw.add_image('derpifier', "./textures/objects/derpifier.png");
 	
-
+	window.Draw.add_image('tag_move', "./textures/UI/tag_move.png");
+	window.Draw.add_image('tag_build', "./textures/UI/tag_build.png");
+	window.Draw.add_image('tag_remove', "./textures/UI/tag_remove.png");
 
 });
 

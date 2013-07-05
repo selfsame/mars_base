@@ -15,7 +15,7 @@ window.Map = {
 		window.Draw.create_layer('background', true);
 		window.Draw.create_layer('objects', true);
 		window.Draw.create_layer('entities', false);
-		window.Draw.create_layer('tags', false); // temporary, not sure where tags will go
+		window.Draw.create_layer('tags', true); // temporary, not sure where tags will go
 
 		this.px_w = this.width*this.tilesize
 		this.px_h = this.height*this.tilesize

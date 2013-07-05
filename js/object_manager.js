@@ -97,14 +97,28 @@ window.object_manager = {
 		if (e.which == 1 && this.edit_mode) {
 			if (this.edit_style == 'move') {
 				var coords = window.Events.tile_under_mouse;
-				this.selected.remove();
-				if (this.selected.place(coords)) {
+				
+				if (this.selected.check_clear(coords)) {
+					this.selected.draw_ghost(coords);
+					this.selected.draw_tag('move');
+					this.selected.apply_layout(coords);
 					this.edit_style = 'select';
+					if (this.obs_moving.indexOf(this.selected) == -1) {
+						this.obs_moving.push(this);
+					}
 					this.selected = 0;
 				} else {
-					this.selected.place(this.selected.world_coords)
-					alert('cannot place here!');
+					alert("Object cannot be placed there!");
 				}
+				
+				//this.selected.remove();
+				//if (this.selected.place(coords)) {
+				//	this.edit_style = 'select';
+				//	this.selected = 0;
+				//} else {
+				//	this.selected.place(this.selected.world_coords)
+				//	alert('cannot place here!');
+				//}
 			}
 		}
 	}
