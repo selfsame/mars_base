@@ -132,6 +132,31 @@ window.Map = {
 				}
 			}
 		}
+	},	
+	push: function (layer, x, y, ob) {
+		if (this.arrays[layer][y][x] == 0) {
+			this.arrays[layer][y][x] = [ob];
+			return true;
+		} else {
+			if (this.arrays[layer][y][x].indexOf(ob) == -1) {
+				this.arrays[layer][y][x].push(ob);
+				return true;
+			} else {
+				return false;
+			}
+		}
+	},
+	remove: function (layer, x, y, ob) {
+		if (this.arrays[layer][y][x] == 0) {
+			return false;
+		} else if (this.arrays[layer][y][x].indexOf(ob) == -1) {
+			return false
+		} else {
+			this.arrays[layer][y][x].remove(ob);
+		}
+	},
+	contains: function (layer, x, y, ob) {
+		return (this.arrays[layer][y][x].indexOf(ob) != -1);
 	},
 	draw_background: function(){
 		// sloppy check if images are loaded

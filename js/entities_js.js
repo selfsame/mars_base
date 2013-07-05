@@ -79,10 +79,10 @@ $(window).ready(function() {
 					for (var j = 0; j < this.layout[i].length; j++) {
 						var coords = this.local_to_world([j, i]);
 						if (this.layout[i][j] == 1) { // collision and placement
+							window.Map.push('objects', coords[0], coords[1], this);
 							window.Map.set('pathfinding', coords[0], coords[1], 1);
-							window.Map.set('objects', coords[0], coords[1], this);
 						} else if (this.layout[i][j] != 0) {
-							window.Map.set('objects', coords[0], coords[1], this);
+							window.Map.push('objects', coords[0], coords[1], this);
 						}
 					}
 				}
@@ -92,10 +92,10 @@ $(window).ready(function() {
 					for (var j = 0; j < this.layout[i].length; j++) {
 						var coords = this.local_to_world([j, i]);
 						if (this.layout[i][j] == 1) { // collision and placement
+							window.Map.remove('objects', coords[0], coords[1], this);
 							window.Map.set('pathfinding', coords[0], coords[1], 0);
-							window.Map.set('objects', coords[0], coords[1], 0);
 						} else if (this.layout[i][j] != 0) {
-							window.Map.set('objects', coords[0], coords[1], 0);
+							window.Map.remove('objects', coords[0], coords[1], this);
 						}
 					}
 				}
@@ -145,6 +145,8 @@ $(window).ready(function() {
 		var p = this.placed;
 		this.placed = false;
 		if (this.apply_layout()) {
+			this.needs_draw = true;
+			this.draw();
 			this.detach_from_map();
 			return true;
 		}

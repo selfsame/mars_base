@@ -31,8 +31,8 @@ window.object_manager = {
 			if (this.edit_style == 'select') {
 				var coords = window.Events.tile_under_mouse;
 				this.selected = window.Map.get('objects', coords[0], coords[1]);
-				if (this.selected != 0 && ! this.selected.length) {
-
+				if (this.selected != 0) {
+					this.selected = this.selected[0];
 					alert('Selected: ' + this.selected + this.selected.name);
 				} else {
 					this.selected = 0
@@ -46,19 +46,28 @@ window.object_manager = {
 	update: function(delta) { // called consistantly
 		if (this.selected != 0) {
 			this.highlight_selected();
+			if (this.edit_style == 'move') {
+				if (this.selected.check_clear(window.Events.tile_under_mouse)) {
+					this.draw_layout(window.Events.tile_under_mouse, this.selected.layout, 'green');
+				} else {
+					this.draw_layout(window.Events.tile_under_mouse, this.selected.layout, 'red');
+				}
+			}
 		}
 	},
 	
 	highlight_selected: function() {
-		this.draw_layout(this.selected.layout, 'red');
+		this.draw_layout(this.selected.world_coords, this.selected.layout, 'yellow');
 	},
 	
-	draw_layout: function(layout, color) {
+	draw_layout: function(pos, layout, color) {
 		window.Draw.use_layer('entities');
 		if (color == 'red') {
 			color = "rgba(255, 20, 10, .5)";
-		} if (color == 'green') {
+		} else if (color == 'green') {
 			 color = "rgba(10, 255, 10, .5)";
+		} else if (color == 'yellow') {
+			color = "rgba(128, 128, 10, .5)";
 		} else {
 			color = "rgba(10, 20, 255, .5)";
 		}
@@ -66,8 +75,7 @@ window.object_manager = {
 		for (var i = 0; i < layout[0].length; i++) {
 			for (var j = 0; j < layout.length; j++) {
 				if (layout[j][i] != 0) {
-					var pos =[(window.Events.tile_under_mouse[0] + i) * window.Map.tilesize, (window.Events.tile_under_mouse[1] + j) * window.Map.tilesize];
-					window.Draw.draw_box(pos[0], pos[1], window.Map.tilesize, window.Map.tilesize, {
+					window.Draw.draw_box((pos[0] + i) * window.Map.tilesize, (pos[1] + j) * window.Map.tilesize, window.Map.tilesize, window.Map.tilesize, {
 						fillStyle: color,
 						strokeStyle: color,
 						lineWidth: 2
