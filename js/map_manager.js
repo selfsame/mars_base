@@ -15,6 +15,7 @@ window.Map = {
 		window.Draw.create_layer('background', true);
 		window.Draw.create_layer('objects', true);
 		window.Draw.create_layer('entities', false);
+		window.Draw.create_layer('tags', false); // temporary, not sure where tags will go
 
 		this.px_w = this.width*this.tilesize
 		this.px_h = this.height*this.tilesize
@@ -28,7 +29,7 @@ window.Map = {
 		
 		if (options == null) {
           options = {
-            crater_oc: .025,
+            crater_oc: .001,
             rock_oc: .2,
             rock2_oc: .1
           };
@@ -51,24 +52,21 @@ window.Map = {
 			}
 		}
 
-		var middle = [this.height*.4, this.width*.4, this.height*.6, this.width*.6,] // 1/3 square in the middle. no-crater zone
+		var middle = [this.height*.4, this.width*.4, this.height*.6, this.width*.6]; // 1/3 square in the middle. no-crater zone
 		
+		
+		derp = new window.Entities.classes.Derpifier();
+		derp.place([26, 16]);
 		
 		for (var i = 0; i <= (this.height); i++) {
 			for (var j = 0; j <= (this.width); j++) {
 				if ((i < middle[0] || j < middle[1] || i >= middle[2] || j >= middle[3])) { // not in the middle square
-					if (Math.random() <=  .01 ) { // options.crater_oc) {
-						var x = parseInt(Math.random()*window.Map.width)*window.Map.tilesize;
-						var y = parseInt(Math.random()*window.Map.height)*window.Map.tilesize;
-						//crater = new window.Entities.classes.Crater_Small('crater', 'crater_small');
-						crater = Crater_Small();
-						//crater.layout = [[1, 1, 1],
-	//					   				[1, 1, 1],
-		//				   				[1, 1, 1]];
-						//crater.sprite_size = 64
-//
-//
-      					//crater.sprite_offset = [-16,-16]
+					var rand = Math.random();
+					if (rand <=  options.crater_oc ) {
+						var x = parseInt(Math.random()*window.Map.width);//*window.Map.tilesize;
+						var y = parseInt(Math.random()*window.Map.height);//*window.Map.tilesize;
+						crater = new window.Entities.classes.Crater_Small();
+						crater.place([x, y]);
 					}
 				}
 			}

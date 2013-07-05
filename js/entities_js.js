@@ -3,16 +3,25 @@
 $(window).ready(function() {
 
 
-	DThing = window.Entities.add_class('DThing', 'Entity');
+	DThing = window.Entities.add_class('DThing', 'Thing');
 
 	DThing.prototype.init = function() {
-		//this.attach_to_map();
 		this.world_coords = []; // top left corner, in world coordinates
 		this.layout = []; // 2d layout of this object
 		this.tag_loc = [0, 0]; // location relative to layout, where the tag goes
-		this.moveable = false; // can the astronauts move this object?
+		
+		this.moveable = false; // can the colonists move this object?
+		this.buildable = false; // can the colonists build this object?
+		this.removable = false; // can the astronauts remove this object?
+		
 		this.placed = false; // if this object has been placed yet
-		this.name = 'Thing';
+		this.name = 'Plain Thingy';
+		this.setup();
+		return this;
+	}
+	
+	DThing.prototype.setup = function() {
+		console('wrong one fool');
 	}
 	
 	// draw this to the map
@@ -46,7 +55,6 @@ $(window).ready(function() {
 			return false; // nothing to draw
 		}
 	}
-	
 	
 	// add a tag to this object
 	DThing.prototype.add_tag = function(type) {
@@ -100,6 +108,7 @@ $(window).ready(function() {
 	// check if it can be placed at given location
 	DThing.prototype.check_clear = function(location) {
 		if (this.layout) {
+			
 			for (var i = 0; i < this.layout.length; i++) {
 				for (var j = 0; j < this.layout[i].length; j++) {
 					var coords = [location[0] + j, location[1] + i];
@@ -121,7 +130,7 @@ $(window).ready(function() {
 			this.world_coords = location;
 			this.placed = true;
 			if (this.apply_layout()) {
-				this.draw();
+				this.attach_to_map();
 				return true
 			} else {
 				this.world_coords = [];
@@ -131,18 +140,39 @@ $(window).ready(function() {
 		return false;
 	}
 	
-
+	// remove the object
+	DThing.prototype.remove = function() {
+		var p = this.placed;
+		this.placed = false;
+		if (this.apply_layout()) {
+			this.detach_from_map();
+			return true;
+		}
+		this.placed = p;
+		return false;
+	}
+	
 	Crater_Small = window.Entities.add_class('Crater_Small', 'DThing');
 	
-	Crater_Small.prototype.init = function() {
-		this.constructor(arguments);
+	Crater_Small.prototype.setup = function() {
+		this.name = 'Small Crater';
+		this.image = 'crater_small';
+		this.tag_loc = [1, 1];
 		this.layout = [[1, 1, 1],
 					   [1, 1, 1],
 					   [1, 1, 1]];
-
 	}
-
 	
+
+	Derpifier = window.Entities.add_class('Derpifier', 'DThing');
+	
+	Derpifier.prototype.setup = function() {
+		this.name = 'Derpifier';
+		this.image = 'derpifier';
+		this.tag_loc = [0, 0];
+		this.layout = [[1, 0, 0, 2],
+					   [1, 1, 1, 2]];
+	}
 
 	
 	/*Crater_Small = (function(_super) {
