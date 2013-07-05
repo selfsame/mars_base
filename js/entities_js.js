@@ -13,6 +13,8 @@ $(window).ready(function() {
 		this.moveable = false; // can the colonists move this object?
 		this.buildable = false; // can the colonists build this object?
 		this.removable = false; // can the astronauts remove this object?
+		this.selectable = true; // can this object be selected?
+		
 		
 		this.placed = false; // if this object has been placed yet
 		this.name = 'Plain Thingy';
@@ -175,97 +177,6 @@ $(window).ready(function() {
 		this.layout = [[1, 0, 0, 2],
 					   [1, 1, 1, 2]];
 	}
-
-	
-	/*Crater_Small = (function(_super) {
-		
-		__extends(Crater_Small, _super);
-		
-		Crater_Small.name = 'Crater_Small';
-		
-		function Crater_Small(coords) {
-			Crater_Small.__super__.constructor.apply(this, arguments);
-			this.layout = [[1, 1, 1],
-						   [1, 1, 1],
-						   [1, 1, 1]];
-			this.image = 'crater_small';
-			this.name = 'Small Crater'
-			if (coords) {
-				return this.place(coords);
-			}
-			return true;
-		}
-		
-		return Crater_Small;
-	})(Thing);
-	
-	Crater_Medium = (function(_super) {
-		
-		__extends(Crater_Medium, _super);
-		
-		Crater_Medium.name = 'Crater_Small';
-		
-		function Crater_Medium(coords) {
-			Crater_Medium.__super__.constructor.apply(this, arguments);
-			this.layout = [[2, 1, 1, 2],
-						   [1, 1, 1, 1],
-						   [1, 1, 1, 1],
-						   [2, 1, 1, 2]];
-			this.image = 'crater_medium';
-			this.name = 'Medium Crater'
-			if (coords) {
-				return this.place(coords);
-			}
-			return true;
-		}
-		
-		return Crater_Medium;
-	})(Thing);
-	
-	Crater_Large = (function(_super) {
-		
-		__extends(Crater_Large, _super);
-		
-		Crater_Large.name = 'Crater_Large';
-		
-		function Crater_Large(coords) {
-			Crater_Large.__super__.constructor.apply(this, arguments);
-			this.layout = [[2, 1, 1, 1, 2],
-						   [1, 1, 1, 1, 1],
-						   [1, 1, 1, 1, 1],
-						   [1, 1, 1, 1, 1],
-						   [2, 1, 1, 1, 2]];
-			this.image = 'crater_large';
-			this.name = 'Large Crater'
-			if (coords) {
-				return this.place(coords);
-			}
-			return true;
-		}
-		
-		return Crater_Large;
-	})(Thing);
-	
-	Derpifier = (function(_super) {
-		
-		__extends(Derpifier, _super);
-		
-		Derpifier.name = 'Derpifier';
-		
-		function Derpifier(coords) {
-			Derpifier.__super__.constructor.apply(this, arguments);
-			this.layout = [[1, 0, 0, 2],
-						   [1, 1, 1, 2]];
-			this.name = 'Derpifier'
-			this.image = 'derpifier';
-			if (coords) {
-				return this.place(coords);
-			}
-			return true;
-		}
-		
-		return Derpifier; */
-
 
 	window.Draw.add_image('rock', "./textures/ground/crater_small.png");
 	window.Draw.add_image('crater_small', "./textures/ground/crater_small.png");

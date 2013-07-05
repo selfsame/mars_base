@@ -33,7 +33,13 @@ window.object_manager = {
 				this.selected = window.Map.get('objects', coords[0], coords[1]);
 				if (this.selected != 0) {
 					this.selected = this.selected[0];
-					alert('Selected: ' + this.selected + this.selected.name);
+					if (this.selected.selectable) {
+						alert('Selected: ' + this.selected + this.selected.name);
+						return;
+					} else {
+						this.selected = 0;
+						return;
+					}
 				} else {
 					this.selected = 0
 				}
