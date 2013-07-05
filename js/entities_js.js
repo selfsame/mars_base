@@ -16,6 +16,8 @@ $(window).ready(function() {
 		this.removable = false; // can the astronauts remove this object?
 		this.selectable = true; // can this object be selected?
 		
+		this.rotate = 1; // 1 = no rotate, 2 = 90, 3 = 180, 4 = 270
+		
 		this.placed = false; // if this object has been placed yet
 		this.name = 'Plain Thingy';
 		this.setup();
