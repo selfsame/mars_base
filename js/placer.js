@@ -123,15 +123,15 @@
     },
     job_done: function(order) {
       var job, _i, _len, _ref;
-      console.log("PLACER JOB DONE");
       _ref = this.job_visuals;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         job = _ref[_i];
         if (job[0] === order[0] && job[2][0] === order[1][0] && job[2][1] === order[1][1]) {
           this.job_visuals.remove(job);
-          return;
+          return true;
         }
       }
+      return false;
     }
   };
 

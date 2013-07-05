@@ -255,7 +255,6 @@
       }
 
       SlowWalker.prototype.init = function() {
-        this.state = 'idle';
         this.speed = 4;
         this.turn_speed = .04;
         this.target = 0;
@@ -876,17 +875,25 @@
 
       SlowSentient.prototype._place = function(e) {
         var obj, r, _i, _len;
-        if ((e != null) && typeof e === 'object' && e.type === 'e') {
-          r = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
-          if (r === 0) {
-            return false;
-          }
-          for (_i = 0, _len = r.length; _i < _len; _i++) {
-            obj = r[_i];
-            if (obj.EID === r.EID) {
-              if (obj.place != null) {
-                obj.place();
-                return true;
+        if (this.job && this.job.place_proxy) {
+          if ((e != null) && typeof e === 'object' && e.type === 'e') {
+            r = window.Entities.sentient_hash.get_within([this.pos[0], this.pos[1]], 64);
+            if (r === 0) {
+              return false;
+            }
+            for (_i = 0, _len = r.length; _i < _len; _i++) {
+              obj = r[_i];
+              if (obj.EID === r.EID) {
+                console.log('found place object ', e.s);
+                if (window.Placer.job_done(this.job.place_proxy)) {
+                  this.job.approved = true;
+                  if (obj.place != null) {
+                    obj.pos = [this.job.place_proxy[1][0] * 32, this.job.place_proxy[1][1] * 32];
+                    obj.pos_to_tile_pos();
+                    obj.place();
+                    return true;
+                  }
+                }
               }
             }
           }

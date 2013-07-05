@@ -39,7 +39,7 @@ p.tile_pos{
 	right: 0px;
 	top:0px;
 	width: auto;
-	margin: 8px;
+	margin: 4px;
 }
 
 #ob_inspect {
@@ -213,8 +213,8 @@ p.tile_pos{
 	position:absolute;
 	width:330px;
 	right: 20px;
-	top: 20px;
-	height: 900px;
+	top: 0px;
+	height: auto;
 	padding: 10px;
 	background-color: rgba(0, 0, 0, 0.8);
 	overflow:hidden;

@@ -101,11 +101,11 @@ window.Placer =
     temp = new window.Entities.classes.Door('Door',@valid, pos)
 
   job_done: (order)->
-    console.log "PLACER JOB DONE"
     for job in @job_visuals
       if job[0] is order[0] and job[2][0] is order[1][0] and job[2][1] is order[1][1]
         @job_visuals.remove job
-        return
+        return true
+    return false
     
 
 $(window).ready ->
