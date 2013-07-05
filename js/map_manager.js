@@ -60,14 +60,15 @@ window.Map = {
 					if (Math.random() <=  .01 ) { // options.crater_oc) {
 						var x = parseInt(Math.random()*window.Map.width)*window.Map.tilesize;
 						var y = parseInt(Math.random()*window.Map.height)*window.Map.tilesize;
-						crater = new window.Entities.classes.DThing('crater', 'crater_small', [ i*32,j*32 ]);
-						crater.layout = [[1, 1, 1],
-						   				[1, 1, 1],
-						   				[1, 1, 1]];
-						crater.sprite_size = 64
-
-
-      					crater.sprite_offset = [-16,-16]
+						//crater = new window.Entities.classes.Crater_Small('crater', 'crater_small');
+						crater = Crater_Small();
+						//crater.layout = [[1, 1, 1],
+	//					   				[1, 1, 1],
+		//				   				[1, 1, 1]];
+						//crater.sprite_size = 64
+//
+//
+      					//crater.sprite_offset = [-16,-16]
 					}
 				}
 			}

@@ -1,24 +1,51 @@
 
 
 $(window).ready(function() {
-	
-	DThing = window.Entities.add_class('DThing', 'Thing');
 
 
-	
-
+	DThing = window.Entities.add_class('DThing', 'Entity');
 
 	DThing.prototype.init = function() {
-		this.attach_to_map();
+		//this.attach_to_map();
 		this.world_coords = []; // top left corner, in world coordinates
 		this.layout = []; // 2d layout of this object
-		this.placable = false;
+		this.tag_loc = [0, 0]; // location relative to layout, where the tag goes
+		this.moveable = false; // can the astronauts move this object?
 		this.placed = false; // if this object has been placed yet
 		this.name = 'Thing';
 	}
 	
 	// draw this to the map
 	// should be updated
+	DThing.prototype.draw = function() {
+		if (this.placed && this.layout != []) {
+			
+			var width = this.layout[0].length;
+			var height = this.layout.length;
+			var t_size = window.Map.tilesize;
+			
+			window.Draw.use_layer('objects');
+			return (window.Draw.image(this.image, this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size));
+			//window.Draw.draw_box(this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size);
+			
+		} else if (!this.placed && this.layout != []) {
+			window.Draw.use_layer('objects');
+			var t_size = window.Map.tilesize;
+			
+			for (var i = 0; i < this.layout.length; i++) {
+				for (var j = 0; j < this.layout[i].length; j++) {
+					var coords = this.local_to_world([j, i]);
+					window.Draw.use_layer('objects');
+					if (this.layout[i][j] != 0) { // non-empty square
+						window.Draw.clear_box(coords[0] * t_size, coords[1] * t_size, t_size, t_size);
+					}
+				}
+			}
+			
+		} else {
+			return false; // nothing to draw
+		}
+	}
 	
 	
 	// add a tag to this object
@@ -105,12 +132,15 @@ $(window).ready(function() {
 	}
 	
 
-	crater_small = new DThing('crater', 'crater_small', [ 20,40 ]);
-	crater_small.layout = [[1, 1, 1],
-						   [1, 1, 1],
-						   [1, 1, 1]];
-		
-	console.log( crater_small );
+	Crater_Small = window.Entities.add_class('Crater_Small', 'DThing');
+	
+	Crater_Small.prototype.init = function() {
+		this.constructor(arguments);
+		this.layout = [[1, 1, 1],
+					   [1, 1, 1],
+					   [1, 1, 1]];
+
+	}
 
 	
 
