@@ -16,7 +16,11 @@ $(window).ready ->
 			#view properties
 			@scroll_x = 0
 			@scroll_y = 0
-			@zoom = 1.0
+			@zoom = 0.7
+
+
+			$('#scroll').css('left', window.Map.px_w / 2 + @view_w/2 )
+			$('#scroll').css('top', window.Map.px_h / 2 + @view_h/2 )
 
 			$(window).resize ->
 				window.Draw.resize()
@@ -124,6 +128,8 @@ $(window).ready ->
 					$('#scroll').css('top', @scroll_y)
 
 		mousewheel: (e)->
+			if $('#UI_overlay').is $(e.target).parents()
+				return
 			mx = window.Events.last_mouse_pos[0]
 			my = window.Events.last_mouse_pos[1]
 			mx -= @scroll_x

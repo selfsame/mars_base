@@ -24,12 +24,14 @@
         this.sprite_size = 32;
         this.sprite_offset = [0, 0];
         this.claimed = false;
+        this.claimed_timer = 0;
         this.state_que = [];
         this.hidden = false;
         this.block_build = false;
         this.needs_draw = true;
         this.persistant_draw = true;
         this.grid_area = false;
+        this.flags = {};
         this.init();
         this.init_2();
       }
@@ -39,6 +41,10 @@
       Entity.prototype.init_2 = function() {};
 
       Entity.prototype.__update = function(delta) {
+        this.claimed_timer += 1;
+        if (this.claimed_timer > 3000) {
+          this.claimed = false;
+        }
         this.pos_to_tile_pos();
         this.delta_time = delta;
         this.total_time += delta;

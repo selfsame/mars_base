@@ -5,7 +5,11 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   $(window).ready(function() {
-    var AxisNum, EntityRef, RegisterStack, SlowEntity, SlowSentient, SlowWalker, Vect2D;
+    var AxisNum, EntityRef, RegisterStack, Scripted, SlowColonist, SlowEntity, SlowSentient, SlowWalker, Vect2D;
+    Vect2D = window.SlowDataTypes.Vect2D;
+    AxisNum = window.SlowDataTypes.AxisNum;
+    EntityRef = window.SlowDataTypes.EntityRef;
+    RegisterStack = window.SlowDataTypes.RegisterStack;
     SlowEntity = (function() {
 
       SlowEntity.name = 'SlowEntity';
@@ -16,7 +20,8 @@
         this.pos = pos != null ? pos : [0, 0];
         this.EID = window.get_unique_id();
         this.props = {
-          name: this.nombre
+          name: this.nombre,
+          task: false
         };
         this.draw_hooks = [];
         this.tile_pos = [parseInt(this.pos[0] / window.Map.tilesize), parseInt(this.pos[1] / window.Map.tilesize)];
@@ -32,6 +37,7 @@
         this.block_build = false;
         this.needs_draw = true;
         this.persistant_draw = true;
+        this.flags = {};
         this.init();
         this.init_2();
       }
@@ -46,11 +52,15 @@
         this.delta_time = delta;
         this.total_time += delta;
         this.frame_count += 1;
+        this.move();
         if (!this.hidden) {
           this.draw();
         }
-        return this.update(delta);
+        this.update(delta);
+        return this.update_2();
       };
+
+      SlowEntity.prototype.move = function() {};
 
       SlowEntity.prototype.hide = function() {
         if (!this.hidden) {
@@ -126,6 +136,114 @@
       return SlowEntity;
 
     })();
+    Scripted = (function(_super) {
+
+      __extends(Scripted, _super);
+
+      Scripted.name = 'Scripted';
+
+      function Scripted() {
+        return Scripted.__super__.constructor.apply(this, arguments);
+      }
+
+      Scripted.prototype.init_2 = function() {
+        this.speed = 2;
+        this.parsed_script = false;
+        this.parser = false;
+        this.script = false;
+        this.error = false;
+        try {
+          this.parsed_script = window.slow_parser.parse(this.script);
+        } catch (error) {
+          console.log('parse error: ', error, this.script);
+        }
+        if (this.parsed_script) {
+          return this.parser = new window.Entities.slowparser(this, this.parsed_script);
+        }
+      };
+
+      Scripted.prototype.update_2 = function(delta) {
+        if (this.parser) {
+          return this.parser.exec();
+        }
+      };
+
+      Scripted.prototype.run_script = function(script) {
+        var i, j, _i, _j, _len, _ref, _results;
+        this.script = script;
+        try {
+          this.parsed_script = window.slow_parser.parse(this.script);
+          this.error = false;
+        } catch (error) {
+          this.error = {
+            line: error.line,
+            column: error.column,
+            message: error.name + ': ' + error.found
+          };
+        }
+        if (this.parsed_script) {
+          this.parser = new window.Entities.slowparser(this, this.parsed_script);
+          this.script_vars = {};
+          _ref = ['I', 'F', 'S', 'V', 'E'];
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            i = _ref[_i];
+            this.script_vars[i] = [];
+            for (j = _j = 0; _j <= 9; j = ++_j) {
+              this.script_vars[i].push(void 0);
+            }
+            _results.push(this.script_vars[i].push(new RegisterStack));
+          }
+          return _results;
+        }
+      };
+
+      Scripted.prototype.walk_path = function() {
+        var near, p1, p2, tilesize;
+        if (!(this.path != null)) {
+          this.target = false;
+          return false;
+        }
+        if (this.path.length === 0) {
+          this.target = false;
+          this.path = false;
+          return false;
+        }
+        try {
+          if (this.path[0].length === 0) {
+            this.target = false;
+            this.path = false;
+            return false;
+          }
+        } catch (error) {
+
+        }
+        tilesize = window.Map.tilesize;
+        try {
+          p1 = this.path[0][0] * tilesize;
+          p2 = this.path[0][1] * tilesize;
+        } catch (error) {
+          console.log("BAD PATH:", error);
+          console.log(this.path);
+          return false;
+        }
+        this.vect_to_target = new Vector((this.path[0][0] * tilesize) - this.pos[0], (this.path[0][1] * tilesize) - this.pos[1], 0);
+        this.dist_to_target = this.vect_to_target.length();
+        this.target_vect = this.normalize_vector(this.vect_to_target);
+        this.vector = Vector.lerp(this.vector, this.target_vect, this.turn_speed);
+        near = 10;
+        if (this.pos[0] > p1 - near && this.pos[0] < p1 + near && this.pos[1] > p2 - near && this.pos[1] < p2 + near) {
+          this.path = this.path.splice(1, this.path.length);
+          this.velocity = .1;
+          if (this.path.length === 0) {
+            return true;
+          }
+        }
+      };
+
+      return Scripted;
+
+    })(SlowEntity);
     SlowWalker = (function(_super) {
 
       __extends(SlowWalker, _super);
@@ -258,30 +376,10 @@
         path = window.Entities.get_path(this.tile_pos[0], this.tile_pos[1], pos[0], pos[1]);
         if (path && (path.length != null) && path.length > 0) {
           this.path = path;
-          this.state = 'moving';
           return true;
         } else {
-          this.state = 'wait';
           return false;
         }
-      };
-
-      SlowWalker.prototype.path_close_to = function(pos) {
-        var i, j, path, _i, _j;
-        path = window.Entities.get_path(this.tile_pos[0], this.tile_pos[1], pos[0], pos[1]);
-        if (path && (path.length != null) && path.length > 0) {
-          return path;
-        } else {
-          for (i = _i = -1; _i <= 1; i = ++_i) {
-            for (j = _j = -1; _j <= 1; j = ++_j) {
-              path = window.Entities.get_path(this.tile_pos[0], this.tile_pos[1], pos[0] + i, pos[1] + j);
-              if (path && (path.length != null) && path.length > 0) {
-                return path;
-              }
-            }
-          }
-        }
-        return false;
       };
 
       SlowWalker.prototype.radians_between_vectors = function(v1, v2) {
@@ -395,209 +493,7 @@
 
       return SlowWalker;
 
-    })(SlowEntity);
-    Vect2D = (function() {
-
-      Vect2D.name = 'Vect2D';
-
-      function Vect2D(x, y) {
-        this.x = x;
-        this.y = y;
-        this.type = 'v';
-      }
-
-      Vect2D.prototype.to_string = function() {
-        return '' + this.x + ',' + this.y;
-      };
-
-      Vect2D.prototype.add = function(thing, apply) {
-        if (apply == null) {
-          apply = false;
-        }
-        return this.operate('add', thing, apply);
-      };
-
-      Vect2D.prototype.subtract = function(thing, apply) {
-        if (apply == null) {
-          apply = false;
-        }
-        return this.operate('subtract', thing, apply);
-      };
-
-      Vect2D.prototype.multiply = function(thing, apply) {
-        if (apply == null) {
-          apply = false;
-        }
-        return this.operate('multiply', thing, apply);
-      };
-
-      Vect2D.prototype.divide = function(thing, apply) {
-        if (apply == null) {
-          apply = false;
-        }
-        return this.operate('divide', thing, apply);
-      };
-
-      Vect2D.prototype.modulo = function(thing, apply) {
-        if (apply == null) {
-          apply = false;
-        }
-        return this.operate('modulo', thing, apply);
-      };
-
-      Vect2D.prototype.operate = function(op, thing, apply) {
-        var nv, value, xx, yy, _ref;
-        value = false;
-        if (op === 'add' || op === 'subtract') {
-          if (typeof thing === 'number') {
-            return value;
-          }
-        }
-        if (typeof thing === 'object') {
-          if (thing.axis != null) {
-            value = parseInt(thing.value);
-            if ((_ref = thing.axis) === 'x' || _ref === 'y') {
-              if (op === 'add') {
-                value = this[thing.axis] + value;
-                if (apply) {
-                  this[thing.axis] = value;
-                }
-                nv = new Vect2D(this.x, this.y);
-                nv[thing.axis] = value;
-                console.log(nv);
-                return nv;
-              }
-              if (op === 'subtract') {
-                value = this[thing.axis] - value;
-                if (apply) {
-                  this[thing.axis] = value;
-                }
-                nv = new Vect2D(this.x, this.y);
-                nv[thing.axis] = value;
-                return nv;
-              }
-              if (op === 'multiply') {
-                value = this[thing.axis] * value;
-                if (apply) {
-                  this[thing.axis] = value;
-                }
-                nv = new Vect2D(this.x, this.y);
-                nv[thing.axis] = value;
-                return nv;
-              }
-              if (op === 'divide') {
-                value = this[thing.axis] / value;
-                if (apply) {
-                  this[thing.axis] = value;
-                }
-                nv = new Vect2D(this.x, this.y);
-                nv[thing.axis] = value;
-                return nv;
-              }
-              if (op === 'modulo') {
-                value = this[thing.axis] % value;
-                if (apply) {
-                  this[thing.axis] = value;
-                }
-                nv = new Vect2D(this.x, this.y);
-                nv[thing.axis] = value;
-                return nv;
-              }
-            }
-          }
-        }
-        if (typeof thing === 'number') {
-          value = parseInt(thing);
-          if (op === 'multiply') {
-            xx = this.x * value;
-            yy = this.y * value;
-            if (apply) {
-              this.x = xx;
-              this.y = yy;
-            }
-            return new Vect2D(xx, yy);
-          }
-          if (op === 'divide') {
-            xx = this.x / value;
-            yy = this.y / value;
-            if (apply) {
-              this.x = xx;
-              this.y = yy;
-            }
-            return new Vect2D(xx, yy);
-          }
-          if (op === 'modulo') {
-            xx = this.x % value;
-            yy = this.y % value;
-            if (apply) {
-              this.x = xx;
-              this.y = yy;
-            }
-            return new Vect2D(xx, yy);
-          }
-        }
-      };
-
-      return Vect2D;
-
-    })();
-    AxisNum = (function() {
-
-      AxisNum.name = 'AxisNum';
-
-      function AxisNum(value, axis) {
-        this.value = value;
-        this.axis = axis;
-        this.type = 'axisnum';
-      }
-
-      AxisNum.prototype.to_string = function() {
-        return this.value + this.axis;
-      };
-
-      return AxisNum;
-
-    })();
-    EntityRef = (function() {
-
-      EntityRef.name = 'EntityRef';
-
-      function EntityRef(entity) {
-        this.type = 'e';
-        this.e = entity.EID;
-        this.v = new Vect2D(entity.tile_pos[0], entity.tile_pos[1]);
-        this.s = entity.nombre;
-      }
-
-      EntityRef.prototype.to_string = function() {
-        return '' + this.e;
-      };
-
-      return EntityRef;
-
-    })();
-    RegisterStack = (function() {
-
-      RegisterStack.name = 'RegisterStack';
-
-      function RegisterStack() {
-        this.array = [];
-        this.type = 'stack';
-      }
-
-      RegisterStack.prototype.to_string = function() {
-        return '[x' + this.array.length + ']';
-      };
-
-      return RegisterStack;
-
-    })();
-    window.SlowDataTypes = {
-      Vect2D: Vect2D,
-      AxisNum: AxisNum,
-      EntityRef: EntityRef,
-      RegisterStack: RegisterStack
-    };
+    })(Scripted);
     SlowSentient = (function(_super) {
 
       __extends(SlowSentient, _super);
@@ -607,6 +503,11 @@
       function SlowSentient() {
         return SlowSentient.__super__.constructor.apply(this, arguments);
       }
+
+      SlowSentient.prototype._debug = function(i_f_s_v_e) {
+        console.log(this.nombre, ': ', i_f_s_v_e);
+        return true;
+      };
 
       SlowSentient.prototype._wander = function(i) {
         var distance;
@@ -628,46 +529,57 @@
         }
       };
 
-      SlowSentient.prototype._goto = function(v) {
+      SlowSentient.prototype._goto = function(e_v) {
+        var v;
+        v = e_v;
         if (typeof v === 'object' && v.x && v.y) {
-          if (!this.path || !this.target) {
+          if (!this.target) {
             this.target = [v.x, v.y];
-            this.path_to(this.target);
-            if (!this.path) {
-              console.log('cant make path');
-              return true;
-            }
           }
+        } else if (typeof v === 'object' && v.e) {
+          if (!this.target) {
+            this.target = [v.v.x, v.v.y];
+          }
+        }
+        if (!this.path && this.target) {
+          this.path_to([this.target[0], this.target[1]]);
+        }
+        if (this.path) {
           if (this.walk_path()) {
             this.path = false;
             this.target = false;
-            return true;
+            return e_v;
           }
         } else {
           return false;
         }
       };
 
-      SlowSentient.prototype._go_near = function(v) {
-        var mod;
-        this.debug = ['GO NEAR'];
+      SlowSentient.prototype._go_near = function(e_v) {
+        var mod, v;
+        v = e_v;
         if (typeof v === 'object' && v.x && v.y) {
           if (!this.target) {
             this.target = [v.x, v.y];
-            this.near_options = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [-1, -1], [1, -1], [1, 1]];
           }
-          if (!this.path) {
-            if (this.near_options.length === 0) {
-              return false;
-            }
-            mod = this.near_options.pop();
-            this.path_to([this.target[0] + mod[0], this.target[1] + mod[1]]);
-            return;
+        } else if (typeof v === 'object' && v.e) {
+          if (!this.target) {
+            this.target = [v.v.x, v.v.y];
           }
+        }
+        this.near_options = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [-1, -1], [1, -1], [1, 1]];
+        if (!this.path && this.target) {
+          if (this.near_options.length === 0) {
+            return false;
+          }
+          mod = this.near_options.pop();
+          this.path_to([this.target[0] + mod[0], this.target[1] + mod[1]]);
+        }
+        if (this.path) {
           if (this.walk_path()) {
             this.path = false;
             this.target = false;
-            return true;
+            return e_v;
           }
         } else {
           return false;
@@ -690,51 +602,123 @@
         }
       };
 
-      SlowSentient.prototype._search = function(i, s) {
-        var distance, local, obj, _i, _len;
-        if (s == null) {
-          s = false;
+      SlowSentient.prototype._slow_five = function(i) {
+        var time;
+        if (i == null) {
+          i = 10;
         }
-        distance = i;
+        time = i;
+        if (!this.test_timer) {
+          this.test_timer = 0;
+        }
+        this.test_timer += 1;
+        if (this.test_timer > time) {
+          this.test_timer = 0;
+          return 5;
+        }
+      };
+
+      SlowSentient.prototype._random = function(i) {
+        if (i == null) {
+          i = 100;
+        }
+        return parseInt(Math.random() * i);
+      };
+
+      SlowSentient.prototype._search = function(i_s) {
+        var distance, filter, local, obj, _i, _len;
+        if (typeof i_s === 'number') {
+          distance = i_s;
+          filter = false;
+        } else if (typeof i_s === 'string') {
+          distance = 400;
+          filter = true;
+        } else {
+          return;
+        }
         local = window.Entities.objects_hash.get_within([this.pos[0], this.pos[1]], distance);
         for (_i = 0, _len = local.length; _i < _len; _i++) {
           obj = local[_i];
-          if (s && typeof s === 'string') {
-            if (s === obj.nombre) {
+          if (!obj.claimed && !obj.placed) {
+            if (filter) {
+              if (i_s === obj.nombre) {
+                return new EntityRef(obj);
+              }
+            } else {
               return new EntityRef(obj);
             }
-          } else {
-            return new EntityRef(obj);
           }
         }
         return false;
       };
 
-      SlowSentient.prototype._use_object = function(e) {
-        var found, obj, r, _i, _len;
-        r = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
-        found = false;
-        if (r && r.length > 0) {
-          for (_i = 0, _len = r.length; _i < _len; _i++) {
-            obj = r[_i];
-            if (obj.nombre === this.want) {
-              found = true;
-              if (obj.use) {
-                if (obj.use(this)) {
-                  this.state = 'idle';
-                  this.forget(this.want, this.tile_pos);
-                  return;
-                } else {
-                  return;
-                }
+      SlowSentient.prototype._search_built = function(i_s) {
+        var distance, filter, local, obj, _i, _len;
+        if (typeof i_s === 'number') {
+          distance = i_s;
+          filter = false;
+        } else if (typeof i_s === 'string') {
+          distance = 400;
+          filter = true;
+        } else {
+          return;
+        }
+        local = window.Entities.objects_hash.get_within([this.pos[0], this.pos[1]], distance);
+        for (_i = 0, _len = local.length; _i < _len; _i++) {
+          obj = local[_i];
+          if (!obj.claimed && obj.placed) {
+            if (filter) {
+              if (i_s === obj.nombre) {
+                return new EntityRef(obj);
+              }
+            } else {
+              return new EntityRef(obj);
+            }
+          }
+        }
+        return false;
+      };
+
+      SlowSentient.prototype._use = function(e_s) {
+        var e, ground, o, r, s, _i, _len;
+        e = -9999;
+        s = '-00000000';
+        if (typeof e_s === 'object' && e_s.e) {
+          e = e_s.e;
+        }
+        if (typeof e_s === 'string') {
+          s = e_s;
+        }
+        ground = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
+        if (ground === 0) {
+          ground = [];
+        }
+        r = this.pocket.concat(ground);
+        for (_i = 0, _len = r.length; _i < _len; _i++) {
+          o = r[_i];
+          if (o.EID === e || o.nombre === s) {
+            if ((o.flags != null) && o.flags['suit']) {
+              this.pocket.remove(o);
+              this.wear_body = o;
+              this.wear_suit();
+              return e;
+            } else if ((o.use != null) && typeof o.use === 'function') {
+              if (o.use(this)) {
+                return e;
+              } else {
+                return;
               }
             }
           }
-          if (!found) {
-            this.state = 'job_fail';
-          }
         }
-        return this.state = 'job_fail';
+        return false;
+      };
+
+      SlowSentient.prototype.wear_suit = function() {
+        this.suit = true;
+        this.oxygen = 6000;
+        this.max_oxygen = 6000;
+        return this.image = 'suitwalk';
       };
 
       SlowSentient.prototype._pickup = function(e_s) {
@@ -752,12 +736,36 @@
           for (_k = 0, _len = r.length; _k < _len; _k++) {
             obj = r[_k];
             if (obj !== 'undefined' && typeof obj === 'object') {
-              if (obj.nombre === e_s) {
-                found = true;
+              if (typeof e_s === 'object') {
+                if (obj.EID = e_s.e) {
+                  obj.detach_from_map();
+                  this.pocket.push(obj);
+                  obj.pos = this.pos;
+                  return e_s;
+                }
+              } else if (obj.nombre === e_s) {
                 obj.detach_from_map();
                 this.pocket.push(obj);
                 obj.pos = this.pos;
-                return true;
+                return e_s;
+              }
+            }
+          }
+        }
+        return false;
+      };
+
+      SlowSentient.prototype._claim = function(e) {
+        var EID, o, _i, _len, _ref;
+        if (typeof e === 'object' && (e.e != null)) {
+          EID = e.e;
+          _ref = window.Entities.objects;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            o = _ref[_i];
+            if (o.EID = EID) {
+              if (!o.claimed) {
+                o.claimed = this.EID;
+                return e;
               }
             }
           }
@@ -772,6 +780,38 @@
             found = this.pocket[i_s_e];
             this.pocket.remove(found);
             found.attach_to_map([this.tile_pos[0], this.tile_pos[1]]);
+            return i_s_e;
+          }
+        } else {
+          _ref = this.pocket;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            obj = _ref[_i];
+            if (typeof obj === 'object') {
+              if (typeof i_s_e === 'object' && i_s_e.type === 'e') {
+                if (i_s_e.e === obj.EID) {
+                  obj.attach_to_map([this.tile_pos[0], this.tile_pos[1]]);
+                  this.pocket.remove(obj);
+                  return i_s_e;
+                }
+              }
+              if (typeof i_s_e === 'string') {
+                if (obj.nombre === i_s_e) {
+                  obj.attach_to_map([this.tile_pos[0], this.tile_pos[1]]);
+                  this.pocket.remove(obj);
+                  return i_s_e;
+                }
+              }
+            }
+          }
+        }
+        return false;
+      };
+
+      SlowSentient.prototype._pocket = function(i_s_e) {
+        var obj, _i, _len, _ref;
+        if (typeof i_s_e === 'number') {
+          if (this.pocket[i_s_e] != null) {
+            return new EntityRef(this.pocket[i_s_e]);
             return true;
           }
         } else {
@@ -781,17 +821,72 @@
             if (obj !== 'undefined' && typeof obj === 'object') {
               if (typeof i_s_e === 'object' && i_s_e.type === 'e') {
                 if (i_s_e.e === obj.UID) {
-                  obj.attach_to_map([this.tile_pos[0], this.tile_pos[1]]);
-                  this.pocket.remove(obj);
-                  return true;
+                  return new EntityRef(obj);
                 }
               }
               if (typeof i_s_e === 'string') {
                 if (obj.nombre === i_s_e) {
-                  obj.attach_to_map([this.tile_pos[0], this.tile_pos[1]]);
-                  this.pocket.remove(obj);
-                  return true;
+                  return new EntityRef(obj);
                 }
+              }
+            }
+          }
+        }
+        return false;
+      };
+
+      SlowSentient.prototype._get_task = function() {
+        var job, task;
+        if (!this.job) {
+          job = window.Jobs.get_job(this);
+          if (job) {
+            this.job = job;
+            console.log('assigned a job', this.job);
+          }
+        }
+        if (this.job) {
+          task = this.job.instructions.pop();
+          if (task) {
+            console.log('assign task: ', task);
+            this.props['task'] = task;
+            return task;
+          } else {
+            this.props['task'] = 0;
+            this.job.complete();
+            this.job = false;
+            return false;
+          }
+        }
+        return false;
+      };
+
+      SlowSentient.prototype._build = function() {
+        if (this.job && (this.job.tile != null)) {
+          if (this.n_tiles_away(this.tile_pos, [this.job.tile.x, this.job.tile.y], 200)) {
+            this.job.tile.build(30);
+            if (this.job.tile.built) {
+              console.log('tile built');
+              return true;
+            }
+            return;
+          }
+        }
+        return false;
+      };
+
+      SlowSentient.prototype._place = function(e) {
+        var obj, r, _i, _len;
+        if ((e != null) && typeof e === 'object' && e.type === 'e') {
+          r = window.Map.get('objects', this.tile_pos[0], this.tile_pos[1]);
+          if (r === 0) {
+            return false;
+          }
+          for (_i = 0, _len = r.length; _i < _len; _i++) {
+            obj = r[_i];
+            if (obj.EID === r.EID) {
+              if (obj.place != null) {
+                obj.place();
+                return true;
               }
             }
           }
@@ -802,9 +897,119 @@
       return SlowSentient;
 
     })(SlowWalker);
+    SlowColonist = (function(_super) {
+
+      __extends(SlowColonist, _super);
+
+      SlowColonist.name = 'SlowColonist';
+
+      function SlowColonist() {
+        return SlowColonist.__super__.constructor.apply(this, arguments);
+      }
+
+      SlowColonist.prototype.setup = function() {
+        this.pocket = [];
+        this.suit = false;
+        this.oxygen = 1200;
+        this.max_oxygen = this.oxygen;
+        return this.walk_frame = 0;
+      };
+
+      SlowColonist.prototype.update = function(delta) {
+        var len, tile, w;
+        this.state = '';
+        if (this.vvv) {
+          len = this.vvv.length();
+          if (len > .2) {
+            this.walk_frame += len * .25;
+            if (this.walk_frame > 12) {
+              this.walk_frame = 0;
+            }
+          }
+        }
+        if (this.oxygen != null) {
+          tile = window.Map.get('tiles', this.tile_pos[0], this.tile_pos[1]);
+          if (tile && tile !== 0) {
+            this.oxygen += 5;
+          }
+          if (this.oxygen > this.max_oxygen) {
+            this.oxygen = this.max_oxygen;
+          }
+          this.oxygen -= 1;
+          this.props['oxygen'] = this.oxygen;
+          this.props['max_oxygen'] = this.max_oxygen;
+          this.props['suit'] = this.suit;
+          if (!this.job) {
+            this.props['job'] = 0;
+          } else {
+            this.props['job'] = this.job.type;
+          }
+          /*
+                  if @job?
+                    j = @job
+                    if @job.to_string
+                      j = @job.to_string()
+                    t = @props['task']
+                    if t.to_string
+                      t = t.to_string()
+                    @state = j + ' / ' + t
+                  else
+                    @state = ''
+          */
+
+          if (this.oxygen < this.max_oxygen * .9) {
+            window.Draw.use_layer('view');
+            w = 32 * (this.oxygen / this.max_oxygen);
+            window.Draw.draw_box(16 + this.pos[0] - w * .5, this.pos[1] + 30, w, 5, {
+              fillStyle: 'red',
+              strokeStyle: 'rgba(' + 32 - w + ',' + w + ',' + w + ',.4)',
+              lineWidth: 0
+            });
+          }
+          if (this.oxygen < 0) {
+            this.die();
+          }
+        }
+      };
+
+      SlowColonist.prototype.draw_sprite = function() {
+        var offset, rotation;
+        offset = [parseInt(this.walk_frame) % 4, parseInt(parseInt(this.walk_frame) / 4)];
+        rotation = false;
+        if (this.vector && this.rotate_sprite) {
+          rotation = Math.atan2(this.vector.y, this.vector.x);
+          rotation += Math.PI / 2;
+        }
+        if (this.footprint_img) {
+          if (this.draw_prints) {
+            this.draw_prints = 0;
+            window.Draw.use_layer('background');
+            window.Draw.image(this.footprint_img, this.pos[0], this.pos[1], 32, 32, rotation);
+          }
+        }
+        window.Draw.use_layer('entities');
+        return window.Draw.sub_image(this.image, this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0], this.sprite_size, this.sprite_size, this.sprite_size, offset, rotation);
+      };
+
+      SlowColonist.prototype.die = function() {
+        var corpse;
+        if (this.suit) {
+          corpse = new window.Entities.classes.Thing('a corpse', 'suitcorpse', this.pos);
+        } else {
+          corpse = new window.Entities.classes.Thing('a corpse', 'corpse', this.pos);
+        }
+        corpse.sprite_size = 48;
+        corpse.sprite_offset = [0, 0];
+        return this.destroy();
+      };
+
+      return SlowColonist;
+
+    })(SlowSentient);
     window.Entities.classes.SlowEntity = SlowEntity;
     window.Entities.classes.SlowWalker = SlowWalker;
-    return window.Entities.classes.SlowSentient = SlowSentient;
+    window.Entities.classes.SlowSentient = SlowSentient;
+    return window.Entities.classes.SlowColonist = SlowColonist;
   });
 
 }).call(this);

@@ -87,7 +87,6 @@ $(window).ready ->
           @editarea.val @watch.script
           @editarea.height @code.height()
           @code.replaceWith @editarea
-          console.log localStorage
         else
           @saveload.css('visibility', 'hidden')
           @watch.run_script @editarea.val()
@@ -137,33 +136,47 @@ $(window).ready ->
 
     show_vars: ->
       if @watch and @watch.script_vars
-        @vars.html ''
-        for i in [0..4]
-          @vars.append $('<div class="column"></div>')
+        if @vars.children('.column').length > 0
+          i = 0
+          for type of @watch.script_vars
+            column = $(@vars.children('.column')[i])
+            for item, j in @watch.script_vars[type]
 
-        i = 0
-        for type of @watch.script_vars
-          $(@vars.children()[i]).append '<p>'+type+'</p>'
-          for item in @watch.script_vars[type]
+              if item is undefined
+                item = ''
+              if typeof item is 'object'
+                item = item.to_string()
+              $(column.children('.entry')[j]).html item
+            i += 1
+        else
+          @vars.html ''
+          for i in [0..4]
+            @vars.append $('<div class="column"></div>')
 
-            if item is undefined
-              item = ''
-            if typeof item is 'object'
-              item = item.to_string()
-            $(@vars.children()[i]).append $('<div class="entry">'+item+'</div>')
-          i += 1
+          i = 0
+          for type of @watch.script_vars
+            $(@vars.children()[i]).append '<p>'+type+'</p>'
+            for item in @watch.script_vars[type]
 
-    show: (thing)->
+              if item is undefined
+                item = ''
+              if typeof item is 'object'
+                item = item.to_string()
+              $(@vars.children()[i]).append $('<div class="entry">'+item+'</div>')
+            i += 1
+
+    show: (thing=false)->
       @watch = thing
 
       @make_docs()
-      
+
 
       if thing.script
         @inspect.css('visibility', 'visible')
 
 
         @show_vars()
+
         
 
       if thing.error
@@ -178,11 +191,18 @@ $(window).ready ->
         
 
       else if thing.script and thing.parsed_script
+        $('#inspect').height(900)
+        sdo = $('#inspect .script_display').offset()
+        ih = @inspect.height()
+        avail = ih - sdo.top + 20
+        $('#inspect .script_display').height avail
+
         @script.show()
         @messages.show()
         @vars.show()
         @tileinfo.hide()
         @saveload.show()
+        @filebuttons.show()
         @code.html ''
         @messages.html ''
         @linenums.children().removeClass 'error'
@@ -237,6 +257,7 @@ $(window).ready ->
         @script.hide()
         @messages.hide()
         @vars.hide()
+        
 
 
 
@@ -286,18 +307,31 @@ $(window).ready ->
 
 
     show_tile: (x,y)->
+      @inspect.css('visibility', 'visible')
+      $('#inspect').height('auto')
       @watch = false
       @script.hide()
       @messages.hide()
       @vars.hide()
       @saveload.hide()
+      @filebuttons.hide()
       @tileinfo.show()
-      stats = $('<p>'+x+','+y+'</p>')
+      @editarea.hide()
+      stats = $('<p class="tile_pos">'+x+','+y+'</p>')
       obs = window.Map.get('objects', x, y)
-      obd = $('<ul></ul>')
+      obd = $('<ul id="ob_inspect"></ul>')
       if obs
         for ob in obs
-          obd.append '<li>'+ob.nombre+'</li>'
+          props = ''
+          functs = ''
+          for prop of ob
+            if ob.hasOwnProperty(prop)
+              if typeof prop isnt 'function'
+                props += '<p class="smallp">'+prop+' = '+ob[prop]+'</p>'
+            else if typeof ob[prop] is 'function'
+              functs += '<p class="smallp">'+prop+'()'+'</p>'
+          obd.append '<li>'+'<p class="title"><img src="'+window.Draw.images[ob.image].src+'">'+ob.nombre+'</p>'+
+            '<div class="ob_props">'+props+'</div>'+'<div class="ob_functs">'+functs+'</div>'+'</li>'
 
       @tileinfo.html ''
       @tileinfo.append stats
@@ -327,84 +361,7 @@ $(window).ready ->
   RegisterStack =   window.SlowDataTypes.RegisterStack
 
 
-  class Scripted extends window.Entities.classes.SlowSentient
-    init_2: ->
-      @speed = 2
-      @parsed_script = false
-      @parser = false
-      @script = false
-      @error = false    
-
-      try
-        @parsed_script = window.slow_parser.parse @script
-      catch error
-        console.log 'parse error: ', error, @script
-      #console.log @parsed_script
-      if @parsed_script
-        @parser = new SlowParser(@, @parsed_script)
-
-    update: (delta)->
-      if @parser
-        @parser.exec()
-
-    run_script: (script)->
-      @script = script
-      try
-        @parsed_script = window.slow_parser.parse @script
-        @error = false
-      catch error
-        @error = {line:error.line, column:error.column, message:error.name+': '+error.found}
-
-      if @parsed_script
-        #console.log @parsed_script
-        @parser = new SlowParser(@, @parsed_script)
-        @script_vars = {}
-        for i in ['I','F','S','V','E']
-          @script_vars[i] = []
-          for j in [0..9]
-            @script_vars[i].push undefined
-          @script_vars[i].push new RegisterStack
-
-    walk_path: ->
-      if not @path?
-        @target = false
-        return false
-
-      if @path.length is 0
-        @target = false
-        @path = false
-        return false
-      try
-        if @path[0].length is 0
-          @target = false
-          @path = false
-          return false
-      catch error
-        console.log 'bad bad bad ', @path
-
-
-      tilesize = window.Map.tilesize
-
-      try
-        p1 = @path[0][0]*tilesize
-        p2 = @path[0][1]*tilesize
-      catch error
-        console.log "BAD PATH:", error
-        console.log @path
-        return false
-      @vect_to_target = new Vector((@path[0][0]*tilesize)-@pos[0], (@path[0][1]*tilesize)-@pos[1], 0)
-      @dist_to_target = @vect_to_target.length()
-      @target_vect = @normalize_vector( @vect_to_target )
-      @vector = Vector.lerp(@vector, @target_vect, @turn_speed)
-      near = 10
-      if @pos[0] > p1-near and @pos[0] < p1+near and @pos[1] > p2-near and @pos[1] < p2+near
-        @path = @path.splice(1,@path.length)
-        @velocity = .1
-        if @path.length is 0
-          return true
-      else
-        @move(1)
-      return undefined
+  
 
     
   class CallPoint
@@ -421,17 +378,18 @@ $(window).ready ->
 
 
     to_string: ()->
-      if @type is 'native'
-        index = @index
-      else
-        index = @index 
-      return @call_funct+' ['+index+']: '
+
+      return @call_funct+' ['+@index+']: '
+
+    inspect: (prefix)->
+      console.log prefix, @call_token.literal, '>', @call_funct, @call_args
 
 
     return: (result=undefined)->
       if @call_token?
         if result?
           @call_token.result = result
+          #console.log '[', @call_token.literal, '.result = ',result,']'
         else
           @call_token.result = @_return
 
@@ -459,32 +417,12 @@ $(window).ready ->
 
       @callpoints = []
 
-    enter_block: (block)->
-      
-      @block_level += 1
-      if @code_index.length-1 < @block_level
-        @code_index.push 0
-      @code_index[@block_level] = 0
+    indent: ->
+      r = '|'
+      for i in [0..@callpoints.length-1]
+        r += '  '
 
-      @scope = block
-      @scope_stack.push block
-
-
-    leave_block: ()->
-      @code_index[@block_level] = 0
-      scope = @scope
-      @block_level -= 1
-      @code_index[@block_level] += 1
-
-      if @block_level is 0
-        @scope = false #top level, should find main
-        @code_index[@block_level] = 0
-      else
-        @scope_stack.pop()
-        @scope = @scope_stack[@scope_stack.length-1]
-
-
-
+      return r
 
     exec: -> 
       if not window.pause_code or window.pause_code and window.next_frame
@@ -521,10 +459,12 @@ $(window).ready ->
 
               result = @run_statement lines[cp.index]
               if typeof result is 'object' and result.escape is true
+
                 return
               else
                 cp.index += 1
                 cp.token_index = 0
+                cp.return result
                 if window.pause_code
                   window.next_frame = false
 
@@ -532,7 +472,6 @@ $(window).ready ->
             else
               #console.log 'leaving: ', cp.to_string()
               @recurse_clean_line cp.call.block
-              cp.return true
               @callpoints.pop()
 
     recurse_clean_line: (obj)->
@@ -625,6 +564,17 @@ $(window).ready ->
             @delete_var(slot)
             window.Scripter.show_vars()
             return true
+        if first.value.toLowerCase() is 'return'
+          result = @calculate line, true
+
+          #console.log @indent() +  "RETURN", result, cp.call_token.literal, cp.call_token.result
+          cp = @callpoints.get_last()
+          cp.return result
+          #console.log @indent() +  "RETURN", result, cp.call_token.literal, cp.call_token.result
+          @recurse_clean_line cp.call.block
+          
+          @callpoints.pop()
+          return new ESCAPE()
 
       cp.token_index = -1
       result = @calculate line, true
@@ -637,7 +587,7 @@ $(window).ready ->
           @assign = false
           window.Scripter.show_vars()
 
-      return true
+      return result
 
 
 
@@ -652,15 +602,19 @@ $(window).ready ->
         else
           result = result + ''
       else if reg.slot is 'S'
-        if value.s
-          value = value.s
-        else
-          value = value + ''
+          if value.s?
+            value = value.s
+          else if value.to_string?
+            value = value.to_string()
+          else
+            value = value + ''
       else if reg.slot is 'V'
-        if value.v
+        if value.v?
           value = value.v
-        else
+        else if value.x?
           value = value
+        else
+          value = undefined
 
       else if reg.slot is 'I'
         if typeof value is 'object' or value is true
@@ -689,17 +643,33 @@ $(window).ready ->
 
 
     untoken: (obj, i=0)->
+      
       if typeof obj isnt 'object'
         return new ERROR('unknown meaning')
+      if obj.result?
+        #console.log @indent() +  'cache: ', obj.result
+        return obj.result
       if obj.type is 'enclosure'
         return @calculate obj.value
       if obj.type is 'null'
         return undefined
+      if obj.type is 'boolean'
+        if obj.value is 'true'
+          return true
+        if obj.value is 'false'
+          return false
       if obj.type is 'number'
+        return obj.value
+      if obj.type is 'string'
         return obj.value
       if obj.type is 'self'
         if @self.props[obj.value]?
           return @self.props[obj.value]
+      if obj.type is 'reserved'
+        if obj.value.toLowerCase() is 'arg'
+          #console.log @indent() +  'ARG', @callpoints.get_last(), @callpoints.get_last().call_args
+          return @callpoints.get_last().call_args
+        return undefined
       if obj.type is 'memory'
         if obj.index is '&'
           indx = 10 #the stack register
@@ -710,8 +680,9 @@ $(window).ready ->
       if obj.type is 'axisnumber'
         return new AxisNum(obj.value, obj.axis)
       if obj.type is 'call'
-
+        #console.log @indent() + 'call: ', obj
         if obj.result?
+          #console.log @indent() + 'result cache: ', obj.result, obj
           r = obj.result
           return r
 
@@ -719,26 +690,40 @@ $(window).ready ->
 
         if @self['_'+funct]? and typeof @self['_'+funct] is 'function'
 
-          args = @calculate obj.args
+          
 
-          cp = new CallPoint()
-          cp.type = 'native' 
-          cp.call_token = obj 
-          cp.call = @self 
-          cp.call_funct = '_'+funct 
-          cp.call_args = args 
-          @callpoints.push cp
-          return new ESCAPE()
+
+          
+
+          args = @calculate obj.args
+          if args? and (args.escape? or args.error?)
+            return args
+          else
+            cp = new CallPoint()
+            cp.call_args = args
+            cp.type = 'native' 
+            cp.call_token = obj 
+            cp.call = @self 
+            cp.call_funct = '_'+funct 
+            @callpoints.push cp
+            return new ESCAPE()
 
         else if @routines[funct]?
-          cp = new CallPoint()
-          cp.type = 'slow' 
-          cp.call_token = obj 
-          cp.call = @routines[funct] 
-          cp.call_funct = funct 
-          cp.call_args = 0 
-          @callpoints.push cp
-          return new ESCAPE()
+
+          
+
+          args = @calculate obj.args
+          if args? and (args.escape? or args.error?)
+            return args
+          else
+            cp = new CallPoint()
+            cp.call_args = args
+            cp.type = 'slow' 
+            cp.call_token = obj 
+            cp.call = @routines[funct] 
+            cp.call_funct = funct 
+            @callpoints.push cp
+            return new ESCAPE()
         
 
       return undefined
@@ -756,14 +741,16 @@ $(window).ready ->
         if top
           cp.token_index += 1
         
-
-        if not valid
+        if token.type is 'reserved' and token.value is 'return'
+          n = 0
+        else if not valid
           value = @untoken(token, i)
           if value? and (value.error? or value.escape?)
             return value
           else
             valid = true
 
+        
         else if not operator
           if token.type in ['operator','compare', 'assignment']
             operator = token.value
@@ -778,25 +765,12 @@ $(window).ready ->
           if next? and (next.error? or next.escape?)
             return next
           #console.log value, operator, next
-          if typeof value is 'object' and value.type is 'v'
-            if typeof next is 'number'
-              if operator is '*'
-                value = value.multiply(next)
-              else if operator is '/'
-                value = value.divide(next)
-              else
-                value = undefined
-            else if typeof next is 'object' and next.type is 'axisnum'
-              if operator is '+'
-                value = value.add(next)
-              if operator is '-'
-                value = value.subtract(next)
-              if operator is '*'
-                value = value.multiply(next)
-              if operator is '/'
-                value = value.divide(next)
-            else
-              value = undefined
+          if typeof value is 'object' and value.operate and operator in ['+','-','*', '/', '%', '=', '==']
+            value = value.operate( operator, next )
+            if operator is '='
+              if tokens[i-2].type is 'memory'
+                @assign = tokens[i-2]
+
           else if operator is '+'
             value += next
           else if operator is '-'
@@ -828,7 +802,7 @@ $(window).ready ->
             #console.log 'calculating assignment', tokens[i-2]
             if tokens[i-2].type is 'memory'
               #we know we are assigning a var, but need to wait untill all the tokens have been calc'd
-              console.log value, '=', next
+              #console.log value, '=', next
               value = next
               @assign = tokens[i-2]
               
@@ -841,4 +815,4 @@ $(window).ready ->
 
 
 
-  window.Entities.classes.Scripted = Scripted
+  window.Entities.slowparser = SlowParser

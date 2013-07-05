@@ -14,7 +14,9 @@
         this.rotation_sheets = {};
         this.scroll_x = 0;
         this.scroll_y = 0;
-        this.zoom = 1.0;
+        this.zoom = 0.7;
+        $('#scroll').css('left', window.Map.px_w / 2 + this.view_w / 2);
+        $('#scroll').css('top', window.Map.px_h / 2 + this.view_h / 2);
         $(window).resize(function() {
           return window.Draw.resize();
         });
@@ -139,6 +141,9 @@
       },
       mousewheel: function(e) {
         var delta, exposed_h, exposed_w, game_h, game_w, min_z, min_z_h, mx, my, nox, nox_dif, noy, noy_dif, ox, oy;
+        if ($('#UI_overlay').is($(e.target).parents())) {
+          return;
+        }
         mx = window.Events.last_mouse_pos[0];
         my = window.Events.last_mouse_pos[1];
         mx -= this.scroll_x;

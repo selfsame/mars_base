@@ -51,38 +51,27 @@ window.Map = {
 			}
 		}
 
-		var middle = [this.height/12, this.width/12, this.height/6, this.width/6] // 1/3 square in the middle. no-crater zone
+		var middle = [this.height*.4, this.width*.4, this.height*.6, this.width*.6,] // 1/3 square in the middle. no-crater zone
 		
 		
-		//Rock = window.Entities.classes.Rock;
-		
-		var r; 
-		
-		for (var i = 0; i <= 270; i++) {
-			var x = parseInt(Math.random()* this.width)*this.tilesize;
-			var y = parseInt(Math.random()* this.height)*this.tilesize;
-			//r = new Rock([x, y]);
-			//alert(x + " " + y);
-		}
-	
-		//var crater_1 = new Crater_Large([40, 15]);
-		//crater_1.draw();
-		//var crater_2 = new Crater_Medium([30, 15]);
-		//var crater_3 = new Crater_Small([35, 20]);
-		//var crater_4 = new Crater_Small([45, 20]);
-		//var derp_1 = new Derpifier([30, 20]);
+		for (var i = 0; i <= (this.height); i++) {
+			for (var j = 0; j <= (this.width); j++) {
+				if ((i < middle[0] || j < middle[1] || i >= middle[2] || j >= middle[3])) { // not in the middle square
+					if (Math.random() <=  .01 ) { // options.crater_oc) {
+						var x = parseInt(Math.random()*window.Map.width)*window.Map.tilesize;
+						var y = parseInt(Math.random()*window.Map.height)*window.Map.tilesize;
+						crater = new window.Entities.classes.DThing('crater', 'crater_small', [ i*32,j*32 ]);
+						crater.layout = [[1, 1, 1],
+						   				[1, 1, 1],
+						   				[1, 1, 1]];
+						crater.sprite_size = 64
 
-		
-		/**var i, _i;
-		for (i = _i = 0; _i <= 270; i = ++_i) {
-			var x = parseInt(Math.random()*window.Map.width)*window.Map.tilesize;
-			var y = parseInt(Math.random()*window.Map.height)*window.Map.tilesize;
-			//console.log(this.get('objects', x, y));
-			if (this.get('objects', x, y) == 0) {
-				rock = new Rock('rock', 'rock', [x, y]);
-				rock.setup();
+
+      					crater.sprite_offset = [-16,-16]
+					}
+				}
 			}
-		}*/
+		}
 			
 	},
 	

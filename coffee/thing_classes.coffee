@@ -13,18 +13,24 @@ $(window).ready ->
       @sprite_size = 32
       @sprite_offset = [0,0]
       @claimed = false
+      @claimed_timer = 0
       @state_que = []
       @hidden = false
       @block_build = false
       @needs_draw = true
       @persistant_draw = true
       @grid_area = false
+      @flags = {}
       @init()
       @init_2()
+
 
     init: ->
     init_2: ->
     __update: (delta)->
+      @claimed_timer += 1
+      if @claimed_timer > 3000
+        @claimed = false
       @pos_to_tile_pos()
       @delta_time = delta
       @total_time += delta

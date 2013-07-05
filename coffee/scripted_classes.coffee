@@ -1,12 +1,15 @@
 $(window).ready ->
 
-  
+  Vect2D =   window.SlowDataTypes.Vect2D
+  AxisNum =   window.SlowDataTypes.AxisNum
+  EntityRef =   window.SlowDataTypes.EntityRef
+  RegisterStack =   window.SlowDataTypes.RegisterStack
 
 
   class SlowEntity
     constructor: (@nombre='thing', @image='sprite', @pos=[0,0])->
       @EID = window.get_unique_id()
-      @props = {name:@nombre}
+      @props = {name:@nombre, task:false}
       @draw_hooks = []
 
       @tile_pos = [parseInt(@pos[0]/window.Map.tilesize), parseInt(@pos[1]/window.Map.tilesize)]
@@ -22,6 +25,7 @@ $(window).ready ->
       @block_build = false
       @needs_draw = true
       @persistant_draw = true
+      @flags = {}
       @init()
       @init_2()
 
@@ -33,12 +37,15 @@ $(window).ready ->
       @delta_time = delta
       @total_time += delta
       @frame_count += 1
-      
+      @move()
       #if @['_'+@state]?
       #  @['_'+@state]()
       if not @hidden
         @draw()
       @update(delta)
+      @update_2()
+
+    move: ->
 
     hide: ->
       if not @hidden
@@ -87,8 +94,85 @@ $(window).ready ->
         obj_in_map.remove @
       delete @
 
+  class Scripted extends SlowEntity
+    init_2: ->
+      @speed = 2
+      @parsed_script = false
+      @parser = false
+      @script = false
+      @error = false    
 
-  class SlowWalker extends SlowEntity
+      try
+        @parsed_script = window.slow_parser.parse @script
+      catch error
+        console.log 'parse error: ', error, @script
+      #console.log @parsed_script
+      if @parsed_script
+        @parser = new window.Entities.slowparser(@, @parsed_script)
+
+    update_2: (delta)->
+      if @parser
+        @parser.exec()
+
+    run_script: (script)->
+      @script = script
+      try
+        @parsed_script = window.slow_parser.parse @script
+        @error = false
+      catch error
+        @error = {line:error.line, column:error.column, message:error.name+': '+error.found}
+
+      if @parsed_script
+        #console.log @parsed_script
+        @parser = new window.Entities.slowparser(@, @parsed_script)
+        @script_vars = {}
+        for i in ['I','F','S','V','E']
+          @script_vars[i] = []
+          for j in [0..9]
+            @script_vars[i].push undefined
+          @script_vars[i].push new RegisterStack
+
+    walk_path: ->
+      if not @path?
+        @target = false
+        return false
+
+      if @path.length is 0
+        @target = false
+        @path = false
+        return false
+      try
+        if @path[0].length is 0
+          @target = false
+          @path = false
+          return false
+      catch error
+
+
+
+      tilesize = window.Map.tilesize
+
+      try
+        p1 = @path[0][0]*tilesize
+        p2 = @path[0][1]*tilesize
+      catch error
+        console.log "BAD PATH:", error
+        console.log @path
+        return false
+      @vect_to_target = new Vector((@path[0][0]*tilesize)-@pos[0], (@path[0][1]*tilesize)-@pos[1], 0)
+      @dist_to_target = @vect_to_target.length()
+      @target_vect = @normalize_vector( @vect_to_target )
+      @vector = Vector.lerp(@vector, @target_vect, @turn_speed)
+      near = 10
+      if @pos[0] > p1-near and @pos[0] < p1+near and @pos[1] > p2-near and @pos[1] < p2+near
+        @path = @path.splice(1,@path.length)
+        @velocity = .1
+        if @path.length is 0
+          return true
+
+      return undefined
+
+  class SlowWalker extends Scripted
     init: ->
       @state = 'idle'
       @speed = 4
@@ -178,26 +262,11 @@ $(window).ready ->
       path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], pos[0], pos[1])
       if path and path.length? and path.length > 0
         @path = path
-        @state = 'moving'
         return true
       else
-        @state = 'wait'
         return false
 
-    path_close_to: (pos)->
-      path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], pos[0], pos[1])
-      if path and path.length? and path.length > 0
-        return path
-      else
-        for i in [-1..1]
-          for j in [-1..1]
-            path = window.Entities.get_path(@tile_pos[0], @tile_pos[1], pos[0]+i, pos[1]+j)
-            if path and path.length? and path.length > 0
-              return path
-      return false
-
     radians_between_vectors: (v1, v2)->
-
       l1 = v1.unit()
       l2 = v2.unit()
       l3 = l1.subtract(l2)
@@ -209,13 +278,9 @@ $(window).ready ->
         @vvv =  new Vector(0,0,0)
       if not @dist_to_target
         return
-      
       r = @radians_between_vectors(@vvv, @vect_to_target)
-      
-      
       if r > .5
         friction = (1-r)
-
       @vvv = (@vvv).multiply(friction)
       @vvv = @vvv.add(@vector.multiply(.2))  
       if @vvv.length() > @speed
@@ -223,15 +288,9 @@ $(window).ready ->
       if @vvv.length() > @speed/3
         if @frame_count%18 is 0
           @draw_prints = 1
-      #illegal = @get_illegal_pos()
       avoid = @get_floor_avoidance()
       if avoid? and avoid not in [false,undefined] and avoid.x?
-
-        #window.Draw.use_layer('entities')
-        #window.Draw.draw_line(@pos[0]+16, @pos[1]+16, @pos[0]+avoid.x*320+16, @pos[1]+avoid.y*320+16, {fillStyle:'cyan',strokeStyle:'cyan',lineWidth:1})
-
         l = avoid.length()
-        
         if l > 1 
           if l > 10
             avoid = avoid.unit().multiply(10)
@@ -239,10 +298,8 @@ $(window).ready ->
           @pos[1] += avoid.y 
           window.Entities.sentient_hash.update_member @
           return
-
       @pos[0] += @vvv.x
       @pos[1] += @vvv.y 
-
       window.Entities.sentient_hash.update_member @
 
 
@@ -254,15 +311,12 @@ $(window).ready ->
 
           tile = window.Map.get 'pathfinding', @tile_pos[0]+i, @tile_pos[1]+j
           if tile is 1
-            
             #window.Draw.draw_box(((@tile_pos[0]+i)*window.Map.tilesize), ((@tile_pos[1]+j)*window.Map.tilesize), 32, 32, {fillStyle:'rgba(250,250,0,.4)',strokeStyle:'rgba(250,250,0,.4)',lineWidth:1})
-            
             x =  ((@tile_pos[0]+i)*window.Map.tilesize) - (@pos[0] )
             y =  ((@tile_pos[1]+j)*window.Map.tilesize) - (@pos[1] )
             n_v = new Vector(x,y,0)
             #window.Draw.draw_line(@pos[0]+16, @pos[1]+16, @pos[0]+n_v.x+16, @pos[1]+n_v.y+16, {fillStyle:'cyan',strokeStyle:'cyan',lineWidth:1})
             nl = n_v.length()
-
             count += 1
             n_v = n_v.unit().multiply(32/nl)
             v = v.add( n_v )
@@ -293,126 +347,15 @@ $(window).ready ->
                   return true
       return false
 
-  class Vect2D
-    constructor: (@x, @y)->
-      @type = 'v'
-    to_string: ->
-      return ''+@x+','+@y
-    add: (thing, apply=false)->
-      @operate 'add', thing, apply
-    subtract: (thing, apply=false)->
-      @operate 'subtract', thing, apply
-    multiply: (thing, apply=false)->
-      @operate 'multiply', thing, apply
-    divide: (thing, apply=false)->
-      @operate 'divide', thing, apply
-    modulo: (thing, apply=false)->
-      @operate 'modulo', thing, apply
-
-    operate: (op, thing, apply)->
-      value = false
-      if op in ['add', 'subtract']
-        if typeof thing is 'number'
-          return value
-      if typeof thing is 'object'
-        if thing.axis?
-          value = parseInt(thing.value)
-          if thing.axis in ['x','y']
-            if op is 'add'
-              value = @[thing.axis] + value
-              if apply
-                @[thing.axis] = value
-              nv = new Vect2D(@x, @y)
-              nv[thing.axis] = value
-              console.log nv
-              return nv
-            if op is 'subtract'
-              value = @[thing.axis] - value
-              if apply
-                @[thing.axis] = value
-              nv = new Vect2D(@x, @y)
-              nv[thing.axis] = value
-              return nv
-            if op is 'multiply'
-              value = @[thing.axis] * value
-              if apply
-                @[thing.axis] = value
-              nv = new Vect2D(@x, @y)
-              nv[thing.axis] = value
-              return nv
-            if op is 'divide'
-              value = @[thing.axis] / value
-              if apply
-                @[thing.axis] = value
-              nv = new Vect2D(@x, @y)
-              nv[thing.axis] = value
-              return nv
-            if op is 'modulo'
-              value = @[thing.axis] % value
-              if apply
-                @[thing.axis] = value
-              nv = new Vect2D(@x, @y)
-              nv[thing.axis] = value
-              return nv
-      if typeof thing is 'number'
-        value = parseInt(thing)
-        if op is 'multiply'
-          xx = @x * value
-          yy = @y * value
-          if apply
-            @x = xx
-            @y = yy
-          return new Vect2D(xx,yy)
-        if op is 'divide'
-          xx = @x / value
-          yy = @y / value
-          if apply
-            @x = xx
-            @y = yy
-          return new Vect2D(xx,yy)
-        if op is 'modulo'
-          xx = @x % value
-          yy = @y % value
-          if apply
-            @x = xx
-            @y = yy
-          return new Vect2D(xx,yy)
-
-  class AxisNum
-    constructor: (@value, @axis)->
-
-      @type = 'axisnum'
-    to_string: ->
-      return @value+@axis
-
-  class EntityRef
-    constructor: (entity)->
-      @type = 'e'
-      @e = entity.EID
-      @v = new Vect2D(entity.tile_pos[0], entity.tile_pos[1])
-
-      @s = entity.nombre
-    to_string: ->
-      return ''+@e
-
-  class RegisterStack
-    constructor: ()->
-      @array = []
-      @type = 'stack'
-    to_string: ->
-      return '[x'+@array.length+']'
-
-  window.SlowDataTypes =
-    Vect2D: Vect2D
-    AxisNum: AxisNum
-    EntityRef: EntityRef
-    RegisterStack: RegisterStack
 
 
   
 
   class SlowSentient extends SlowWalker
 
+    _debug: (i_f_s_v_e)->
+      console.log @nombre, ': ', i_f_s_v_e
+      return true
 
     _wander: (i=10)->
       distance = i
@@ -427,41 +370,50 @@ $(window).ready ->
         return true
       return undefined
 
-    _goto: (v)->
-      if typeof v is 'object' and v.x and v.y
-        if not @path or not @target
-          @target = [v.x, v.y]
-          
-          @path_to @target
-          if not @path
-            console.log 'cant make path'
-            return true
-
-        if @walk_path()
-          @path = false
-          @target = false
-          return true
-      else
-        return false
-
-    _go_near: (v)->
-      @debug = ['GO NEAR']
+    _goto: (e_v)->
+      v = e_v
       if typeof v is 'object' and v.x and v.y
         if not @target
           @target = [v.x, v.y]
-          @near_options = [ [0,0],[-1,0],[1,0],[0,-1],[0,1],[-1,1],[-1,-1],[1,-1],[1,1] ]
-        if not @path 
-          if @near_options.length is 0
-            return false
-          mod = @near_options.pop()
+      else if typeof v is 'object' and v.e
+        if not @target
+          @target = [v.v.x, v.v.y]
 
-          @path_to [@target[0]+mod[0],@target[1]+mod[1]]
-          return undefined 
+      if not @path and @target
+        @path_to [@target[0],@target[1]]
 
+      if @path
         if @walk_path()
           @path = false
           @target = false
-          return true
+          return e_v
+        return undefined
+      else
+        return false
+
+    _go_near: (e_v)->
+      v = e_v
+      if typeof v is 'object' and v.x and v.y
+        if not @target
+          @target = [v.x, v.y]
+      else if typeof v is 'object' and v.e
+        if not @target
+          @target = [v.v.x, v.v.y]
+
+      @near_options = [ [0,0],[-1,0],[1,0],[0,-1],[0,1],[-1,1],[-1,-1],[1,-1],[1,1] ]
+      if not @path and @target
+        if @near_options.length is 0
+          return false
+        mod = @near_options.pop()
+
+        @path_to [@target[0]+mod[0],@target[1]+mod[1]]
+
+      if @path
+        if @walk_path()
+          @path = false
+          @target = false
+          return e_v
+        return undefined
       else
         return false
 
@@ -475,36 +427,92 @@ $(window).ready ->
         return true
       return undefined 
 
-    _search: (i, s=false)->
-      distance = i
+    _slow_five: (i=10)->
+      time = i
+      if not @test_timer
+        @test_timer = 0
+      @test_timer += 1
+      if @test_timer > time
+        @test_timer = 0
+        return 5
+      return undefined 
+
+    _random: (i=100)->
+
+      return parseInt(Math.random() * i)
+
+    _search: (i_s)->
+      if typeof i_s is 'number'
+        distance = i_s
+        filter = false
+      else if typeof i_s is 'string'
+        distance = 400
+        filter = true
+      else
+        return
       local = window.Entities.objects_hash.get_within( [@pos[0], @pos[1]], distance )
       for obj in local
-        if s and typeof s is 'string'
-          if s is obj.nombre
+        if not obj.claimed and not obj.placed
+          if filter
+            if i_s is obj.nombre
+              return new EntityRef obj
+          else
             return new EntityRef obj
-        else
-          return new EntityRef obj
       
       return false
 
-    _use_object: (e)->
-      r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
-      found = false
-      if r and r.length > 0
-        for obj in r
-          if obj.nombre is @want
-            
-            found = true
-            if obj.use
-              if obj.use @ #return true if use cycle complete, bad logic
-                @state = 'idle'
-                @forget @want, @tile_pos
-                return
-              else
-                return
-        if not found
-          @state = 'job_fail'
-      @state = 'job_fail'
+    _search_built: (i_s)->
+      if typeof i_s is 'number'
+        distance = i_s
+        filter = false
+      else if typeof i_s is 'string'
+        distance = 400
+        filter = true
+      else
+        return
+      local = window.Entities.objects_hash.get_within( [@pos[0], @pos[1]], distance )
+      for obj in local
+        if not obj.claimed and obj.placed
+          if filter
+            if i_s is obj.nombre
+              return new EntityRef obj
+          else
+            return new EntityRef obj
+      
+      return false
+
+    _use: (e_s)->
+      e = -9999
+      s = '-00000000'
+      if typeof e_s is 'object' and e_s.e
+        e = e_s.e
+      if typeof e_s is 'string'
+        s = e_s
+      #console.log "USE ", e
+      ground = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+      if ground is 0
+        ground = []
+      r = @pocket.concat ground
+      for o in r
+        if o.EID is e or o.nombre is s
+          if o.flags? and o.flags['suit']
+            @pocket.remove o
+            @wear_body = o
+            @wear_suit()
+            return e
+          else if o.use? and typeof o.use is 'function'
+            if o.use(@)
+              return e
+            else
+              return undefined
+      return false
+
+    wear_suit: ->
+      @suit = true
+      @oxygen = 6000
+      @max_oxygen = 6000
+      @image = 'suitwalk'
+
 
     _pickup: (e_s)->
       r = []
@@ -516,16 +524,30 @@ $(window).ready ->
       if r and r.length > 0
         for obj in r
           if obj isnt 'undefined' and typeof obj is 'object'
-            if obj.nombre is e_s
-              found = true       
+            if typeof e_s is 'object'
+              if obj.EID = e_s.e
+                obj.detach_from_map()
+                @pocket.push obj
+                obj.pos = @pos
+                return e_s
+            else if obj.nombre is e_s       
               obj.detach_from_map()
               @pocket.push obj
               obj.pos = @pos
-              return true
+              return e_s
       return false
 
+    _claim: (e)->
+      if typeof e is 'object' and e.e?
 
+        EID = e.e
+        for o in window.Entities.objects
+          if o.EID = EID
+            if not o.claimed
+              o.claimed = @EID
+              return e
 
+      return false
 
     _drop: (i_s_e)->
       if typeof i_s_e is 'number'
@@ -533,27 +555,171 @@ $(window).ready ->
           found = @pocket[i_s_e]
           @pocket.remove found
           found.attach_to_map([@tile_pos[0], @tile_pos[1]])
+          return i_s_e
+      else
+        for obj in @pocket
+          if typeof obj is 'object'
+            if typeof i_s_e is 'object' and i_s_e.type is 'e'
+              if i_s_e.e is obj.EID
+                obj.attach_to_map([@tile_pos[0], @tile_pos[1]])
+                @pocket.remove obj
+                return i_s_e
+            if typeof i_s_e is 'string'
+              if obj.nombre is i_s_e
+                obj.attach_to_map([@tile_pos[0], @tile_pos[1]])
+                @pocket.remove obj
+                return i_s_e
+      return false
+
+    _pocket: (i_s_e)->
+      if typeof i_s_e is 'number'
+        if @pocket[i_s_e]?
+          return new EntityRef @pocket[i_s_e]
           return true
       else
         for obj in @pocket
           if obj isnt 'undefined' and typeof obj is 'object'
             if typeof i_s_e is 'object' and i_s_e.type is 'e'
-              if i_s_e.e is obj.UID
-                obj.attach_to_map([@tile_pos[0], @tile_pos[1]])
-                @pocket.remove obj
-                return true
+              if i_s_e.e is obj.UID 
+                return new EntityRef obj
             if typeof i_s_e is 'string'
               if obj.nombre is i_s_e
-                obj.attach_to_map([@tile_pos[0], @tile_pos[1]])
-                @pocket.remove obj
-                return true
+                return new EntityRef obj
       return false
 
 
 
+    _get_task: ()->
+      if not @job
+        job = window.Jobs.get_job(@)
+        if job
+          @job = job
+          console.log 'assigned a job', @job
+      if @job
+        task = @job.instructions.pop()
+        if task
+          console.log 'assign task: ', task
+          @props['task'] = task
+          return task
+        else
+          @props['task'] = 0
+          @job.complete()
+          @job = false
+          return false
+      return false
 
+    _build: ()->
+
+      if @job and @job.tile?
+
+        if @n_tiles_away( @tile_pos, [@job.tile.x, @job.tile.y], 200 )
+          
+          @job.tile.build(30)
+          if @job.tile.built
+            console.log 'tile built'
+            return true
+          return undefined
+      return false
+
+
+    _place: (e)->
+      if e? and typeof e is 'object' and e.type is 'e'
+        r = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+        if r is 0
+          return false
+        for obj in r
+          if obj.EID is r.EID
+            if obj.place?
+              obj.place()
+              return true
+      return false
+
+
+
+  class SlowColonist extends SlowSentient
+    setup: ->
+      @pocket = []
+      @suit = false
+      @oxygen = 1200 #naked 
+      @max_oxygen = @oxygen
+      @walk_frame = 0
+
+    update: (delta)->
+      @state = ''
+      if @vvv
+        len = @vvv.length()
+        if len > .2
+          @walk_frame += len*.25
+          if @walk_frame > 12
+            @walk_frame = 0
+      if @oxygen?
+        tile = window.Map.get('tiles', @tile_pos[0], @tile_pos[1])
+        if tile and tile isnt 0
+          @oxygen += 5
+        if @oxygen > @max_oxygen
+          @oxygen = @max_oxygen
+        @oxygen -= 1
+        @props['oxygen'] = @oxygen
+        @props['max_oxygen'] = @max_oxygen
+        @props['suit'] = @suit
+        if not @job
+          @props['job'] = 0
+        else
+          @props['job'] = @job.type
+
+        ###
+        if @job?
+          j = @job
+          if @job.to_string
+            j = @job.to_string()
+          t = @props['task']
+          if t.to_string
+            t = t.to_string()
+          @state = j + ' / ' + t
+        else
+          @state = ''
+        ###
+        if @oxygen < @max_oxygen*.9
+          window.Draw.use_layer 'view'
+          w = 32 * (@oxygen / @max_oxygen )
+          window.Draw.draw_box(16 + @pos[0]-w*.5, @pos[1]+30, w, 5, {fillStyle:'red',strokeStyle:'rgba('+32-w+','+w+','+w+',.4)',lineWidth:0})
+        if @oxygen < 0
+          @die()
+          return
+
+
+    draw_sprite: ()->
+      
+      offset = [parseInt(@walk_frame)%4,parseInt(parseInt(@walk_frame)/4)]
+
+      rotation = false
+      if @vector and @rotate_sprite
+        rotation = Math.atan2(@vector.y, @vector.x)
+        rotation += Math.PI/2
+        #rotation -= (2*Math.PI)/4
+        #rotation = -rotation
+      if @footprint_img
+        if @draw_prints
+          @draw_prints = 0
+          window.Draw.use_layer 'background'
+          window.Draw.image(@footprint_img, @pos[0], @pos[1], 32, 32, rotation)
+
+      window.Draw.use_layer 'entities'
+      
+      window.Draw.sub_image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @sprite_size, offset, rotation)
+
+
+    die: ->
+      if @suit
+        corpse = new window.Entities.classes.Thing('a corpse', 'suitcorpse', @pos)
+      else
+        corpse = new window.Entities.classes.Thing('a corpse', 'corpse', @pos)
+      corpse.sprite_size = 48
+      corpse.sprite_offset = [0,0]
+      @destroy()
 
   window.Entities.classes.SlowEntity = SlowEntity
   window.Entities.classes.SlowWalker = SlowWalker
   window.Entities.classes.SlowSentient = SlowSentient
+  window.Entities.classes.SlowColonist = SlowColonist
 

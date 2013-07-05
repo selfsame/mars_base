@@ -37,7 +37,6 @@
     var funStr, results;
     funStr = func.toString();
     results = funStr.slice(funStr.indexOf("(") + 1, funStr.indexOf(")")).match(/([^\s,]+)/g);
-    console.log(results);
     return results;
   };
 

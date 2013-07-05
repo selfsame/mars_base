@@ -66,7 +66,7 @@ end:end  } }
 
 
 logic_block =
-  parts:( reserved / null / call / axisnumber / number /  comparative / assignment / operator /
+  parts:( reserved / null / call / axisnumber / boolean / number /  comparative / assignment / operator / string /
            memory / self / enclosure )+ 
    {return parts }
 
@@ -76,7 +76,7 @@ comment =
 {return '//'+string.join('')+newline}
 
 reserved
-  = w1:white string:( 'delete'i ) w2:white 
+  = w1:white string:( 'delete'i / 'return'i / 'arg'i ) w2:white 
   {return {type:'reserved', value:string.toLowerCase(), literal:w1+string+w2}}
 
 null
@@ -109,9 +109,23 @@ literal = '';
 return {type:'statement', value:block, literal:w1+literal+end.literal, end:end.literal} }
 
 
+
+
+string = string:(string_double / string_single) {return string}
+
+string_double =
+  w1:white q1:'"' string:([a-zA-Z0-9]* )  q2:'"' w2:white
+    {return {type:'string', value:string.join(''), literal:w1+q1+string.join('')+q2+w2}}
+
+string_single =
+  w1:white q1:"'" string:([a-zA-Z0-9]* )  q2:"'" w2:white
+    {return {type:'string', value:string.join(''), literal:w1+q1+string.join('')+q2+w2}}
+
+
 axisnumber
   = w1:white number:(float / integer) axis:('x'i / 'y'i) w2:white
     {return {type:'axisnumber', value:number, axis:axis, literal:w1+number+axis+w2}}
+
 
 number
   = w1:white number:(float / integer) w2:white
@@ -128,6 +142,10 @@ integer
     digits:[0-9]+ {
       return parseInt(sign+digits.join(""), 10);
     }
+
+boolean = 
+  w1:white bool:('true'i / 'false'i) w2:white
+    {return {type:'boolean', value:bool, literal:w1+bool+w2}}
 
 operator
   = w1:white operator:('+' / '-' / '/' / '*' / '%') w2:white
