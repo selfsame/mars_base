@@ -5,17 +5,29 @@ window.Objects = {
 		this.selected = 0;
 		this.edit_mode = true;
 		this.edit_style = 'select';
+		this.rot_layout = [];
+		this.rotation = 1;
 		window.Events.add_listener(this);
 		this.obs_moving = []; // all objects that need to be moved
 		this.obs_building = []; // all objects that need to be built
 		this.obs_removing = []; // all objects that need to be removed
-	}, 	
+	}, 
+	
+	rotate: function() {
+		this.rotation += 1;
+		if (this.rotation == 5) {
+			this.rotation = 1;
+		}
+	},
+		
 	keydown: function(e){ // called on keypress
 		//alert(e.keyCode);
 		if (this.selected != 0) {
 			if (e.keyCode == 77) { // M
 				if (this.selected.moveable) {
 					this.edit_style = 'move';
+					this.rotation = this.selected.rotation;
+					this.rot_layout = this.selected.layout;
 				} else {
 					alert(this.selected.name + " can't be moved!");
 				}
@@ -32,6 +44,11 @@ window.Objects = {
 				} else {
 					alert(this.selected.name + " can't be removed!");
 				}	
+			} else if (e.keyCode == 82) { // R
+				if (this.selected.rotatable && this.edit_style == 'move') {
+					this.rotate();
+					this.rot_layout = this.selected.get_layout(this.rotation);
+				}
 			}
 		//	} else if (e.keyCode == 80) { // P
 		//		this.edit_style = 'build';
@@ -47,6 +64,8 @@ window.Objects = {
 				this.selected = window.Map.get('objects', coords[0], coords[1]);
 				if (this.selected != 0) {
 					this.selected = this.selected[0];
+					this.rotation = this.selected.rotation;
+					this.rot_layout = this.selected.layout;
 					if (!this.selected.selectable) {
 						this.selected = 0;
 						return;
@@ -61,7 +80,6 @@ window.Objects = {
 	},
 	update: function(delta) { // called consistantly
 		if (this.selected != 0) {
-			console.log(this.obs_removing.indexOf(this.selected));
 			if (this.obs_removing.indexOf(this.selected) != -1) {
 				this.highlight_selected('red');
 			} else if (this.obs_moving.indexOf(this.selected) != -1) {
@@ -72,10 +90,10 @@ window.Objects = {
 				this.highlight_selected('yellow');
 			}
 			if (this.edit_style == 'move') {
-				if (this.selected.check_clear(window.Events.tile_under_mouse)) {
-					this.draw_layout(window.Events.tile_under_mouse, this.selected.layout, 'green');
+				if (this.selected.check_clear(window.Events.tile_under_mouse, this.rot_layout)) {
+					this.draw_layout(window.Events.tile_under_mouse, this.rot_layout, 'green');
 				} else {
-					this.draw_layout(window.Events.tile_under_mouse, this.selected.layout, 'red');
+					this.draw_layout(window.Events.tile_under_mouse, this.rot_layout, 'red');
 				}
 			}
 		}
@@ -84,7 +102,10 @@ window.Objects = {
 		if (color == undefined) {
 			color = 'yellow';
 		}
-		this.draw_layout(this.selected.world_coords, this.selected.layout, color);
+		this.draw_layout(this.selected.world_coords, this.selected.get_layout(), color);
+		if (this.selected.ghost_loc) {
+			this.draw_layout(this.selected.ghost_loc, this.selected.get_layout(this.selected.ghost_rot), color);
+		}
 	},
 	draw_layout: function(pos, layout, color) {
 		window.Draw.use_layer('entities');
@@ -118,10 +139,11 @@ window.Objects = {
 				var coords = window.Events.tile_under_mouse;
 				
 				if (this.selected.check_clear(coords)) {
+					this.selected.ghost_rot = this.rotation;
 					this.selected.remove_tag();
 					this.selected.draw_ghost(coords);
 					this.selected.draw_tag('move');
-					this.selected.apply_layout(coords);
+					this.selected.apply_layout(coords, this.rotation);
 					this.edit_style = 'select';
 					this.obs_removing.remove(this.selected);
 					this.obs_building.remove(this.selected);

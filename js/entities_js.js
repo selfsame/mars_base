@@ -9,14 +9,18 @@ $(window).ready(function() {
 		this.world_coords = []; // top left corner, in world coordinates
 		this.layout = []; // 2d layout of this object
 		this.tag_loc = [0, 0]; // location relative to layout, where the tag goes
+		
 		this.ghost_loc = false; // show object ghost
+		this.ghost_rot = 1; // represents the rotation of the ghost
+		this.ghost_layout = this.layout;
 		
 		this.moveable = false; // can the colonists move this object?
 		this.buildable = false; // can the colonists build this object?
 		this.removable = false; // can the astronauts remove this object?
 		this.selectable = true; // can this object be selected?
+		this.rotatable = true; // can this object be rotated?
 		
-		this.rotate = 1; // 1 = no rotate, 2 = 90, 3 = 180, 4 = 270
+		this.rotation = 1; // represents the rotation
 		
 		this.placed = false; // if this object has been placed yet
 		this.name = 'Plain Thingy';
@@ -41,7 +45,8 @@ $(window).ready(function() {
 			var t_size = window.Map.tilesize;
 			
 			window.Draw.use_layer('objects');
-			return (window.Draw.image(this.image, this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size, false, .75));
+			var r = this.get_rot(this.rotation);
+			return (window.Draw.image(this.image, this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size, r, .75));
 			
 		} else if (!this.placed && this.layout != []) {
 			window.Draw.use_layer('objects');
@@ -62,16 +67,30 @@ $(window).ready(function() {
 		}
 	}
 	
+	DThing.prototype.get_rot = function(rot) {
+		if (rot == 2) {
+			return Math.PI/2;
+		} else if (rot == 3) {
+			return Math.PI;
+		} else if (rot == 4) {
+			return Math.PI * 1.5;
+		} else {
+			return 0;
+		}
+		
+	}
+	
 	// draw a ghost of this object at given location
 	DThing.prototype.draw_ghost = function(location) {
 		this.ghost_loc = location;
-		if (this.layout != []) {
+		if (this.ghost_layout != []) {
 			var width = this.layout[0].length;
 			var height = this.layout.length;
 			var t_size = window.Map.tilesize;
 			
 			window.Draw.use_layer('entities');
-			return (window.Draw.image(this.image, this.ghost_loc[0] * t_size, this.ghost_loc[1] * t_size, width * t_size, height * t_size, false, .5));
+			var r = this.get_rot(this.ghost_rot);
+			return (window.Draw.image(this.image, this.ghost_loc[0] * t_size, this.ghost_loc[1] * t_size, width * t_size, height * t_size, r, .5));
 		}
 	}
 	
@@ -109,6 +128,21 @@ $(window).ready(function() {
 		}
 	}
 	
+	DThing.prototype.get_layout = function(rot) {
+		if (!rot) {
+			rot = this.rotation;
+		}
+		if (rot == 1) { // 0 degrees
+			return this.layout;
+		} else if (rot == 2) { // 90 degrees
+			return this.layout.transpose().reverse_rows();
+		} else if (rot == 3) { // 180 degrees
+			return this.layout.reverse_rows().reverse_cols();
+		} else if (rot == 4) { // 270 degrees
+			return this.layout.transpose().reverse_cols();
+		}
+	}
+	
 	 // convert local coordinates to world coordinates
 	DThing.prototype.local_to_world = function(local, world) {
 		if (world == undefined) {
@@ -123,19 +157,23 @@ $(window).ready(function() {
 	}
 
 	// attach this object's layout to the correct world maps
-	DThing.prototype.apply_layout = function(location) {
+	DThing.prototype.apply_layout = function(location, rot) {
 		if (!location) {
 			location = this.world_coords;
 		}
-		if (this.layout != []) {
+		if (!rot) {
+			rot = this.rotation;
+		}
+		var rot_layout = this.get_layout(rot);
+		if (rot_layout != []) {
 			if (this.placed) {
-				for (var i = 0; i < this.layout.length; i++) {
-					for (var j = 0; j < this.layout[i].length; j++) {
+				for (var i = 0; i < rot_layout.length; i++) {
+					for (var j = 0; j < rot_layout[i].length; j++) {
 						var coords = this.local_to_world([j, i], location);
-						if (this.layout[i][j] == 1) { // collision and placement
+						if (rot_layout[i][j] == 1) { // collision and placement
 							window.Map.push('objects', coords[0], coords[1], this);
 							window.Map.set('pathfinding', coords[0], coords[1], 1);
-						} else if (this.layout[i][j] != 0) {
+						} else if (rot_layout[i][j] != 0) {
 							window.Map.push('objects', coords[0], coords[1], this);
 						}
 					}
@@ -160,13 +198,16 @@ $(window).ready(function() {
 	}
 	
 	// check if it can be placed at given location
-	DThing.prototype.check_clear = function(location) {
-		if (this.layout) {
+	DThing.prototype.check_clear = function(location, rot_layout) {
+		if (rot_layout == 'undefined') {
+			rot_layout = this.layout;
+		}
+		if (rot_layout) {
 			
-			for (var i = 0; i < this.layout.length; i++) {
-				for (var j = 0; j < this.layout[i].length; j++) {
+			for (var i = 0; i < rot_layout.length; i++) {
+				for (var j = 0; j < rot_layout[i].length; j++) {
 					var coords = [location[0] + j, location[1] + i];
-					if (this.layout[i][j] != 0) {
+					if (rot_layout[i][j] != 0) {
 						var ob = window.Map.get('objects', coords[0], coords[1]);
 						if (ob != 0) { // an object already exists here
 							if (!window.Map.contains('objects', coords[0], coords[1], this)) {
@@ -181,11 +222,14 @@ $(window).ready(function() {
 	}
 
 	// place this object at a given location
-	DThing.prototype.place = function(location) {
-		if (this.check_clear(location)) {
+	DThing.prototype.place = function(location, rotation) {
+		if (rotation) {
+			this.rotation = rotation;
+		}
+		if (this.check_clear(location, this.rotation)) {
 			this.world_coords = location;
 			this.placed = true;
-			if (this.apply_layout()) {
+			if (this.apply_layout(location, rotation)) {
 				this.attach_to_map();
 				return true
 			} else {
