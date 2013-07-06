@@ -1,6 +1,6 @@
 
 
-window.object_manager = {
+window.Objects = {
 	init: function() {
 		this.selected = 0;
 		this.edit_mode = true;
@@ -14,10 +14,24 @@ window.object_manager = {
 		//alert(e.keyCode);
 		if (this.selected != 0) {
 			if (e.keyCode == 77) { // M
-				this.edit_style = 'move';
+				if (this.selected.moveable) {
+					this.edit_style = 'move';
+				} else {
+					alert(this.selected.name + " can't be moved!");
+				}
 			} else if (e.keyCode == 68) { // D
-				this.edit_style = 'destroy';
-				// call the object to be removed
+				if (this.selected.removable) {
+					this.selected.draw_tag('remove');
+					this.selected.ghost_loc = false;
+					this.obs_moving.remove(this.selected);
+					this.obs_building.remove(this.selected);
+					if (this.obs_removing.indexOf(this.selected) == -1) {
+						this.obs_removing.push(this.selected);
+					}
+					
+				} else {
+					alert(this.selected.name + " can't be removed!");
+				}	
 			}
 		//	} else if (e.keyCode == 80) { // P
 		//		this.edit_style = 'build';
@@ -33,10 +47,7 @@ window.object_manager = {
 				this.selected = window.Map.get('objects', coords[0], coords[1]);
 				if (this.selected != 0) {
 					this.selected = this.selected[0];
-					if (this.selected.selectable) {
-						alert('Selected: ' + this.selected + this.selected.name);
-						return;
-					} else {
+					if (!this.selected.selectable) {
 						this.selected = 0;
 						return;
 					}
@@ -48,10 +59,18 @@ window.object_manager = {
 			}
 		}
 	},
-	
 	update: function(delta) { // called consistantly
 		if (this.selected != 0) {
-			this.highlight_selected();
+			console.log(this.obs_removing.indexOf(this.selected));
+			if (this.obs_removing.indexOf(this.selected) != -1) {
+				this.highlight_selected('red');
+			} else if (this.obs_moving.indexOf(this.selected) != -1) {
+				this.highlight_selected('green');
+			} else if (this.obs_building.indexOf(this.selected) != -1) {
+				this.highlight_selected('green');
+			} else {
+				this.highlight_selected('yellow');
+			}
 			if (this.edit_style == 'move') {
 				if (this.selected.check_clear(window.Events.tile_under_mouse)) {
 					this.draw_layout(window.Events.tile_under_mouse, this.selected.layout, 'green');
@@ -60,22 +79,23 @@ window.object_manager = {
 				}
 			}
 		}
+	},	
+	highlight_selected: function(color) {
+		if (color == undefined) {
+			color = 'yellow';
+		}
+		this.draw_layout(this.selected.world_coords, this.selected.layout, color);
 	},
-	
-	highlight_selected: function() {
-		this.draw_layout(this.selected.world_coords, this.selected.layout, 'yellow');
-	},
-	
 	draw_layout: function(pos, layout, color) {
 		window.Draw.use_layer('entities');
 		if (color == 'red') {
-			color = "rgba(255, 20, 10, .5)";
+			color = "rgba(255, 20, 10, .25)";
 		} else if (color == 'green') {
-			 color = "rgba(10, 255, 10, .5)";
+			 color = "rgba(10, 255, 10, .25)";
 		} else if (color == 'yellow') {
-			color = "rgba(128, 128, 10, .5)";
+			color = "rgba(128, 128, 10, .25)";
 		} else {
-			color = "rgba(10, 20, 255, .5)";
+			color = "rgba(10, 20, 255, .25)";
 		}
 		
 		for (var i = 0; i < layout[0].length; i++) {
@@ -91,7 +111,6 @@ window.object_manager = {
 		}
 		
 	},
-	
 	mouseup: function(e) { // called on mouse click released
 		e.preventDefault();
 		if (e.which == 1 && this.edit_mode) {
@@ -99,34 +118,27 @@ window.object_manager = {
 				var coords = window.Events.tile_under_mouse;
 				
 				if (this.selected.check_clear(coords)) {
+					this.selected.remove_tag();
 					this.selected.draw_ghost(coords);
 					this.selected.draw_tag('move');
 					this.selected.apply_layout(coords);
 					this.edit_style = 'select';
+					this.obs_removing.remove(this.selected);
+					this.obs_building.remove(this.selected);
 					if (this.obs_moving.indexOf(this.selected) == -1) {
-						this.obs_moving.push(this);
+						this.obs_moving.push(this.selected);
 					}
-					this.selected = 0;
+					//this.selected = 0;
 				} else {
 					alert("Object cannot be placed there!");
 				}
-				
-				//this.selected.remove();
-				//if (this.selected.place(coords)) {
-				//	this.edit_style = 'select';
-				//	this.selected = 0;
-				//} else {
-				//	this.selected.place(this.selected.world_coords)
-				//	alert('cannot place here!');
-				//}
 			}
 		}
-	}
-	
+	}	
 }
 
 
 
 $(window).ready( function(){	
-	window.object_manager.init();
+	window.Objects.init();
 });

@@ -77,19 +77,36 @@ $(window).ready(function() {
 	
 	// add a tag to this object
 	DThing.prototype.draw_tag = function(type) {
+		this.remove_tag();
 		if (type == 'move') {
 			var t_size = window.Map.tilesize;
 			var loc = [(this.world_coords[0] + this.tag_loc[0]) * t_size, (this.world_coords[1] + this.tag_loc[1]) * t_size];
 			window.Draw.use_layer('tags');
-			console.log(window.Draw.image('tag_move', loc[0], loc[1], t_size, t_size));
+			window.Draw.image('tag_move', loc[0], loc[1], t_size, t_size);
+			if (this.ghost_loc) {
+				var loc = [(this.ghost_loc[0] + this.tag_loc[0]) * t_size, (this.ghost_loc[1] + this.tag_loc[1]) * t_size];
+				window.Draw.image('tag_move', loc[0], loc[1], t_size, t_size);
+			}
+		} else if (type == 'remove') {
+			var t_size = window.Map.tilesize;
+			var loc = [(this.world_coords[0] + this.tag_loc[0]) * t_size, (this.world_coords[1] + this.tag_loc[1]) * t_size];
+			window.Draw.use_layer('tags');
+			window.Draw.image('tag_remove', loc[0], loc[1], t_size, t_size);
 		}
+		
+		
 	}
 	
+	// method might not be needed
 	DThing.prototype.remove_tag = function() {
 		var t_size = window.Map.tilesize;
 		var loc = [(this.world_coords[0] + this.tag_loc[0]) * t_size, (this.world_coords[1] + this.tag_loc[1]) * t_size];
 		window.Draw.use_layer('tags');
 		window.Draw.clear_box(loc[0], loc[1], t_size, t_size);
+		if (this.ghost_loc) {
+			var loc = [(this.ghost_loc[0] + this.tag_loc[0]) * t_size, (this.ghost_loc[1] + this.tag_loc[1]) * t_size];
+			window.Draw.clear_box(loc[0], loc[1], t_size, t_size);
+		}
 	}
 	
 	 // convert local coordinates to world coordinates
@@ -152,7 +169,9 @@ $(window).ready(function() {
 					if (this.layout[i][j] != 0) {
 						var ob = window.Map.get('objects', coords[0], coords[1]);
 						if (ob != 0) { // an object already exists here
-							return false;
+							if (!window.Map.contains('objects', coords[0], coords[1], this)) {
+								return false;
+							}
 						}
 					}
 				}
@@ -208,16 +227,38 @@ $(window).ready(function() {
 	Derpifier.prototype.setup = function() {
 		this.name = 'Derpifier';
 		this.image = 'derpifier';
+		this.moveable = true;
+		this.buildable = true;
+		this.removable = true;
+		this.selectable = true;
 		this.tag_loc = [0, 0];
 		this.layout = [[1, 0, 0, 2],
 					   [1, 1, 1, 2]];
 	}
-
+	
+	
+	Air_Vent = window.Entities.add_class('Air_Vent', 'DThing');
+	
+	Air_Vent.prototype.setup = function() {
+		this.name = 'Air Vent';
+		this.image = 'air_vent';
+		this.moveable = true;
+		this.buildable = true;
+		this.removable = true;
+		this.selectable = true;
+		this.layout = [[2]];
+	}
+	
+	Air_Vent.prototype.check_clear = function(location) {
+		
+	}
+	
 	window.Draw.add_image('rock', "./textures/ground/crater_small.png");
 	window.Draw.add_image('crater_small', "./textures/ground/crater_small.png");
 	window.Draw.add_image('crater_medium', "./textures/ground/crater_medium.png");
 	window.Draw.add_image('crater_large', "./textures/ground/crater_large.png");
 	window.Draw.add_image('derpifier', "./textures/objects/derpifier.png");
+	window.Draw.add_image('air_vent', "./textures/objects/air_vent.png");
 	
 	window.Draw.add_image('tag_move', "./textures/UI/tag_move.png");
 	window.Draw.add_image('tag_build', "./textures/UI/tag_build.png");

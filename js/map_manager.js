@@ -156,7 +156,11 @@ window.Map = {
 		}
 	},
 	contains: function (layer, x, y, ob) {
-		return (this.arrays[layer][y][x].indexOf(ob) != -1);
+		if (this.arrays[layer][y][x] instanceof Array) {
+			return (this.arrays[layer][y][x].indexOf(ob) != -1);
+		} else {
+			return false;
+		}
 	},
 	draw_background: function(){
 		// sloppy check if images are loaded
