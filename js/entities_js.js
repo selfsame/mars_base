@@ -46,7 +46,11 @@ $(window).ready(function() {
 			
 			window.Draw.use_layer('objects');
 			var r = this.get_rot(this.rotation);
-			return (window.Draw.image(this.image, this.world_coords[0] * t_size, this.world_coords[1] * t_size, width * t_size, height * t_size, r, .75));
+			var o = [0, 0];
+			if (this.rotation == 2 || this.rotation == 4) {
+				o = [-1, 1];
+			}
+			return (window.Draw.image(this.image, (this.world_coords[0] + o[0]) * t_size, (this.world_coords[1] + o[1]) * t_size, width * t_size, height * t_size, r, true));
 			
 		} else if (!this.placed && this.layout != []) {
 			window.Draw.use_layer('objects');
@@ -84,13 +88,19 @@ $(window).ready(function() {
 	DThing.prototype.draw_ghost = function(location) {
 		this.ghost_loc = location;
 		if (this.ghost_layout != []) {
+			
 			var width = this.layout[0].length;
 			var height = this.layout.length;
 			var t_size = window.Map.tilesize;
+			var o = [0, 0];
+			if (this.ghost_rot == 2 || this.ghost_rot == 4) {
+				o = [-1, 1];
+			}
+			
 			
 			window.Draw.use_layer('entities');
 			var r = this.get_rot(this.ghost_rot);
-			return (window.Draw.image(this.image, this.ghost_loc[0] * t_size, this.ghost_loc[1] * t_size, width * t_size, height * t_size, r, .5));
+			return (window.Draw.image(this.image, (this.ghost_loc[0] + o[0]) * t_size, (this.ghost_loc[1] + o[1]) * t_size, width * t_size, height * t_size, r, .5));
 		}
 	}
 	
@@ -297,12 +307,31 @@ $(window).ready(function() {
 		
 	}
 	
+	
+	Water_Tank = window.Entities.add_class('Water_Tank', 'DThing');
+	
+	Water_Tank.prototype.setup = function() {
+		this.name = 'Water Tank';
+		this.image = 'water_tank';
+		this.moveable = true;
+		this.buildable = true;
+		this.removable = true;
+		this.selectable = true;
+		this.layout = [[1, 1, 1, 1, 1, 1],
+					   [1, 1, 1, 1, 1, 3],
+					   [1, 1, 1, 1, 1, 1],
+					   [1, 1, 1, 1, 1, 1]];
+	}
+	
+	
 	window.Draw.add_image('rock', "./textures/ground/crater_small.png");
 	window.Draw.add_image('crater_small', "./textures/ground/crater_small.png");
 	window.Draw.add_image('crater_medium', "./textures/ground/crater_medium.png");
 	window.Draw.add_image('crater_large', "./textures/ground/crater_large.png");
 	window.Draw.add_image('derpifier', "./textures/objects/derpifier.png");
 	window.Draw.add_image('air_vent', "./textures/objects/air_vent.png");
+	window.Draw.add_image('water_tank', "./textures/objects/water_tank.png");
+	
 	
 	window.Draw.add_image('tag_move', "./textures/UI/tag_move.png");
 	window.Draw.add_image('tag_build', "./textures/UI/tag_build.png");

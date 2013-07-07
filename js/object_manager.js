@@ -104,7 +104,7 @@ window.Objects = {
 		}
 		this.draw_layout(this.selected.world_coords, this.selected.get_layout(), color);
 		if (this.selected.ghost_loc) {
-			this.draw_layout(this.selected.ghost_loc, this.selected.get_layout(this.selected.ghost_rot), color);
+			this.draw_layout(this.selected.ghost_loc, this.selected.get_layout(this.selected.ghost_rot), "blue");
 		}
 	},
 	draw_layout: function(pos, layout, color) {
@@ -116,7 +116,7 @@ window.Objects = {
 		} else if (color == 'yellow') {
 			color = "rgba(128, 128, 10, .25)";
 		} else {
-			color = "rgba(10, 20, 255, .25)";
+			color = "rgba(0, 40, 200, .25)";
 		}
 		
 		for (var i = 0; i < layout[0].length; i++) {

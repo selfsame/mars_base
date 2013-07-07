@@ -64,6 +64,15 @@ window.Map = {
 		derp = new window.Entities.classes.Derpifier();
 		derp.place([30, 22], 2);
 		
+		water = new window.Entities.classes.Water_Tank();
+		water.place([25, 30], 2);
+		
+		water = new window.Entities.classes.Water_Tank();
+		water.place([29, 30], 2);
+		
+		water = new window.Entities.classes.Water_Tank();
+		water.place([33, 30], 2);
+		
 		for (var i = 0; i <= (this.height); i++) {
 			for (var j = 0; j <= (this.width); j++) {
 				if ((i < middle[0] || j < middle[1] || i >= middle[2] || j >= middle[3])) { // not in the middle square
