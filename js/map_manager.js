@@ -51,42 +51,6 @@ window.Map = {
 				this.arrays['background'][i].push(tile);
 			}
 		}
-
-		var middle = [this.height*.4, this.width*.4, this.height*.6, this.width*.6]; // 1/3 square in the middle. no-crater zone
-		
-		
-		derp = new window.Entities.classes.Derpifier();
-		derp.place([26, 16]);
-		
-		derp = new window.Entities.classes.Derpifier();
-		derp.place([26, 19]);
-		
-		derp = new window.Entities.classes.Derpifier();
-		derp.place([30, 22], 2);
-		
-		water = new window.Entities.classes.Water_Tank();
-		water.place([25, 30], 2);
-		
-		water = new window.Entities.classes.Water_Tank();
-		water.place([29, 30], 2);
-		
-		water = new window.Entities.classes.Water_Tank();
-		water.place([33, 30], 2);
-		
-		for (var i = 0; i <= (this.height); i++) {
-			for (var j = 0; j <= (this.width); j++) {
-				if ((i < middle[0] || j < middle[1] || i >= middle[2] || j >= middle[3])) { // not in the middle square
-					var rand = Math.random();
-					if (rand <=  options.crater_oc ) {
-						var x = parseInt(Math.random()*window.Map.width);//*window.Map.tilesize;
-						var y = parseInt(Math.random()*window.Map.height);//*window.Map.tilesize;
-						crater = new window.Entities.classes.Crater_Small();
-						crater.place([x, y]);
-					}
-				}
-			}
-		}
-			
 	},
 	
 	draw: function(){
@@ -138,7 +102,7 @@ window.Map = {
 		}
 	},
 	set: function(layer, x, y, ob) {
-		if (this.arrays[layer]){
+		if (this.arrays[layer]) {
 			a = this.arrays[layer]
 			if (y >= 0 && y <= this.height-1){
 				if (x >= 0 && x <= this.width-1){
@@ -149,15 +113,17 @@ window.Map = {
 		}
 	},	
 	push: function (layer, x, y, ob) {
-		if (this.arrays[layer][y][x] == 0) {
-			this.arrays[layer][y][x] = [ob];
-			return true;
-		} else {
-			if (this.arrays[layer][y][x].indexOf(ob) == -1) {
-				this.arrays[layer][y][x].push(ob);
+		if(this.arrays[layer]) {
+			if (this.arrays[layer][y][x] == 0) {
+				this.arrays[layer][y][x] = [ob];
 				return true;
 			} else {
-				return false;
+				if (this.arrays[layer][y][x].indexOf(ob) == -1) {
+					this.arrays[layer][y][x].push(ob);
+					return true;
+				} else {
+					return false;
+				}
 			}
 		}
 	},

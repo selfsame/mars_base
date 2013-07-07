@@ -7,6 +7,7 @@ $(window).ready(function() {
 
 	DThing.prototype.init = function() {
 		this.world_coords = []; // top left corner, in world coordinates
+		this.rotation = 1; // represents the rotation
 		this.layout = []; // 2d layout of this object
 		this.tag_loc = [0, 0]; // location relative to layout, where the tag goes
 		
@@ -15,12 +16,11 @@ $(window).ready(function() {
 		this.ghost_layout = this.layout;
 		
 		this.moveable = false; // can the colonists move this object?
+		this.useable = false; // can the colonists use this object?
 		this.buildable = false; // can the colonists build this object?
-		this.removable = false; // can the astronauts remove this object?
+		this.removable = false; // can the colonists remove this object?
 		this.selectable = true; // can this object be selected?
 		this.rotatable = true; // can this object be rotated?
-		
-		this.rotation = 1; // represents the rotation
 		
 		this.placed = false; // if this object has been placed yet
 		this.name = 'Plain Thingy';
@@ -104,6 +104,12 @@ $(window).ready(function() {
 		}
 	}
 	
+	DThing.prototype.remove_ghost = function() {
+		this.ghost_loc = false;
+		this.ghost_rot = this.rotation;
+		this.ghost_layout = this.layout;
+	}
+	
 	// add a tag to this object
 	DThing.prototype.draw_tag = function(type) {
 		this.remove_tag();
@@ -142,15 +148,79 @@ $(window).ready(function() {
 		if (!rot) {
 			rot = this.rotation;
 		}
+		var lay = this.layout;
+		
 		if (rot == 1) { // 0 degrees
-			return this.layout;
+			lay = this.layout;
 		} else if (rot == 2) { // 90 degrees
-			return this.layout.transpose().reverse_rows();
+			lay = this.layout.transpose().reverse_rows();
+			for (var i = 0; i < lay.length; i++) {
+				for (var j = 0; j < lay[i].length; j++) {
+					switch(lay[i][j]) {
+						case 4: 
+							lay[i][j] = 5;
+							break;
+						case 5:
+							lay[i][j] = 6;
+							break;
+						case 6:
+							lay[i][j] = 7;
+							break;
+						case 7:
+							lay[i][j] = 3;
+							break;
+						default:
+							break;
+					}
+				}
+			}
 		} else if (rot == 3) { // 180 degrees
-			return this.layout.reverse_rows().reverse_cols();
+			lay = this.layout.reverse_rows().reverse_cols();
+			for (var i = 0; i < lay.length; i++) {
+				for (var j = 0; j < lay[i].length; j++) {
+					switch(lay[i][j]) {
+						case 4: 
+							lay[i][j] = 6;
+							break;
+						case 5:
+							lay[i][j] = 7;
+							break;
+						case 6:
+							lay[i][j] = 4;
+							break;
+						case 7:
+							lay[i][j] = 5;
+							break;
+						default:
+							break;
+					}
+				}
+			}
 		} else if (rot == 4) { // 270 degrees
-			return this.layout.transpose().reverse_cols();
+			lay = this.layout.transpose().reverse_cols();
+			for (var i = 0; i < lay.length; i++) {
+				for (var j = 0; j < lay[i].length; j++) {
+					switch(lay[i][j]) {
+						case 4: 
+							lay[i][j] = 7;
+							break;
+						case 5:
+							lay[i][j] = 4;
+							break;
+						case 6:
+							lay[i][j] = 5;
+							break;
+						case 7:
+							lay[i][j] = 6;
+							break;
+						default:
+							break;
+					}
+				}
+			}
 		}
+		
+		return lay;
 	}
 	
 	 // convert local coordinates to world coordinates
@@ -317,10 +387,11 @@ $(window).ready(function() {
 		this.buildable = true;
 		this.removable = true;
 		this.selectable = true;
-		this.layout = [[1, 1, 1, 1, 1, 1],
-					   [1, 1, 1, 1, 1, 3],
-					   [1, 1, 1, 1, 1, 1],
-					   [1, 1, 1, 1, 1, 1]];
+		this.useable = true;
+		this.layout = [[1, 1, 1, 1, 1, 2],
+					   [1, 1, 1, 1, 1, 5],
+					   [1, 1, 1, 1, 1, 2],
+					   [1, 1, 1, 1, 1, 2]];
 	}
 	
 	

@@ -11,11 +11,4 @@ $(window).ready(function() {
 	Crate.prototype._close = function(){
 		this.image = 'crate_closed';
 	};
-	
-	var i, _i;
-	for (i = _i = 0; _i <= 6; i = ++_i) {
-		crate = new Crate('Crate', 'crate_closed', [parseInt(Math.random()*window.Map.width)*window.Map.tilesize, parseInt(Math.random()*window.Map.height)*window.Map.tilesize]);
-
-	}
-
 });

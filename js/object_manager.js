@@ -18,6 +18,8 @@ window.Objects = {
 		if (this.rotation == 5) {
 			this.rotation = 1;
 		}
+		this.rot_layout = this.selected.get_layout(this.rotation);
+		
 	},
 		
 	keydown: function(e){ // called on keypress
@@ -27,7 +29,7 @@ window.Objects = {
 				if (this.selected.moveable) {
 					this.edit_style = 'move';
 					this.rotation = this.selected.rotation;
-					this.rot_layout = this.selected.layout;
+					this.rot_layout = this.selected.get_layout(this.rotation);
 				} else {
 					alert(this.selected.name + " can't be moved!");
 				}
@@ -45,9 +47,12 @@ window.Objects = {
 					alert(this.selected.name + " can't be removed!");
 				}	
 			} else if (e.keyCode == 82) { // R
-				if (this.selected.rotatable && this.edit_style == 'move') {
-					this.rotate();
-					this.rot_layout = this.selected.get_layout(this.rotation);
+				if (this.edit_style == 'move') {
+					if (this.selected.rotatable) {
+						this.rotate();
+					} else {
+						alert(this.selected.name + " can't be rotated!");
+					}
 				}
 			}
 		//	} else if (e.keyCode == 80) { // P
@@ -65,7 +70,7 @@ window.Objects = {
 				if (this.selected != 0) {
 					this.selected = this.selected[0];
 					this.rotation = this.selected.rotation;
-					this.rot_layout = this.selected.layout;
+					this.rot_layout = this.selected.get_layout(this.rotation);
 					if (!this.selected.selectable) {
 						this.selected = 0;
 						return;
@@ -80,6 +85,9 @@ window.Objects = {
 	},
 	update: function(delta) { // called consistantly
 		if (this.selected != 0) {
+			if (this.selected.useable) {
+				this.draw_useage(this.selected.world_coords, this.selected.get_layout(this.selected.rotation));
+			}
 			if (this.obs_removing.indexOf(this.selected) != -1) {
 				this.highlight_selected('red');
 			} else if (this.obs_moving.indexOf(this.selected) != -1) {
@@ -90,11 +98,14 @@ window.Objects = {
 				this.highlight_selected('yellow');
 			}
 			if (this.edit_style == 'move') {
+				
 				if (this.selected.check_clear(window.Events.tile_under_mouse, this.rot_layout)) {
 					this.draw_layout(window.Events.tile_under_mouse, this.rot_layout, 'green');
 				} else {
+				
 					this.draw_layout(window.Events.tile_under_mouse, this.rot_layout, 'red');
 				}
+				this.draw_useage(window.Events.tile_under_mouse, this.rot_layout);
 			}
 		}
 	},	
@@ -104,7 +115,21 @@ window.Objects = {
 		}
 		this.draw_layout(this.selected.world_coords, this.selected.get_layout(), color);
 		if (this.selected.ghost_loc) {
-			this.draw_layout(this.selected.ghost_loc, this.selected.get_layout(this.selected.ghost_rot), "blue");
+			var lay = this.selected.get_layout(this.selected.ghost_rot);
+			this.draw_layout(this.selected.ghost_loc, lay, "blue");
+			this.draw_useage(this.selected.ghost_loc, lay);
+		}
+	},
+	
+	draw_useage: function(pos, layout) {
+		window.Draw.use_layer('entities');
+		for (var i = 0; i < layout[0].length; i++) {
+			for (var j = 0; j < layout.length; j++) {
+				var n = layout[j][i];
+				if (n == 4 || n == 5 || n == 6 || n == 7) {
+					window.Draw.image('use_' + n, (pos[0] + i) * window.Map.tilesize, (pos[1] + j) * window.Map.tilesize)
+				}
+			}
 		}
 	},
 	draw_layout: function(pos, layout, color) {
@@ -137,8 +162,7 @@ window.Objects = {
 		if (e.which == 1 && this.edit_mode) {
 			if (this.edit_style == 'move') {
 				var coords = window.Events.tile_under_mouse;
-				
-				if (this.selected.check_clear(coords)) {
+				if (this.selected.check_clear(coords, this.rot_layout)) {
 					this.selected.ghost_rot = this.rotation;
 					this.selected.remove_tag();
 					this.selected.draw_ghost(coords);
@@ -162,5 +186,11 @@ window.Objects = {
 
 
 $(window).ready( function(){	
+	
+	window.Draw.add_image('use_4', "./textures/UI/use_down.png");
+	window.Draw.add_image('use_5', "./textures/UI/use_left.png");
+	window.Draw.add_image('use_6', "./textures/UI/use_up.png");
+	window.Draw.add_image('use_7', "./textures/UI/use_right.png");
+	
 	window.Objects.init();
 });
