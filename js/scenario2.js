@@ -3,6 +3,9 @@ $(window).ready(function() {
 	cx = (window.Map.width * 32) / 2;
 	cy = (window.Map.height * 32) / 2;
 
+	window.Objects.add_buildable('Water Tank', 'Water_Tank');
+	window.Objects.add_buildable('Derpifier', 'Derpifier');
+	
 	derp = new E.Derpifier();
 	derp.place([26, 16]);
 
@@ -10,7 +13,7 @@ $(window).ready(function() {
 	derp.place([26, 19]);
 
 	derp = new E.Derpifier();
-	derp.place([30, 22], 2);
+	derp.place([31, 17], 2);
 
 	water = new E.Water_Tank();
 	water.place([25, 30], 2);

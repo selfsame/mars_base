@@ -848,10 +848,9 @@ window.Tiles = {
 		window.Map.create_layer('tiles', 0);
 		
 		// create draw layers
-		window.Draw.create_layer('tiles', true);
-		//window.Draw.create_layer('objects', true);
-		window.Draw.create_layer('wall_shadows', true);
-		window.Draw.create_layer('blueprints', true);
+		//window.Draw.create_layer('tiles', true);
+		//window.Draw.create_layer('wall_shadows', true);
+		//window.Draw.create_layer('blueprints', true);
 	},
 	
 	show_blueprints: function(mode) { // true = blueprint mode, false = view mode

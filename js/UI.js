@@ -81,20 +81,20 @@ $(window).ready( function(){
 	
 
 	m_button.click(function(e){
-		console.log('click');
 		if ( $(this).data('active') ){
+			window.Objects.unselect();
 			$(this).data('active', false);
-			window.Placer.build_mode = false;
+			//window.Placer.build_mode = false;
 			$(this).parent().find('.ui_menu_dropdown').animate({'height':'0px', opacity:.2},500);
-			window.Placer.update_menu();
+			//window.Placer.update_menu();
 
 		} else {
 			if ($('#build').children().first().data('active') == true ){
 				$('#build').children().first().click();
 			}
 			$(this).data('active', true);
-			window.Placer.build_mode = true;
-			window.Placer.update_menu();
+			//window.Placer.build_mode = true;
+			//window.Placer.update_menu();
 			drop = $(this).parent().find('.ui_menu_dropdown');
 			drop.css('height','auto');
 			height = drop.height()

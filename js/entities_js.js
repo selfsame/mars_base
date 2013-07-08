@@ -36,7 +36,7 @@ $(window).ready(function() {
 	// should be updated
 	DThing.prototype.draw = function() {
 		if (this.ghost_loc) {
-			this.draw_ghost(this.ghost_loc);
+			this.draw_ghost();
 		}
 		if (this.placed && this.layout != []) {
 			
@@ -84,9 +84,8 @@ $(window).ready(function() {
 		
 	}
 	
-	// draw a ghost of this object at given location
-	DThing.prototype.draw_ghost = function(location) {
-		this.ghost_loc = location;
+	// draw a ghost of this object
+	DThing.prototype.draw_ghost = function() {
 		if (this.ghost_layout != []) {
 			
 			var width = this.layout[0].length;
@@ -97,17 +96,38 @@ $(window).ready(function() {
 				o = [-1, 1];
 			}
 			
-			
 			window.Draw.use_layer('entities');
 			var r = this.get_rot(this.ghost_rot);
 			return (window.Draw.image(this.image, (this.ghost_loc[0] + o[0]) * t_size, (this.ghost_loc[1] + o[1]) * t_size, width * t_size, height * t_size, r, .5));
 		}
+		return false;
 	}
 	
-	DThing.prototype.remove_ghost = function() {
+	// show this objects ghost at given location and rotation
+	DThing.prototype.show_ghost = function(location, rotation, apply_layout) {
+		this.ghost_loc = location;
+		this.ghost_rot = rotation;
+		this.ghost_layout = this.get_layout(rotation);
+		
+		if (apply_layout) {
+			return(this.apply_layout(location, rotation));
+		}
+		
+		return true;
+	}
+	
+	// remove any ghost
+	DThing.prototype.hide_ghost = function() {
+		if (this.ghost_loc) {
+			this.remove_layout(this.ghost_loc, this.ghost_rot);
+			if (this.placed) {
+				this.apply_layout(this.world_coords, this.rotation);
+			}
+			this.remove_tag();
+		}
 		this.ghost_loc = false;
 		this.ghost_rot = this.rotation;
-		this.ghost_layout = this.layout;
+		this.ghost_layout = this.layout;	
 	}
 	
 	// add a tag to this object
@@ -127,12 +147,17 @@ $(window).ready(function() {
 			var loc = [(this.world_coords[0] + this.tag_loc[0]) * t_size, (this.world_coords[1] + this.tag_loc[1]) * t_size];
 			window.Draw.use_layer('tags');
 			window.Draw.image('tag_remove', loc[0], loc[1], t_size, t_size);
+		} else if (type == 'build') {
+			var t_size = window.Map.tilesize;
+			if (this.ghost_loc) {
+				var loc = [(this.ghost_loc[0] + this.tag_loc[0]) * t_size, (this.ghost_loc[1] + this.tag_loc[1]) * t_size];
+				window.Draw.image('tag_build', loc[0], loc[1], t_size, t_size);
+			}
 		}
-		
 		
 	}
 	
-	// method might not be needed
+	// remove any tags currently drawn
 	DThing.prototype.remove_tag = function() {
 		var t_size = window.Map.tilesize;
 		var loc = [(this.world_coords[0] + this.tag_loc[0]) * t_size, (this.world_coords[1] + this.tag_loc[1]) * t_size];
@@ -144,6 +169,7 @@ $(window).ready(function() {
 		}
 	}
 	
+	// get a rotated layout of the object
 	DThing.prototype.get_layout = function(rot) {
 		if (!rot) {
 			rot = this.rotation;
@@ -235,8 +261,8 @@ $(window).ready(function() {
 	DThing.prototype.world_to_local = function(world) {
 		return [world[0] - this.world_coords[0], world[1] - this.world_coords[1]];
 	}
-
-	// attach this object's layout to the correct world maps
+	
+	// attach this object's layout to the correct maps
 	DThing.prototype.apply_layout = function(location, rot) {
 		if (!location) {
 			location = this.world_coords;
@@ -246,33 +272,48 @@ $(window).ready(function() {
 		}
 		var rot_layout = this.get_layout(rot);
 		if (rot_layout != []) {
-			if (this.placed) {
-				for (var i = 0; i < rot_layout.length; i++) {
-					for (var j = 0; j < rot_layout[i].length; j++) {
-						var coords = this.local_to_world([j, i], location);
-						if (rot_layout[i][j] == 1) { // collision and placement
-							window.Map.push('objects', coords[0], coords[1], this);
-							window.Map.set('pathfinding', coords[0], coords[1], 1);
-						} else if (rot_layout[i][j] != 0) {
-							window.Map.push('objects', coords[0], coords[1], this);
-						}
+			for (var i = 0; i < rot_layout.length; i++) {
+				for (var j = 0; j < rot_layout[i].length; j++) {
+					var coords = this.local_to_world([j, i], location);
+					if (rot_layout[i][j] == 1) { // collision and placement
+						window.Map.push('objects', coords[0], coords[1], this);
+						window.Map.set('pathfinding', coords[0], coords[1], 1);
+					} else if (rot_layout[i][j] != 0) {
+						window.Map.push('objects', coords[0], coords[1], this);
 					}
 				}
-				return true;
-			} else {
-				for (var i = 0; i < this.layout.length; i++) {
-					for (var j = 0; j < this.layout[i].length; j++) {
-						var coords = this.local_to_world([j, i]);
-						if (this.layout[i][j] == 1) { // collision and placement
-							window.Map.remove('objects', coords[0], coords[1], this);
-							window.Map.set('pathfinding', coords[0], coords[1], 0);
-						} else if (this.layout[i][j] != 0) {
-							window.Map.remove('objects', coords[0], coords[1], this);
-						}
-					}
-				}
-				return true;
 			}
+			return true;
+		}
+		return false;
+	}
+	
+	// detach this object's layout from the correct maps
+	DThing.prototype.remove_layout = function(location, rot) {
+		if (!location) {
+			location = this.world_coords;
+		}
+		if (!rot) {
+			rot = this.rotation;
+		}
+		var rot_layout = this.get_layout(rot);
+		if (rot_layout != []) {
+			for (var i = 0; i < rot_layout.length; i++) {
+				for (var j = 0; j < rot_layout[i].length; j++) {
+					var coords = this.local_to_world([j, i], location);
+					if (rot_layout[i][j] == 1) { // collision and placement
+						//console.log('removing: ' + coords);
+						//window.Map.remove('objects', coords[0], coords[1], this);
+						window.Map.set('objects', coords[0], coords[1], 0);
+						window.Map.set('pathfinding', coords[0], coords[1], 0);
+					} else if (rot_layout[i][j] != 0) {
+						//console.log('removing: ' + coords);
+						window.Map.set('objects', coords[0], coords[1], 0);
+						//window.Map.remove('objects', coords[0], coords[1], this);
+					}
+				}
+			}
+			return true;
 		}
 		return false;
 	}
@@ -320,11 +361,16 @@ $(window).ready(function() {
 		return false;
 	}
 	
+	// destroy the object completely
+	DThing.prototype.destroy = function() {
+		console.log('destroying a ' + this.name);
+	}
+	
 	// remove the object
 	DThing.prototype.remove = function() {
 		var p = this.placed;
 		this.placed = false;
-		if (this.apply_layout()) {
+		if (this.remove_layout()) {
 			this.needs_draw = true;
 			this.draw();
 			this.detach_from_map();
@@ -345,7 +391,6 @@ $(window).ready(function() {
 					   [1, 1, 1]];
 	}
 	
-
 	Derpifier = window.Entities.add_class('Derpifier', 'DThing');
 	
 	Derpifier.prototype.setup = function() {
@@ -359,7 +404,6 @@ $(window).ready(function() {
 		this.layout = [[1, 0, 0, 2],
 					   [1, 1, 1, 2]];
 	}
-	
 	
 	Air_Vent = window.Entities.add_class('Air_Vent', 'DThing');
 	
@@ -377,7 +421,6 @@ $(window).ready(function() {
 		
 	}
 	
-	
 	Water_Tank = window.Entities.add_class('Water_Tank', 'DThing');
 	
 	Water_Tank.prototype.setup = function() {
@@ -394,7 +437,7 @@ $(window).ready(function() {
 					   [1, 1, 1, 1, 1, 2]];
 	}
 	
-	
+	// object images
 	window.Draw.add_image('rock', "./textures/ground/crater_small.png");
 	window.Draw.add_image('crater_small', "./textures/ground/crater_small.png");
 	window.Draw.add_image('crater_medium', "./textures/ground/crater_medium.png");
@@ -403,7 +446,7 @@ $(window).ready(function() {
 	window.Draw.add_image('air_vent', "./textures/objects/air_vent.png");
 	window.Draw.add_image('water_tank', "./textures/objects/water_tank.png");
 	
-	
+	// tag images
 	window.Draw.add_image('tag_move', "./textures/UI/tag_move.png");
 	window.Draw.add_image('tag_build', "./textures/UI/tag_build.png");
 	window.Draw.add_image('tag_remove', "./textures/UI/tag_remove.png");

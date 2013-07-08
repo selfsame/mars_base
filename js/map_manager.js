@@ -13,6 +13,9 @@ window.Map = {
 	
 		// create the canvas layers
 		window.Draw.create_layer('background', true);
+		window.Draw.create_layer('tiles', true);
+		window.Draw.create_layer('wall_shadows', true);
+		window.Draw.create_layer('blueprints', true);
 		window.Draw.create_layer('objects', true);
 		window.Draw.create_layer('entities', false);
 		window.Draw.create_layer('tags', true); // temporary, not sure where tags will go
