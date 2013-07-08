@@ -1,12 +1,16 @@
 $(window).ready(function() {
 	E = window.Entities.classes;
-	cx = (window.Map.width * 32) / 2;
-	cy = (window.Map.height * 32) / 2;
+	cx = (window.Map.width) / 2;
+	cy = (window.Map.height) / 2;
 
 	window.Objects.add_buildable('Water Tank', 'Water_Tank');
 	window.Objects.add_buildable('Derpifier', 'Derpifier');
+	window.Objects.add_buildable('Air Vent', 'Air_Vent');
 	
-	derp = new E.Derpifier();
+	var Launch = new E.Launchpad2();
+	Launch.place([cx, cy]);
+	
+	var derp = new E.Derpifier();
 	derp.place([26, 16]);
 
 	derp = new E.Derpifier();
@@ -15,7 +19,7 @@ $(window).ready(function() {
 	derp = new E.Derpifier();
 	derp.place([31, 17], 2);
 
-	water = new E.Water_Tank();
+	var water = new E.Water_Tank();
 	water.place([25, 30], 2);
 
 	water = new E.Water_Tank();

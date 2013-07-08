@@ -921,7 +921,7 @@ window.Tiles = {
 		}
 	},
 	
-	mousedown: function(e){ // called on mouse click
+	mousedown: function(e) { // called on mouse click
 		e.preventDefault();
 		if (this.edit_mode && e.which == 1) {
 			// get the tile the user clicked and save it for later
@@ -930,6 +930,11 @@ window.Tiles = {
 		}
 	},
 	
+	update: function(delta) {
+		for (var i = 0; i < this.under_construction.length; i++) {
+			this.under_construction[i].build(delta/4);
+		}	
+	},
 	mouseup: function(e) { // called on mouse click released
 		e.preventDefault();
 		if (this.dragging && this.edit_mode && e.which == 1) {

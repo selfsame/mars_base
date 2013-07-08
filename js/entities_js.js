@@ -22,6 +22,9 @@ $(window).ready(function() {
 		this.selectable = true; // can this object be selected?
 		this.rotatable = true; // can this object be rotated?
 		
+		this.place_interior = true; // can this object be placed inside
+		this.place_exterior = true; // can the object be placed outside
+		
 		this.placed = false; // if this object has been placed yet
 		this.name = 'Plain Thingy';
 		this.setup();
@@ -283,7 +286,7 @@ $(window).ready(function() {
 					}
 				}
 			}
-			return true;
+			return true; 
 		}
 		return false;
 	}
@@ -330,8 +333,35 @@ $(window).ready(function() {
 					var coords = [location[0] + j, location[1] + i];
 					if (rot_layout[i][j] != 0) {
 						var ob = window.Map.get('objects', coords[0], coords[1]);
-						if (ob != 0) { // an object already exists here
+						
+						if (ob != 0) { // look for other objects here
 							if (!window.Map.contains('objects', coords[0], coords[1], this)) {
+								return false;
+							}
+						}
+						
+						var t = window.Map.get('tiles', coords[0], coords[1]);
+						
+						// if it can be placed outside
+						if (!this.place_exterior) {
+							if (t == 0) {
+								return false;
+							}
+						}
+						
+						// if it can be placed inside
+						if (this.place_interior) {
+							if (t != 0) {
+								if (t.built) {
+									if (t.is_wall()) {
+										return false;
+									}
+								} else {
+									return false;
+								}
+							}
+						} else {
+							if (t != 0) {
 								return false;
 							}
 						}
@@ -363,10 +393,11 @@ $(window).ready(function() {
 	
 	// destroy the object completely
 	DThing.prototype.destroy = function() {
+		// to-do
 		console.log('destroying a ' + this.name);
 	}
 	
-	// remove the object
+	// removes the object from the map, doesn't destroy it
 	DThing.prototype.remove = function() {
 		var p = this.placed;
 		this.placed = false;
@@ -403,6 +434,8 @@ $(window).ready(function() {
 		this.tag_loc = [0, 0];
 		this.layout = [[1, 0, 0, 2],
 					   [1, 1, 1, 2]];
+		this.place_interior = true;
+		this.place_exterior = true;
 	}
 	
 	Air_Vent = window.Entities.add_class('Air_Vent', 'DThing');
@@ -414,13 +447,15 @@ $(window).ready(function() {
 		this.buildable = true;
 		this.removable = true;
 		this.selectable = true;
+		
+		this.place_interior = true;
+		this.place_exterior = false;
+		
+		
 		this.layout = [[2]];
 	}
 	
-	Air_Vent.prototype.check_clear = function(location) {
-		
-	}
-	
+
 	Water_Tank = window.Entities.add_class('Water_Tank', 'DThing');
 	
 	Water_Tank.prototype.setup = function() {
@@ -435,6 +470,27 @@ $(window).ready(function() {
 					   [1, 1, 1, 1, 1, 5],
 					   [1, 1, 1, 1, 1, 2],
 					   [1, 1, 1, 1, 1, 2]];
+		
+		this.place_interior = false;
+		this.place_exterior = true;
+		
+	}
+	
+	
+	Launchpad2 = window.Entities.add_class('Launchpad2', 'DThing');
+	
+	Launchpad2.prototype.setup = function() {
+		this.name = 'Launchpad2';
+		this.image = 'launchpad';
+		this.moveable = false;
+		this.buildable = false;
+		this.removable = false;
+		this.selectable = true;
+		this.useable = true;
+		this.layout = [[2, 4, 4, 2],
+					   [7, 2, 2, 5],
+					   [7, 2, 2, 5],
+					   [2, 6, 6, 2]];
 	}
 	
 	// object images
@@ -445,6 +501,7 @@ $(window).ready(function() {
 	window.Draw.add_image('derpifier', "./textures/objects/derpifier.png");
 	window.Draw.add_image('air_vent', "./textures/objects/air_vent.png");
 	window.Draw.add_image('water_tank', "./textures/objects/water_tank.png");
+	window.Draw.add_image('launchpad', "./textures/objects/launchpad.png");
 	
 	// tag images
 	window.Draw.add_image('tag_move', "./textures/UI/tag_move.png");
