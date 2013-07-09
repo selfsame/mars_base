@@ -222,18 +222,10 @@ function Tile(x, y) {
 	// check if the ground is clear of any obstacles
 	Tile.prototype.check_clear = function(x, y) {
 		if (x && y) {
-			var ob = window.Map.get("objects", x, y);
+			return window.Objects.tile_changed(x, y);
 		} else {
-			var ob = window.Map.get("objects", this.x, this.y);
+			return window.Objects.tile_changed(this.x, this.y);
 		}
-		if (ob) {
-			if (!ob.block_build) {
-				return false;
-			}
-		}
-		
-		return true;
-		
 	}
 	
 	// check if the neighbors around this tile are clear of any obstacles
@@ -383,8 +375,21 @@ function Tile(x, y) {
 	}
 	
 	// returns true if the tile is currently a wall that is built
-	Tile.prototype.is_wall = function() {
-		return (this.state == 3 && this.current_style == 'wall');
+	Tile.prototype.is_wall = function(blues) {
+		if (blues) {
+			return (this.state == 3 && this.current_style == 'wall' && this.blue_style == 'wall')
+		} else {
+			return (this.state == 3 && this.current_style == 'wall');
+		}
+	}
+	
+	// returns true if the tile is currently a floor that is built
+	Tile.prototype.is_floor = function(blues) {
+		if (blues) {
+			return (this.state == 3 && this.current_style == this.blue_style && this.current_style != 'wall');
+		} else {
+			return (this.state == 3 && this.current_style != 'wall');
+		}
 	}
 	
 	// draw the shadows for this tile

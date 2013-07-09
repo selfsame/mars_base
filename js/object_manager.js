@@ -15,6 +15,22 @@ window.Objects = {
 		this.obs_building = []; // all objects that need to be built
 		this.obs_removing = []; // all objects that need to be removed
 	},
+	// called if a tile wants to change (checks all around the tile)
+	tile_changed: function(x, y) {
+		var neighbs = window.Map.get_neighbors('objects', x, y);
+		for (var i = 0; i < neighbs.length; i++) {
+			if (neighbs[i] instanceof Array) {
+				for (var j = 0; j < neighbs[i].length; j++) {
+					var ob = neighbs[i][j];
+					if (!ob.check_clear(ob.world_coords, ob.get_layout())) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+		
+	},
 	// carefully takes care of 'unselecting' an object
 	unselect: function() {
 		if (this.selected != 0) {
@@ -238,14 +254,11 @@ window.Objects = {
 	},
 	// called on mouse click released
 	mouseup: function(e) {
-		e.preventDefault();
-		
-			
-			//console.log ('building : ' + this.obs_building);
-			//console.log ('removing : ' + this.obs_removing);
-			//console.log ('moving : ' + this.obs_moving);
-		
-	}	
+		e.preventDefault();			
+		//console.log ('building : ' + this.obs_building);
+		//console.log ('removing : ' + this.obs_removing);
+		//console.log ('moving : ' + this.obs_moving);
+	}
 }
 
 

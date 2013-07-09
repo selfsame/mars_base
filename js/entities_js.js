@@ -36,7 +36,6 @@ $(window).ready(function() {
 	}
 	
 	// draw this to the map
-	// should be updated
 	DThing.prototype.draw = function() {
 		if (this.ghost_loc) {
 			this.draw_ghost();
@@ -352,11 +351,7 @@ $(window).ready(function() {
 						// if it can be placed inside
 						if (this.place_interior) {
 							if (t != 0) {
-								if (t.built) {
-									if (t.is_wall()) {
-										return false;
-									}
-								} else {
+								if (!t.is_floor(true)) {
 									return false;
 								}
 							}
@@ -411,8 +406,7 @@ $(window).ready(function() {
 		return false;
 	}
 	
-	Crater_Small = window.Entities.add_class('Crater_Small', 'DThing');
-	
+	Crater_Small = window.Entities.add_class('Crater_Small', 'DThing');	
 	Crater_Small.prototype.setup = function() {
 		this.name = 'Small Crater';
 		this.image = 'crater_small';
@@ -422,8 +416,7 @@ $(window).ready(function() {
 					   [1, 1, 1]];
 	}
 	
-	Derpifier = window.Entities.add_class('Derpifier', 'DThing');
-	
+	Derpifier = window.Entities.add_class('Derpifier', 'DThing');	
 	Derpifier.prototype.setup = function() {
 		this.name = 'Derpifier';
 		this.image = 'derpifier';
@@ -438,8 +431,7 @@ $(window).ready(function() {
 		this.place_exterior = true;
 	}
 	
-	Air_Vent = window.Entities.add_class('Air_Vent', 'DThing');
-	
+	Air_Vent = window.Entities.add_class('Air_Vent', 'DThing');	
 	Air_Vent.prototype.setup = function() {
 		this.name = 'Air Vent';
 		this.image = 'air_vent';
@@ -457,7 +449,6 @@ $(window).ready(function() {
 	
 
 	Water_Tank = window.Entities.add_class('Water_Tank', 'DThing');
-	
 	Water_Tank.prototype.setup = function() {
 		this.name = 'Water Tank';
 		this.image = 'water_tank';
@@ -476,9 +467,7 @@ $(window).ready(function() {
 		
 	}
 	
-	
 	Launchpad2 = window.Entities.add_class('Launchpad2', 'DThing');
-	
 	Launchpad2.prototype.setup = function() {
 		this.name = 'Launchpad2';
 		this.image = 'launchpad';
@@ -493,6 +482,92 @@ $(window).ready(function() {
 					   [2, 6, 6, 2]];
 	}
 	
+	
+	Wide_Door = window.Entities.add_class('Wide_Door', 'DThing');
+	Wide_Door.prototype.setup = function() {
+		this.name = 'Wide Door';
+		this.image = 'door_tester';
+		this.moveable = true;
+		this.buildable = true;
+		this.removable = true;
+		this.selectable = true;
+		this.layout = [[2, 2]];
+		this.place_interior = true;
+		this.place_exterior = false;
+	}
+	Wide_Door.prototype.check_clear = function(location, rot_layout) {
+		if (rot_layout == 'undefined') {
+			rot_layout = this.layout;
+		}
+		if (rot_layout) {
+			var w = rot_layout[0].length;
+			var h = rot_layout.length;
+		
+			for (var i = 0; i < h; i++) {
+				for (var j = 0; j < w; j++) {
+					var coords = [location[0] + j, location[1] + i];
+					if (rot_layout[i][j] != 0) {
+						var ob = window.Map.get('objects', coords[0], coords[1]);
+						
+						if (ob != 0) { // look for other objects here
+							if (!window.Map.contains('objects', coords[0], coords[1], this)) {
+								return false;
+							}
+						}
+						
+						var t = window.Map.get('tiles', coords[0], coords[1]);
+						
+						// if it can be placed outside
+						if (t == 0) {
+							return false;
+						}
+
+						if (!t.is_floor(true)) {
+							return false;
+						}
+					}
+				}
+			}
+			
+			if (w > h) { // horizontal orientation
+				var coords1 = [location[0] - 1, location[1]];
+				var coords2 = [location[0] + 2, location[1]];
+			} else { // vertical orientation
+				var coords1 = [location[0], location[1] - 1];
+				var coords2 = [location[0], location[1] + 2];
+			}
+			
+			var t = window.Map.get('tiles', coords1[0], coords1[1]);
+			if (t == 0) {
+				return false;
+			} else {
+				if (t.built) {
+					if (!t.is_wall(true)) {
+						return false;
+					} else {
+						t = window.Map.get('tiles', coords2[0], coords2[1]);
+						if (t == 0) {
+							return false;
+						} else {
+							if (t.built) {
+								if (!t.is_wall(true)) {
+									return false;
+								}
+							} else {
+								return false;
+							}
+						}
+					}
+				} else {
+					return false;
+				}
+			}
+			
+		}
+		return true;
+	}
+	
+	
 	// object images
 	window.Draw.add_image('rock', "./textures/ground/crater_small.png");
 	window.Draw.add_image('crater_small', "./textures/ground/crater_small.png");
@@ -502,6 +577,8 @@ $(window).ready(function() {
 	window.Draw.add_image('air_vent', "./textures/objects/air_vent.png");
 	window.Draw.add_image('water_tank', "./textures/objects/water_tank.png");
 	window.Draw.add_image('launchpad', "./textures/objects/launchpad.png");
+	window.Draw.add_image('door_tester', "./textures/objects/door_tester.png");
+	
 	
 	// tag images
 	window.Draw.add_image('tag_move', "./textures/UI/tag_move.png");
