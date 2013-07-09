@@ -18,12 +18,26 @@ window.Objects = {
 	// called if a tile wants to change (checks all around the tile)
 	tile_changed: function(x, y) {
 		var neighbs = window.Map.get_neighbors('objects', x, y);
+		var checked = [];
 		for (var i = 0; i < neighbs.length; i++) {
 			if (neighbs[i] instanceof Array) {
 				for (var j = 0; j < neighbs[i].length; j++) {
 					var ob = neighbs[i][j];
-					if (!ob.check_clear(ob.world_coords, ob.get_layout())) {
-						return false;
+					if (checked.indexOf(ob) == -1) {
+						if (!ob.placed) {
+							if(!ob.check_clear(ob.ghost_loc, ob.ghost_layout)) {
+								return false;
+							}
+						} else {
+							if (ob.ghost_loc) {
+								if(!ob.check_clear(ob.ghost_loc, ob.ghost_layout)) {
+								return false;
+								}
+							} 
+							if(!ob.check_clear(ob.world_coords, ob.get_layout())) {
+								return false;
+							}
+						}
 					}
 				}
 			}
@@ -165,12 +179,17 @@ window.Objects = {
 					this.selected.attach_to_map();
 					this.selected.show_ghost(coords, this.rotation, true); // draw a new ghost
 					this.selected.draw_tag('build'); // draw the move tag
-					this.edit_style = 'select'; // set the edit style back to selection
+					//this.edit_style = 'select'; // set the edit style back to selection
 					this.obs_removing.remove(this.selected); 
 					this.obs_moving.remove(this.selected);
 					if (this.obs_building.indexOf(this.selected) == -1) {
 						this.obs_building.push(this.selected);
 					}
+					var ob = eval('new window.Entities.classes.' + this.buildable_obs[this.selected.name] + '()');
+					//this.unselect();
+					this.selected = ob;
+					//this.rotation = this.selected.rotation;
+					//this.rot_layout = this.selected.get_layout(this.rotation);
 				}
 			}
 		}

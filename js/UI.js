@@ -85,6 +85,7 @@ $(window).ready( function(){
 			window.Objects.unselect();
 			$(this).data('active', false);
 			//window.Placer.build_mode = false;
+			window.Objects.edit_style = 'select';
 			$(this).parent().find('.ui_menu_dropdown').animate({'height':'0px', opacity:.2},500);
 			//window.Placer.update_menu();
 

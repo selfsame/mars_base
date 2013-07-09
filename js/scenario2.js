@@ -7,7 +7,7 @@ $(window).ready(function() {
 	window.Objects.add_buildable('Derpifier', 'Derpifier');
 	window.Objects.add_buildable('Air Vent', 'Air_Vent');
 	window.Objects.add_buildable('Wide Door', 'Wide_Door');
-	
+	window.Objects.add_buildable('Airlock', 'Airlock');
 	
 	var Launch = new E.Launchpad2();
 	Launch.place([cx, cy]);

@@ -55,6 +55,7 @@ window.Events = {
 		}
 	},
 	mousedown: function(e){
+		e.preventDefault();
 		this.tile_clicked = this.tile_under_mouse;
 		this.delegate('mousedown',[e]);
 	},
@@ -65,12 +66,14 @@ window.Events = {
 		this.delegate('mousemove',[e]);
 	},
 	mouseup: function(e){
+		e.preventDefault();
 		this.delegate('mouseup',[e]);
 	},
 	click: function(e){
 		this.delegate('click',[e]);
 	},
 	mousewheel: function(e){
+		e.preventDefault();
 		this.delegate('mousewheel',[e]);
 	},
 	keyup: function(e){

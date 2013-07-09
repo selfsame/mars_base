@@ -447,7 +447,6 @@ $(window).ready(function() {
 		this.layout = [[2]];
 	}
 	
-
 	Water_Tank = window.Entities.add_class('Water_Tank', 'DThing');
 	Water_Tank.prototype.setup = function() {
 		this.name = 'Water Tank';
@@ -471,6 +470,7 @@ $(window).ready(function() {
 	Launchpad2.prototype.setup = function() {
 		this.name = 'Launchpad2';
 		this.image = 'launchpad';
+		this.tag_loc = [0, 1];
 		this.moveable = false;
 		this.buildable = false;
 		this.removable = false;
@@ -481,7 +481,6 @@ $(window).ready(function() {
 					   [7, 2, 2, 5],
 					   [2, 6, 6, 2]];
 	}
-	
 	
 	Wide_Door = window.Entities.add_class('Wide_Door', 'DThing');
 	Wide_Door.prototype.setup = function() {
@@ -567,6 +566,22 @@ $(window).ready(function() {
 		return true;
 	}
 	
+	Airlock = window.Entities.add_class('Airlock', 'DThing');
+	Airlock.prototype.setup = function() {
+		this.name = 'Airlock';
+		this.image = 'airlock';
+		this.moveable = true;
+		this.buildable = true;
+		this.removable = true;
+		this.selectable = true;
+		this.layout = [[4, 4],
+					   [1, 1],
+					   [1, 1],
+					   [6, 6]];
+		this.place_interior = true;
+		this.place_exterior = true;
+	}
+	
 	
 	// object images
 	window.Draw.add_image('rock', "./textures/ground/crater_small.png");
@@ -578,7 +593,7 @@ $(window).ready(function() {
 	window.Draw.add_image('water_tank', "./textures/objects/water_tank.png");
 	window.Draw.add_image('launchpad', "./textures/objects/launchpad.png");
 	window.Draw.add_image('door_tester', "./textures/objects/door_tester.png");
-	
+	window.Draw.add_image('airlock', "./textures/objects/airlock.png");
 	
 	// tag images
 	window.Draw.add_image('tag_move', "./textures/UI/tag_move.png");

@@ -10,7 +10,7 @@ function Tile(x, y) {
 	this.blue_wall_style = 'empty' // shape of the wall in edit mode
 	this.wall_style = 'empty'; // the shape of the wall tile
 	
-	this.valid = false;
+	this.valid = true;
 	
 	this.timer = 0;
 	this.built = false;
@@ -20,12 +20,8 @@ function Tile(x, y) {
 	Tile.prototype.set_blueprint = function(style) {
 		this.blue_style = style;
 		
-		if (style == 'wall') {
-			this.valid = this.check_clear();
-		} else if (style != 'empty') {
-			this.valid = this.check_neighbors_clear();
-		}
-
+		this.valid = true;
+		
 		if (style == 'wall') {
 			this.blue_wall_style = this.determine_wall_style();
 			if (this.blue_wall_style == 'empty') {
@@ -34,6 +30,7 @@ function Tile(x, y) {
 					this.erase();
 				}
 			}
+			
 		} else if (style == 'empty') {
 			if (this.state == 0) {
 				this.erase();
@@ -53,6 +50,8 @@ function Tile(x, y) {
 			this.get_walls();
 		}
 		
+		this.valid = this.check_clear();
+
 		if (this.valid || style == 'empty') {
 			window.Tiles.invalid_tiles.remove(this);
 		} else if (this.blue_style != 'empty') {
@@ -331,11 +330,18 @@ function Tile(x, y) {
 						window.Draw.clear_box(x, y, tilesize, tilesize);
 						window.Draw.image(this.wall_style, x, y);
 						window.Draw.image("blueprint3", x, y);
+						if (!this.valid) {
+							window.Draw.image("blueprint2", x, y);
+						}
 					} else {
 						window.Draw.use_layer("blueprints");
 						window.Draw.clear_box(x, y, tilesize, tilesize);
 						window.Draw.image(this.blue_style, x, y);
-						window.Draw.image("blueprint1", x, y);
+						if (this.valid) {
+							window.Draw.image("blueprint1", x, y);
+						} else {
+							window.Draw.image("blueprint2", x, y);
+						}
 					}
 				} else { // both goal and blueprint are walls
 					window.Draw.use_layer("blueprints");
@@ -353,16 +359,27 @@ function Tile(x, y) {
 						window.Draw.clear_box(x, y, tilesize, tilesize);
 						window.Draw.image(this.current_style, x, y);
 						window.Draw.image("blueprint3", x, y);
+						if (!this.valid) {
+							window.Draw.image("blueprint2", x, y);
+						}
 					} else if (this.blue_style == 'wall') {
 						window.Draw.use_layer("blueprints");
 						window.Draw.clear_box(x, y, tilesize, tilesize);
 						window.Draw.image(this.blue_wall_style, x, y);
-						window.Draw.image("blueprint1", x, y);
+						if (this.valid) {
+							window.Draw.image("blueprint1", x, y);
+						} else {
+							window.Draw.image("blueprint2", x, y);
+						}
 					} else {
 						window.Draw.use_layer("blueprints");
 						window.Draw.clear_box(x, y, tilesize, tilesize);
 						window.Draw.image(this.blue_style, x, y);
-						window.Draw.image("blueprint1", x, y);
+						if (this.valid) {
+							window.Draw.image("blueprint1", x, y);
+						} else {
+							window.Draw.image("blueprint2", x, y);
+						}
 					}
 				} else {
 					window.Draw.use_layer("blueprints");
