@@ -103,8 +103,7 @@ window.Entities =
     @sentient_hash = new Hash(64)
     @objects_hash = new Hash(64)
  
-    window.Draw.create_layer('objects', true);
-    window.Draw.persistant_layers.objects.css('z-index', 999999)
+
 
   update: (delta)->
     

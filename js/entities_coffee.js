@@ -145,9 +145,7 @@
       this.sentient = [];
       this.objects = [];
       this.sentient_hash = new Hash(64);
-      this.objects_hash = new Hash(64);
-      window.Draw.create_layer('objects', true);
-      return window.Draw.persistant_layers.objects.css('z-index', 999999);
+      return this.objects_hash = new Hash(64);
     },
     update: function(delta) {
       var thing, _i, _j, _len, _len1, _ref, _ref1, _results;
