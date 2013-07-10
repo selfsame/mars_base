@@ -31,7 +31,7 @@ $(window).ready ->
 				'-o-transform': 'scale('+@zoom+')'
 
 		create_layer: (name, persistant=false)->
-			canvas = $('<canvas>')
+			canvas = $('<canvas id="'+name+'">')
 			if persistant
 				canvas.attr('width', window.Map.width*window.Map.tilesize)
 				canvas.attr('height', window.Map.height*window.Map.tilesize)

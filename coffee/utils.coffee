@@ -3,22 +3,85 @@ window.requestAnimFrame = (->
     window.setTimeout callback, 1000 / 60
 )()
 
-Array.prototype.remove = (item)->
+Array::remove = (item)->
   indx = @indexOf(item)
   if indx != -1
     return @.splice(indx,1)
 
-Array.prototype.get_last = ()->
+Array::get_last = ()->
   return this[this.length-1]
 
-Array.prototype.set_last = (value)->
+Array::set_last = (value)->
   return this[this.length-1] = value
 
-Array.prototype.clone = ()->
+Array::transpose = ->
+  a = this
+  w = (if a.length then a.length else 0)
+  h = (if a[0] instanceof Array then a[0].length else 0)
+  return []  if h is 0 or w is 0
+  i = undefined
+  j = undefined
+  t = []
+  i = 0
+  while i < h
+    t[i] = []
+    j = 0
+    while j < w
+      t[i][j] = a[j][i]
+      j++
+    i++
+  t
+
+Array::reverse_rows = ->
+  a = this
+  h = (if a.length then a.length else 0)
+  w = (if a[0] instanceof Array then a[0].length else 0)
+  return []  if h is 0 or w is 0
+  i = undefined
+  j = undefined
+  t = []
+  i = 0
+  while i < h
+    t[i] = []
+    j = 0
+    while j < w
+      t[i][j] = a[i][w - 1 - j]
+      j++
+    i++
+  t
+
+Array::reverse_cols = ->
+  a = this
+  h = (if a.length then a.length else 0)
+  w = (if a[0] instanceof Array then a[0].length else 0)
+  return []  if h is 0 or w is 0
+  i = undefined
+  j = undefined
+  t = []
+  i = 0
+  while i < h
+    t[i] = []
+    j = 0
+    while j < w
+      t[i][j] = a[h - 1 - i][j]
+      j++
+    i++
+  t
+
+Array::clone = ->
+  i = undefined
+  r = undefined
+  _i = undefined
+  _len = undefined
   r = []
-  for i in @
+  _i = 0
+  _len = @length
+
+  while _i < _len
+    i = this[_i]
     r.push i
-  return r
+    _i++
+  r
 
 window.get_function_arg_strings = (func) ->
   funStr = func.toString()
