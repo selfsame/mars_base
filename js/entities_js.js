@@ -10,6 +10,7 @@ $(window).ready(function() {
 		this.rotation = 1; // represents the rotation
 		this.layout = []; // 2d layout of this object
 		this.tag_loc = [0, 0]; // location relative to layout, where the tag goes
+		this.rot_offset = [0, 0]; // offset for sprite when it's rotated
 		
 		this.ghost_loc = false; // show object ghost
 		this.ghost_rot = 1; // represents the rotation of the ghost
@@ -35,6 +36,21 @@ $(window).ready(function() {
 		console('wrong one fool');
 	}
 	
+	DThing.prototype.freeze = function() {
+		this.props = [this.selectable, this.removable, this.buildable, this.rotatable];		
+		this.selectable = false;
+		this.removable = false;
+		this.buildable = false;
+		this.rotatable = false;
+	}
+	
+	DThing.prototype.unfreeze = function() {
+		this.selectable = this.props[0];
+		this.removable = this.props[1];
+		this.buildable = this.props[2];
+		this.rotatable = this.props[3];
+	}
+	
 	// draw this to the map
 	DThing.prototype.draw = function() {
 		if (this.ghost_loc) {
@@ -48,12 +64,11 @@ $(window).ready(function() {
 			
 			window.Draw.use_layer('objects');
 			var r = this.get_rot(this.rotation);
-			var o = [0, 0];
 			if (this.rotation == 2 || this.rotation == 4) {
-				o = [-1, 1];
+				return (window.Draw.image(this.image, (this.world_coords[0] + this.rot_offset[0]) * t_size, (this.world_coords[1] + this.rot_offset[1]) * t_size, width * t_size, height * t_size, r, true));
+			} else {
+				return (window.Draw.image(this.image, (this.world_coords[0]) * t_size, (this.world_coords[1]) * t_size, width * t_size, height * t_size, r, true));
 			}
-			return (window.Draw.image(this.image, (this.world_coords[0] + o[0]) * t_size, (this.world_coords[1] + o[1]) * t_size, width * t_size, height * t_size, r, true));
-			
 		} else if (!this.placed && this.layout != []) {
 			window.Draw.use_layer('objects');
 			var t_size = window.Map.tilesize;
@@ -93,14 +108,13 @@ $(window).ready(function() {
 			var width = this.layout[0].length;
 			var height = this.layout.length;
 			var t_size = window.Map.tilesize;
-			var o = [0, 0];
-			if (this.ghost_rot == 2 || this.ghost_rot == 4) {
-				o = [-1, 1];
-			}
-			
 			window.Draw.use_layer('entities');
 			var r = this.get_rot(this.ghost_rot);
-			return (window.Draw.image(this.image, (this.ghost_loc[0] + o[0]) * t_size, (this.ghost_loc[1] + o[1]) * t_size, width * t_size, height * t_size, r, .5));
+			if (this.ghost_rot == 2 || this.ghost_rot == 4) {
+				return (window.Draw.image(this.image, (this.ghost_loc[0] + this.rot_offset[0]) * t_size, (this.ghost_loc[1] + this.rot_offset[1]) * t_size, width * t_size, height * t_size, r, .5));
+			} else {
+				return (window.Draw.image(this.image, (this.ghost_loc[0]) * t_size, (this.ghost_loc[1]) * t_size, width * t_size, height * t_size, r, .5));
+			}
 		}
 		return false;
 	}
@@ -321,9 +335,13 @@ $(window).ready(function() {
 	}
 	
 	// check if it can be placed at given location
-	DThing.prototype.check_clear = function(location, rot_layout) {
-		if (rot_layout == 'undefined') {
+	DThing.prototype.check_clear = function(location, rotation) {
+		var rot_layout;
+		if (rotation == 'undefined') {
+			rotation = this.rotation;
 			rot_layout = this.layout;
+		} else {
+			rot_layout = this.get_layout(rotation);
 		}
 		if (rot_layout) {
 			
@@ -420,6 +438,7 @@ $(window).ready(function() {
 	Derpifier.prototype.setup = function() {
 		this.name = 'Derpifier';
 		this.image = 'derpifier';
+		this.rot_offset = [-1, 1];
 		this.moveable = true;
 		this.buildable = true;
 		this.removable = true;
@@ -452,6 +471,7 @@ $(window).ready(function() {
 		this.name = 'Water Tank';
 		this.image = 'water_tank';
 		this.moveable = true;
+		this.rot_offset = [-1, 1];
 		this.buildable = true;
 		this.removable = true;
 		this.selectable = true;
@@ -486,6 +506,7 @@ $(window).ready(function() {
 	Wide_Door.prototype.setup = function() {
 		this.name = 'Wide Door';
 		this.image = 'door_tester';
+		this.rot_offset = [-.5, .5];
 		this.moveable = true;
 		this.buildable = true;
 		this.removable = true;
@@ -494,9 +515,13 @@ $(window).ready(function() {
 		this.place_interior = true;
 		this.place_exterior = false;
 	}
-	Wide_Door.prototype.check_clear = function(location, rot_layout) {
-		if (rot_layout == 'undefined') {
+	Wide_Door.prototype.check_clear = function(location, rotation) {
+		var rot_layout;
+		if (rotation == 'undefined') {
+			rotation = this.rotation;
 			rot_layout = this.layout;
+		} else {
+			rot_layout = this.get_layout(rotation);
 		}
 		if (rot_layout) {
 			var w = rot_layout[0].length;
@@ -570,6 +595,7 @@ $(window).ready(function() {
 	Airlock.prototype.setup = function() {
 		this.name = 'Airlock';
 		this.image = 'airlock';
+		this.rot_offset = [1, -1];
 		this.moveable = true;
 		this.buildable = true;
 		this.removable = true;
@@ -581,7 +607,61 @@ $(window).ready(function() {
 		this.place_interior = true;
 		this.place_exterior = true;
 	}
-	
+	Airlock.prototype.check_clear = function(location, rotation) {
+		var rot_layout;
+		if (rotation == 'undefined') {
+			rotation = this.rotation;
+			rot_layout = this.layout;
+		} else {
+			rot_layout = this.get_layout(rotation);
+		}
+		if (rot_layout) {
+			var w = rot_layout[0].length;
+			var h = rot_layout.length;
+			
+			if (rotation == 1) { 
+				var coords1 = [location[0], location[1] + 2];
+				var coords2 = [location[0] +1, location[1] + 2];
+			} else if (rotation == 2) {
+				var coords1 = [location[0] + 1, location[1]];
+				var coords2 = [location[0] + 1, location[1] + 1];
+			} else if (rotation == 3) {
+				var coords1 = [location[0], location[1] + 1];
+				var coords2 = [location[0] +1, location[1] + 1];
+			} else {
+				var coords1 = [location[0] + 2, location[1]];
+				var coords2 = [location[0] + 2, location[1] + 1];
+			}
+		}
+		
+		var t = window.Map.get('tiles', coords1[0], coords1[1]);
+		if (t == 0) {
+			return false;
+		} else {
+			if (t.built) {
+				if (!t.is_wall(true)) {
+					return false;
+				} else {
+					t = window.Map.get('tiles', coords2[0], coords2[1]);
+					if (t == 0) {
+						return false;
+					} else {
+						if (t.built) {
+							if (!t.is_wall(true)) {
+								return false;
+							}
+						} else {
+							return false;
+						}
+					}
+				}
+			} else {
+				return false;
+			}
+		}
+		
+		return true;
+	}
 	
 	// object images
 	window.Draw.add_image('rock', "./textures/ground/crater_small.png");

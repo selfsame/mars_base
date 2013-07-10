@@ -25,16 +25,16 @@ window.Objects = {
 					var ob = neighbs[i][j];
 					if (checked.indexOf(ob) == -1) {
 						if (!ob.placed) {
-							if(!ob.check_clear(ob.ghost_loc, ob.ghost_layout)) {
+							if(!ob.check_clear(ob.ghost_loc, ob.ghost_rot)) {
 								return false;
 							}
 						} else {
 							if (ob.ghost_loc) {
-								if(!ob.check_clear(ob.ghost_loc, ob.ghost_layout)) {
+								if(!ob.check_clear(ob.ghost_loc, ob.ghost_rot)) {
 								return false;
 								}
 							} 
-							if(!ob.check_clear(ob.world_coords, ob.get_layout())) {
+							if(!ob.check_clear(ob.world_coords, ob.rotation)) {
 								return false;
 							}
 						}
@@ -149,7 +149,7 @@ window.Objects = {
 				}
 			} else if (this.edit_style == 'move') {
 				var coords = window.Events.tile_under_mouse;
-				if (this.selected.check_clear(coords, this.rot_layout)) {
+				if (this.selected.check_clear(coords, this.rotation)) {
 					this.selected.hide_ghost(); // remove any old ghost
 					this.selected.show_ghost(coords, this.rotation, true); // draw a new ghost
 					if (this.selected.placed) {
@@ -175,7 +175,7 @@ window.Objects = {
 				}
 			} else if (this.edit_style == 'build') {
 				var coords = window.Events.tile_under_mouse;
-				if (this.selected.check_clear(coords, this.rot_layout)) {
+				if (this.selected.check_clear(coords, this.rotation)) {
 					this.selected.attach_to_map();
 					this.selected.show_ghost(coords, this.rotation, true); // draw a new ghost
 					this.selected.draw_tag('build'); // draw the move tag
@@ -211,7 +211,7 @@ window.Objects = {
 			}
 			if (this.edit_style == 'move' || this.edit_style == 'build') {
 				
-				if (this.selected.check_clear(window.Events.tile_under_mouse, this.rot_layout)) {
+				if (this.selected.check_clear(window.Events.tile_under_mouse, this.rotation)) {
 					this.draw_layout(window.Events.tile_under_mouse, this.rot_layout, 'green');
 				} else {
 				
