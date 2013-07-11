@@ -148,16 +148,24 @@ window.Map = {
 	},
 	draw_background: function(){
 		// sloppy check if images are loaded
+
 		if (this.background_drawn == 0 && window.Draw.images.dirt && window.Draw.images.dirt2 && window.Draw.images.dirt3 && window.Draw.images.dirt4){
+			
 			this.background_drawn = 1
-			window.Draw.use_layer('background');
-			for (i = 0; i <= this.height-1; i += 1) {
-				for (j = 0; j <= this.width-1; j += 1) {
-					tile = this.get('background', j,i)
-					tiles = ['dirt','dirt2','dirt3', 'dirt4']
-					window.Draw.image(tiles[tile],j*this.tilesize,i*this.tilesize);
-				}
-			}
+			window.Terrain.draw_terrain()
+
+			// window.Draw.use_layer('background');
+			// for (i = 0; i <= this.height-1; i += 1) {
+			// 	for (j = 0; j <= this.width-1; j += 1) {
+			// 		// tile = this.get('background', j,i)
+			// 		// tiles = ['dirt','dirt2','dirt3', 'dirt4']
+			// 		// window.Draw.image(tiles[tile],j*this.tilesize,i*this.tilesize);
+			// 		sx = parseInt(Math.random()*8);
+			// 		sy = parseInt(Math.random()*8);
+			// 		//(imgname, x,y, w, h, clipsize=32, offset=[0,0], rotation=false)
+			// 		window.Draw.sub_image('terrain',j*this.tilesize,i*this.tilesize, 32, 32, 32, [sx,sy] );
+			// 	}
+			// }
 		}
 	}
 }
@@ -171,6 +179,9 @@ $(window).ready( function() {
 	window.Draw.add_image('dirt2', "./textures/ground/dirt2.png");
 	window.Draw.add_image('dirt3', "./textures/ground/dirt3.png");
 	window.Draw.add_image('dirt4', "./textures/ground/dirt4.png");
+	window.Draw.add_image('terrain', "./textures/ground/terrain01.png");
+	window.Draw.add_image('terrain2', "./textures/ground/terrain02.png");
+	window.Draw.add_image('terrain3', "./textures/ground/terrain03.png");
 	window.Draw.add_image('sprite', "./textures/astronauts/sprite.png");
 	window.Draw.add_image('spirit', "./textures/astronauts/spirit.png");
 	window.Map.init();
