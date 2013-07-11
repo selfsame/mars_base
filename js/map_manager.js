@@ -26,6 +26,7 @@ window.Map = {
 		// create pathfinding map
 		this.create_layer('pathfinding', 0);
 		this.create_layer('objects', 0);
+		this.create_layer('tiles', 0);
 	},
 	
 	generate: function(options) {
@@ -152,20 +153,20 @@ window.Map = {
 		if (this.background_drawn == 0 && window.Draw.images.dirt && window.Draw.images.dirt2 && window.Draw.images.dirt3 && window.Draw.images.dirt4){
 			
 			this.background_drawn = 1
-			window.Terrain.draw_terrain()
+			//window.Terrain.draw_terrain()
 
-			// window.Draw.use_layer('background');
-			// for (i = 0; i <= this.height-1; i += 1) {
-			// 	for (j = 0; j <= this.width-1; j += 1) {
-			// 		// tile = this.get('background', j,i)
-			// 		// tiles = ['dirt','dirt2','dirt3', 'dirt4']
-			// 		// window.Draw.image(tiles[tile],j*this.tilesize,i*this.tilesize);
-			// 		sx = parseInt(Math.random()*8);
-			// 		sy = parseInt(Math.random()*8);
-			// 		//(imgname, x,y, w, h, clipsize=32, offset=[0,0], rotation=false)
-			// 		window.Draw.sub_image('terrain',j*this.tilesize,i*this.tilesize, 32, 32, 32, [sx,sy] );
-			// 	}
-			// }
+			 window.Draw.use_layer('background');
+			 for (i = 0; i <= this.height-1; i += 1) {
+			 	for (j = 0; j <= this.width-1; j += 1) {
+			 		// tile = this.get('background', j,i)
+			 		// tiles = ['dirt','dirt2','dirt3', 'dirt4']
+			 		// window.Draw.image(tiles[tile],j*this.tilesize,i*this.tilesize);
+			 		sx = parseInt(Math.random()*8);
+			 		sy = parseInt(Math.random()*8);
+			 		//(imgname, x,y, w, h, clipsize=32, offset=[0,0], rotation=false)
+			 		window.Draw.sub_image('terrain',j*this.tilesize,i*this.tilesize, 32, 32, 32, [sx,sy] );
+			 	}
+			 }
 		}
 	}
 }

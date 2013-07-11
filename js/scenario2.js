@@ -29,6 +29,9 @@ $(window).ready(function() {
 
 	water = new E.Water_Tank();
 	water.place([33, 30], 2);
-
-	window.Map.generate();
+	water.remove();
+	water.place([33, 30], 3);
+	
+	
+	//window.Map.generate();
 });

@@ -867,7 +867,7 @@ window.Tiles = {
 		window.Draw.add_image('blueprint4', "./textures/ground/blueprint_built.png");
 		
 		// create map layers
-		window.Map.create_layer('tiles', 0);
+		//window.Map.create_layer('tiles', 0);
 		
 		// create draw layers
 		//window.Draw.create_layer('tiles', true);

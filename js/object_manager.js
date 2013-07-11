@@ -34,7 +34,7 @@ window.Objects = {
 								return false;
 								}
 							} 
-							if(!ob.check_clear(ob.world_coords, ob.rotation)) {
+							if(!ob.check_clear(ob.location, ob.rotation)) {
 								return false;
 							}
 						}
@@ -179,17 +179,13 @@ window.Objects = {
 					this.selected.attach_to_map();
 					this.selected.show_ghost(coords, this.rotation, true); // draw a new ghost
 					this.selected.draw_tag('build'); // draw the move tag
-					//this.edit_style = 'select'; // set the edit style back to selection
 					this.obs_removing.remove(this.selected); 
 					this.obs_moving.remove(this.selected);
 					if (this.obs_building.indexOf(this.selected) == -1) {
 						this.obs_building.push(this.selected);
 					}
 					var ob = eval('new window.Entities.classes.' + this.buildable_obs[this.selected.name] + '()');
-					//this.unselect();
 					this.selected = ob;
-					//this.rotation = this.selected.rotation;
-					//this.rot_layout = this.selected.get_layout(this.rotation);
 				}
 			}
 		}
@@ -198,7 +194,7 @@ window.Objects = {
 	update: function(delta) {
 		if (this.selected != 0) {
 			if (this.selected.useable) {
-				this.draw_useage(this.selected.world_coords, this.selected.get_layout(this.selected.rotation));
+				this.draw_useage(this.selected.location, this.selected.get_layout(this.selected.rotation));
 			}
 			if (this.obs_removing.indexOf(this.selected) != -1) {
 				this.highlight_selected('red');
@@ -226,7 +222,7 @@ window.Objects = {
 		if (color == undefined) {
 			color = 'yellow';
 		}
-		this.draw_layout(this.selected.world_coords, this.selected.get_layout(), color);
+		this.draw_layout(this.selected.location, this.selected.get_layout(), color);
 		if (this.selected.ghost_loc) {
 			var lay = this.selected.get_layout(this.selected.ghost_rot);
 			this.draw_layout(this.selected.ghost_loc, lay, "blue");
