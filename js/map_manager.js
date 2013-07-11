@@ -40,21 +40,21 @@ window.Map = {
         }
 		
 		// Using array[y][x] so it syncs with how pathfinding works, but our get and set functions will be (x,y)
-		this.arrays['background'] = []
-		for (var i = 0; i <= this.height-1; i += 1) {
-			this.arrays['background'].push([]);
-			for (j = 0; j <= this.width-1; j += 1) {
-				tile = 0;
-				if (Math.random() < .5) {
-					tile = 3;
-				}
-				if (Math.random() < .3) {
-					tile = 1;
-				}
+		//this.arrays['background'] = []
+		//for (var i = 0; i <= this.height-1; i += 1) {
+		//	this.arrays['background'].push([]);
+		//	for (j = 0; j <= this.width-1; j += 1) {
+		//		tile = 0;
+		//		if (Math.random() < .5) {
+		//			tile = 3;
+		//		}
+		//		if (Math.random() < .3) {
+		//			tile = 1;
+		//		}
 
-				this.arrays['background'][i].push(tile);
-			}
-		}
+		//		this.arrays['background'][i].push(tile);
+		//	}
+		//}
 	},
 	
 	draw: function(){
@@ -153,7 +153,7 @@ window.Map = {
 		if (this.background_drawn == 0 && window.Draw.images.dirt && window.Draw.images.dirt2 && window.Draw.images.dirt3 && window.Draw.images.dirt4){
 			
 			this.background_drawn = 1
-			//window.Terrain.draw_terrain()
+			window.Terrain.draw_terrain()
 
 			 window.Draw.use_layer('background');
 			 for (i = 0; i <= this.height-1; i += 1) {

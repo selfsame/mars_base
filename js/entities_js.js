@@ -6,11 +6,11 @@ $(window).ready(function() {
 	DThing = window.Entities.add_class('DThing', 'Thing');
 
 	DThing.prototype.init = function() {
-		this.location = []; // top left corner, in world coordinates
+		this.location = [[0, 0]]; // top left corner, in world coordinates
 		this.drawn = false;
 		this.rotation = 1; // represents the rotation
-		this.layout = []; // 2d layout of this object with no rotation
-		this.layout_rot = []; // layout of this object with current rotation
+		this.layout = [[1]]; // 2d layout of this object with no rotation
+		this.layout_rot = [[1]]; // layout of this object with current rotation
 		this.tag_loc = [0, 0]; // location relative to layout, where the tag goes
 		this.rot_offset = [0, 0]; // offset for sprite when it's rotated
 		this.placed = false; // if this object has been placed yet
@@ -446,7 +446,7 @@ $(window).ready(function() {
 	
 	// removes the object from the map, doesn't destroy it
 	DThing.prototype.remove = function() {
-		if (this.remove_layout()) {
+		if (this.placed && this.remove_layout()) {
 			this.erase();
 			this.placed = false;
 			//this.detach_from_map();

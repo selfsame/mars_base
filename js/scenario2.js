@@ -33,5 +33,5 @@ $(window).ready(function() {
 	water.place([33, 30], 3);
 	
 	
-	//window.Map.generate();
+	window.Map.generate();
 });
