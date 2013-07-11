@@ -1,3 +1,156 @@
+class Entity
+    constructor: (@nombre='thing', @image='sprite', @pos=[0,0])->
+      @EID = window.get_unique_id()
+      @props = {name:@nombre}
+      @draw_hooks = []
+
+      @tile_pos = [parseInt(@pos[0]/window.Map.tilesize), parseInt(@pos[1]/window.Map.tilesize)]
+      @debug = []
+      @half_size = 16
+      @no_path = false
+      @opacity = false
+      @sprite_size = 32
+      @sprite_offset = [0,0]
+      @claimed = false
+      @state_que = []
+      @hidden = false
+      @block_build = false
+      @needs_draw = true
+      @persistant_draw = true
+      @friction = .95
+      @flags = {}
+
+      @layout = [[0]];
+
+      @setup_1()
+      @init()
+      @init_2()
+      
+
+    init: ->
+    init_2: ->
+    setup_1: ->
+      
+    __update: (delta)->
+      @pos_to_tile_pos()
+      @delta_time = delta
+      @total_time += delta
+      @frame_count += 1
+      @move(@friction)
+      #if @['_'+@state]?
+      #  @['_'+@state]()
+      if not @hidden
+        @draw()
+      @update(delta)
+      @update_2()
+
+    move: ->
+
+    hide: ->
+      if not @hidden
+        @hidden = true
+        if @persistant_draw
+          window.Draw.use_layer 'objects'
+          window.Draw.clear_box(@pos[0], @pos[1],@sprite_size,@sprite_size)
+    show: ->
+      if @hidden
+        @hidden = false
+        if @persistant_draw
+          @needs_draw = true
+
+    draw: ->
+      if @persistant_draw is true
+        if @needs_draw
+          window.Draw.use_layer 'objects'
+          drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @opacity)
+          if drawn
+            @needs_draw = false
+      else
+        window.Draw.use_layer 'entities'
+        drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @opacity)
+      for hook in @draw_hooks
+        @[hook]()
+
+    update: ->
+    update_2: ->
+
+    pos_to_tile_pos: ()->
+      if @pos?
+        @tile_pos = [parseInt((@pos[0]+@half_size)/window.Map.tilesize), parseInt((@pos[1]+@half_size)/window.Map.tilesize)]
+
+    destroy: ()->
+      console.log 'destroying ', @
+      window.Entities.objects_hash.remove @
+      window.Entities.sentient_hash.remove @
+      if @no_path
+        window.Map.set 'pathfinding', @tile_pos[0], @tile_pos[1], 0
+      console.log @ in window.Entities.sentient
+      window.Entities.objects.remove @
+      window.Entities.sentient.remove @
+      if @persistant_draw
+        window.Draw.clear_box(@pos[0], @pos[1],@sprite_size,@sprite_size)
+      obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+      if obj_in_map
+        obj_in_map.remove @
+      delete @
+
+class Thing extends Entity
+
+    init: ->
+      @attach_to_map()
+
+    attach_to_map: (tpos=false)->
+      if tpos
+        @pos = [tpos[0]*32, tpos[1]*32]
+      else
+        @pos = [@pos[0], @pos[1]]
+      @pos_to_tile_pos()
+      tpos = @tile_pos
+      @show()
+      window.Entities.objects.push @
+      window.Entities.objects_hash.add @
+      if @grid_area
+        for i in [@grid_area[0]..@grid_area[1]]
+          for j in [@grid_area[2]..@grid_area[3]]
+            obj_in_map = window.Map.get('objects', tpos[0]+i, tpos[1]+j)
+            if not obj_in_map
+              window.Map.set('objects', tpos[0]+i, tpos[1]+j, [@])
+            else 
+              if @ not in obj_in_map
+                obj_in_map.push @
+      else
+        obj_in_map = window.Map.get('objects', tpos[0], tpos[1])
+        if not obj_in_map
+          window.Map.set('objects', tpos[0], tpos[1], [@])
+        else 
+          if @ not in obj_in_map
+            obj_in_map.push @
+      if @no_path
+        window.Map.set 'pathfinding', @tile_pos[0], @tile_pos[1], 1
+
+
+    detach_from_map: ()->
+      @hide()
+      window.Entities.objects.remove @
+      window.Entities.objects_hash.remove @
+      if @grid_area
+        for i in [@grid_area[0]..@grid_area[1]]
+          for j in [@grid_area[2]..@grid_area[3]]
+            obj_in_map = window.Map.get('objects', @tile_pos[0]+i, @tile_pos[1]+j)
+            if obj_in_map and obj_in_map.length > 0
+              obj_in_map.remove @
+              if obj_in_map.length is 0
+                window.Map.set('objects', @tile_pos[0]+i, @tile_pos[1]+j, 0)
+      else
+        obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
+        if obj_in_map and obj_in_map.length > 0
+          obj_in_map.remove @
+          if obj_in_map.length is 0
+            window.Map.set('objects', @tile_pos[0], @tile_pos[1], 0)
+      if @no_path
+        window.Map.set 'pathfinding', @tile_pos[0], @tile_pos[1], 0
+
+
 class Hack
   constructor: ->
 
@@ -103,6 +256,8 @@ window.Entities =
     @sentient_hash = new Hash(64)
     @objects_hash = new Hash(64)
  
+    @classes.Entity = Entity
+    @classes.Thing = Thing
 
 
   update: (delta)->

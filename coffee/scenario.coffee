@@ -22,35 +22,29 @@ names = ['Jack','Rupert',
 
 
 $(window).ready ->
-  window.Map.generate()
+
   E = window.Entities.classes
+
+
+
+
+
+
+
 
   cx =(window.Map.width*32)/2
   cy = (window.Map.height*32)/2
 
-  launchpad = new E.Launchpad('Launchpad', 'launchpad', [cx, cy])
-  launchpad.sprite_size = 128
-  launchpad.sprite_offset = [-64,-64]
+  window.Objects.add_buildable('solarpanel', 'Solarpanel');
+  window.Objects.add_buildable('door', 'Door');
+  window.Objects.add_buildable( 'airtank', 'Airtank');
+  window.Objects.add_buildable('locker', 'Locker');
 
 
+  #derp = new E.Airtank()
+  #derp.place([10, 16])
 
   wrench = new E.Thing('wrench', 'wrench', [cx-(4*32), cy+(0*32)])
-  solarpanel = new E.Thing('solarpanel', 'solarpanel', [cx-(2*32), cy-(8*32)])
-
-
-  for i in [5..8]
-    for j in [0..1]
-      door = new E.Door('door', 'door', [cx+((i-2)*32), cy+((j-2)*32)])
-      door.placed_image = 'door_h'
-
-  for i in [5..8]
-    for j in [5..5]
-      door = new E.Airtank('airtanks', 'airtanks', [cx+((i-2)*32), cy+((j-2)*32)])
-
-  for i in [-5..-1]
-    for j in [3..4]
-      door = new E.Locker('locker', 'locker', [cx+((i-2)*32), cy+((j-2)*32)])
-
 
   for i in [0..3]
     for j in [-3..-2]

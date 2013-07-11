@@ -5,97 +5,10 @@ $(window).ready ->
   EntityRef =   window.SlowDataTypes.EntityRef
   RegisterStack =   window.SlowDataTypes.RegisterStack
 
+  E = window.Entities.classes
+  
 
-  class SlowEntity
-    constructor: (@nombre='thing', @image='sprite', @pos=[0,0])->
-      @EID = window.get_unique_id()
-      @props = {name:@nombre, task:false}
-      @draw_hooks = []
-
-      @tile_pos = [parseInt(@pos[0]/window.Map.tilesize), parseInt(@pos[1]/window.Map.tilesize)]
-      @debug = []
-      @half_size = 16
-      @no_path = false
-      @opacity = false
-      @sprite_size = 32
-      @sprite_offset = [0,0]
-      @claimed = false
-      @state_que = []
-      @hidden = false
-      @block_build = false
-      @needs_draw = true
-      @persistant_draw = true
-      @friction = .95
-      @flags = {}
-      @init()
-      @init_2()
-
-    init: ->
-    init_2: ->
-    __update: (delta)->
-      @pos_to_tile_pos()
-      @props['pos'] = new Vect2D(@tile_pos[0], @tile_pos[1])
-      @delta_time = delta
-      @total_time += delta
-      @frame_count += 1
-      @move(@friction)
-      #if @['_'+@state]?
-      #  @['_'+@state]()
-      if not @hidden
-        @draw()
-      @update(delta)
-      @update_2()
-
-    move: ->
-
-    hide: ->
-      if not @hidden
-        @hidden = true
-        if @persistant_draw
-          window.Draw.use_layer 'objects'
-          window.Draw.clear_box(@pos[0], @pos[1],@sprite_size,@sprite_size)
-    show: ->
-      if @hidden
-        @hidden = false
-        if @persistant_draw
-          @needs_draw = true
-
-    draw: ->
-      if @persistant_draw is true
-        if @needs_draw
-          window.Draw.use_layer 'objects'
-          drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @opacity)
-          if drawn
-            @needs_draw = false
-      else
-        window.Draw.use_layer 'entities'
-        drawn = window.Draw.image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @opacity)
-      for hook in @draw_hooks
-        @[hook]()
-
-    update: ->
-
-    pos_to_tile_pos: ()->
-      if @pos?
-        @tile_pos = [parseInt((@pos[0]+@half_size)/window.Map.tilesize), parseInt((@pos[1]+@half_size)/window.Map.tilesize)]
-
-    destroy: ()->
-      console.log 'destroying ', @
-      window.Entities.objects_hash.remove @
-      window.Entities.sentient_hash.remove @
-      if @no_path
-        window.Map.set 'pathfinding', @tile_pos[0], @tile_pos[1], 0
-      console.log @ in window.Entities.sentient
-      window.Entities.objects.remove @
-      window.Entities.sentient.remove @
-      if @persistant_draw
-        window.Draw.clear_box(@pos[0], @pos[1],@sprite_size,@sprite_size)
-      obj_in_map = window.Map.get('objects', @tile_pos[0], @tile_pos[1])
-      if obj_in_map
-        obj_in_map.remove @
-      delete @
-
-  class Scripted extends SlowEntity
+  class Scripted extends E.Entity
     init_2: ->
       @speed = 2
       @parsed_script = false
@@ -112,6 +25,7 @@ $(window).ready ->
         @parser = new window.Entities.slowparser(@, @parsed_script)
 
     update_2: (delta)->
+      @props['pos'] = new Vect2D(@tile_pos[0], @tile_pos[1])
       if @parser
         @parser.exec()
 
@@ -736,7 +650,7 @@ $(window).ready ->
       corpse.sprite_offset = [0,0]
       @destroy()
 
-  window.Entities.classes.SlowEntity = SlowEntity
+  
   window.Entities.classes.SlowWalker = SlowWalker
   window.Entities.classes.SlowSentient = SlowSentient
   window.Entities.classes.SlowColonist = SlowColonist
