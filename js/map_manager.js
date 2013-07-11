@@ -18,7 +18,6 @@ window.Map = {
 		window.Draw.create_layer('blueprints', true);
 		window.Draw.create_layer('objects', true);
 		window.Draw.create_layer('entities', false);
-		window.Draw.create_layer('tags', true); // temporary, not sure where tags will go
 
 		this.px_w = this.width*this.tilesize
 		this.px_h = this.height*this.tilesize

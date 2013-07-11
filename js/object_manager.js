@@ -1,5 +1,20 @@
 
+function job_ref(type, obj) {
+	this.type = type;
+	this.obj = obj;
+	this.obj.job = this;
+	this.location = obj.get_usage();
 
+	this.timer = 0; // for debugging 
+	
+	// all callbacks
+	this.job_done = window.Objects.job_done;
+	this.job_fail = window.Objects.job_failed;
+	this.job_cancel = window.Objects.job_cancelled;
+	
+	// unimplemented
+	this.reqs = [];
+}
 window.Objects = {
 	init: function() {
 		this.selected = 0;
@@ -9,11 +24,9 @@ window.Objects = {
 		this.rotation = 1;
 		window.Events.add_listener(this);
 		
-		this.buildable_obs = {};
+		this.jobs = [];
 		
-		this.obs_moving = []; // all objects that need to be moved
-		this.obs_building = []; // all objects that need to be built
-		this.obs_removing = []; // all objects that need to be removed
+		this.buildable_obs = {};
 	},
 	// called if a tile wants to change (checks all around the tile)
 	tile_changed: function(x, y) {
@@ -96,7 +109,7 @@ window.Objects = {
 	keydown: function(e){
 		//alert(e.keyCode);
 		if (this.selected != 0) {
-			if (e.keyCode == 77) { // M
+			if (e.keyCode == 77) { // M : move
 				if (this.selected.moveable) {
 					this.edit_style = 'move';
 					this.rotation = this.selected.rotation;
@@ -104,20 +117,13 @@ window.Objects = {
 				} else {
 					alert(this.selected.name + " can't be moved!");
 				}
-			} else if (e.keyCode == 68) { // D
+			} else if (e.keyCode == 68) { // D : destroy
 				if (this.selected.removable && this.selected.placed) {
-					this.selected.draw_tag('remove');
-					this.selected.hide_ghost();
-					this.obs_moving.remove(this.selected);
-					this.obs_building.remove(this.selected);
-					if (this.obs_removing.indexOf(this.selected) == -1) {
-						this.obs_removing.push(this.selected);
-					}
-					
+					this.set_job(this.selected, 'remove');
 				} else {
 					alert(this.selected.name + " can't be removed!");
 				}	
-			} else if (e.keyCode == 82) { // R
+			} else if (e.keyCode == 82) { // R : rotate
 				if (this.edit_style == 'move' || this.edit_style == 'build') {
 					if (this.selected.rotatable) {
 						this.rotate();
@@ -125,9 +131,23 @@ window.Objects = {
 						alert(this.selected.name + " can't be rotated!");
 					}
 				}
+			} else if (e.keyCode == 67) { // C : clear
+				if (this.selected.job != null) {
+					this.job_cancelled(this.selected.job);
+				}
 			}
 		}
-	},	
+	},
+	// change an objects job
+	set_job: function(obj, type, loc, rot) {
+		this.job_cancelled(obj.job);
+		obj.draw_tag(type);
+		if (type == 'place' || type == 'move' || type == 'build') {
+			obj.show_ghost(loc, rot, true);
+		}
+		j = new job_ref(type, obj);
+		this.jobs.push(j);
+	},
 	// called on mouse click
 	mousedown: function(e){
 		e.preventDefault();
@@ -150,40 +170,31 @@ window.Objects = {
 			} else if (this.edit_style == 'move') {
 				var coords = window.Events.tile_under_mouse;
 				if (this.selected.check_clear(coords, this.rotation)) {
-					this.selected.hide_ghost(); // remove any old ghost
-					this.selected.show_ghost(coords, this.rotation, true); // draw a new ghost
-					if (this.selected.placed) {
-						this.selected.draw_tag('move'); // draw the move tag
-						this.obs_removing.remove(this.selected); 
-						this.obs_building.remove(this.selected);
-						if (this.obs_moving.indexOf(this.selected) == -1) {
-							this.obs_moving.push(this.selected);
+					if (this.selected.job != null) {
+						if (this.selected.job.type == 'build') {
+							this.set_job(this.selected, 'build', coords, this.rotation);
+						} else {
+							this.set_job(this.selected, 'move', coords, this.rotation);
 						}
 					} else {
-						this.selected.draw_tag('build');
-						this.obs_removing.remove(this.selected); 
-						this.obs_moving.remove(this.selected);
-						if (this.obs_building.indexOf(this.selected) == -1) {
-							this.obs_building.push(this.selected);
-						}
-					}
+						this.set_job(this.selected, 'move', coords, this.rotation);
+					}					
 					this.edit_style = 'select'; // set the edit style back to selection
-					
-					//this.selected = 0;
 				} else {
 					alert("Object cannot be placed there!");
 				}
 			} else if (this.edit_style == 'build') {
 				var coords = window.Events.tile_under_mouse;
 				if (this.selected.check_clear(coords, this.rotation)) {
-					this.selected.attach_to_map();
-					this.selected.show_ghost(coords, this.rotation, true); // draw a new ghost
-					this.selected.draw_tag('build'); // draw the move tag
-					this.obs_removing.remove(this.selected); 
-					this.obs_moving.remove(this.selected);
-					if (this.obs_building.indexOf(this.selected) == -1) {
-						this.obs_building.push(this.selected);
-					}
+					if (this.selected.job == null) { // currently no job on object
+						//this.selected.hide_ghost(); // remove any old ghost
+						this.selected.show_ghost(coords, this.rotation, true); // draw a new ghost
+						this.selected.attach_to_map();
+						this.selected.draw_tag('build');
+						j = new job_ref('build', this.selected);
+						this.jobs.push(j);
+					} 
+					
 					var ob = eval('new window.Entities.classes.' + this.buildable_obs[this.selected.name] + '()');
 					this.selected = ob;
 				}
@@ -193,15 +204,17 @@ window.Objects = {
 	// called consistantly
 	update: function(delta) {
 		if (this.selected != 0) {
-			if (this.selected.useable) {
+			if (this.selected.useable && this.selected.placed) {
 				this.draw_useage(this.selected.location, this.selected.get_layout(this.selected.rotation));
 			}
-			if (this.obs_removing.indexOf(this.selected) != -1) {
-				this.highlight_selected('red');
-			} else if (this.obs_moving.indexOf(this.selected) != -1) {
-				this.highlight_selected('green');
-			} else if (this.obs_building.indexOf(this.selected) != -1) {
-				this.highlight_selected('green');
+			if (this.selected.job != null) {
+				if (this.selected.job.type == 'remove') {
+					this.highlight_selected('red');
+				} else if (this.selected.job.type == 'move') {
+					this.highlight_selected('green');
+				} else if (this.selected.job.type == 'build') {
+					this.highlight_selected('green');
+				}
 			} else {
 				this.highlight_selected('yellow');
 			}
@@ -210,19 +223,26 @@ window.Objects = {
 				if (this.selected.check_clear(window.Events.tile_under_mouse, this.rotation)) {
 					this.draw_layout(window.Events.tile_under_mouse, this.rot_layout, 'green');
 				} else {
-				
 					this.draw_layout(window.Events.tile_under_mouse, this.rot_layout, 'red');
 				}
 				this.draw_useage(window.Events.tile_under_mouse, this.rot_layout);
+				
 			}
 		}
+		
+		// for testing
+		this.do_jobs_test(delta);
+		
+		
 	},	
 	// highlights the current selected object in the given color, also highlights the ghost
 	highlight_selected: function(color) {
 		if (color == undefined) {
 			color = 'yellow';
 		}
-		this.draw_layout(this.selected.location, this.selected.get_layout(), color);
+		if (this.selected.placed) {
+			this.draw_layout(this.selected.location, this.selected.get_layout(), color);
+		}
 		if (this.selected.ghost_loc) {
 			var lay = this.selected.get_layout(this.selected.ghost_rot);
 			this.draw_layout(this.selected.ghost_loc, lay, "blue");
@@ -267,12 +287,79 @@ window.Objects = {
 		}
 		
 	},
-	// called on mouse click released
-	mouseup: function(e) {
-		e.preventDefault();			
-		//console.log ('building : ' + this.obs_building);
-		//console.log ('removing : ' + this.obs_removing);
-		//console.log ('moving : ' + this.obs_moving);
+	// callback for job cancelled
+	job_cancelled: function(ref) {
+		if (ref != null) {
+			if (window.Objects.jobs.indexOf(ref) != -1) {
+				window.Objects.jobs.remove(ref);
+			}
+			ref.obj.job = null;
+			ref.obj.tagged = false;
+			
+			if (ref.type == 'remove') {
+				console.log ('remove job cancelled.');
+			} else if (ref.type == 'build') {
+				console.log ('build job cancelled');
+				ref.obj.hide_ghost();
+				// entity returns resources if gathered ?
+			} else if (ref.type == 'move') {
+				ref.obj.hide_ghost();
+				console.log('move job cancelled');
+				// object could be in entity inventory 
+			} else if (ref.type == 'place') {
+				ref.obj.hide_ghost();
+				console.log('place job cancelled');
+				// object is in entity inventory
+			} else if (ref.type == 'destroy') { // not really possible without selecting items from inventory
+				console.log('destroy job cancelled');
+				// object is in entity inventory
+			}
+		}
+	},
+	// callback for job succeeded;
+	job_done: function(ref) {
+		if (window.Objects.selected == ref.obj) {
+			window.Objects.unselect();
+		}
+		ref.obj.job = null;
+		ref.obj.hide_ghost();
+		ref.obj.tagged = false;
+		console.log(ref.type + ' job completed.');d
+		if (window.Objects.jobs.indexOf(ref) != -1) {
+			window.Objects.jobs.remove(ref);
+		}
+	},
+	// callback for job failed
+	job_failed: function(ref) {
+		if (window.Objects.jobs.indexOf(ref) != -1) {
+			window.Objects.jobs.remove(ref);
+		}
+		console.log(ref.type + ' job could not be completed. Adding back to que.');
+		window.Objects.jobs.push(ref);
+	},
+	// simulates colonists doing jobs, using delta
+	do_jobs_test: function(delta) {
+		for (var i = 0; i < this.jobs.length; i++) {
+			var job = this.jobs[i];
+			job.timer += delta;
+			if (job.timer > 6000) { // colonist has walked to the job location
+				if (job.type == 'remove') {
+					job.obj.destroy();
+					job.job_done(job);
+				} else if (job.type == 'build') {
+					job.obj.place();
+					job.job_done(job);
+				} else if (job.type == 'move') {
+					if (job.obj.placed) {
+						job.obj.remove();
+					} else if (job.timer > 10000) { // colonist has walked to the obj.ghost_loc
+						job.obj.place();
+						job.job_done(job);
+					}
+				}
+				
+ 			}
+		}
 	}
 }
 
