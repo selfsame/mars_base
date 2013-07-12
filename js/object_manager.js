@@ -1,5 +1,18 @@
 
+// All the mouse selecting and stuff should only happen if this tool is 'active', IE the menu is expanded.
+
+// 0 = object doesn't even exist
+// there should never be a sprite drawn on a zero square either
+// 1 means it affects pathfinding, and sprite is drawn
+// 2 means it does not affect pathfinding, but sprite is drawn
+// 3 is a non-directional use
+// 4 is use down
+// 5 is use left
+// 6 is use up
+// 7 is use right
+
 function job_ref(type, obj) {
+	// obj is a class? 
 	this.type = type;
 	this.obj = obj;
 	this.obj.job = this;
@@ -157,6 +170,7 @@ window.Objects = {
 				var coords = window.Events.tile_under_mouse;
 				this.selected = window.Map.get('objects', coords[0], coords[1]);
 				if (this.selected != 0) {
+					// should loop objects and choose first selectable
 					this.selected = this.selected[0];
 					this.rotation = this.selected.rotation;
 					this.rot_layout = this.selected.get_layout(this.rotation);
@@ -289,6 +303,7 @@ window.Objects = {
 	},
 	// callback for job cancelled
 	job_cancelled: function(ref) {
+		// is this used? the colonists won't be cancelling any jobs..
 		if (ref != null) {
 			if (window.Objects.jobs.indexOf(ref) != -1) {
 				window.Objects.jobs.remove(ref);
@@ -339,27 +354,27 @@ window.Objects = {
 	},
 	// simulates colonists doing jobs, using delta
 	do_jobs_test: function(delta) {
-		for (var i = 0; i < this.jobs.length; i++) {
-			var job = this.jobs[i];
-			job.timer += delta;
-			if (job.timer > 6000) { // colonist has walked to the job location
-				if (job.type == 'remove') {
-					job.obj.destroy();
-					job.job_done(job);
-				} else if (job.type == 'build') {
-					job.obj.place();
-					job.job_done(job);
-				} else if (job.type == 'move') {
-					if (job.obj.placed) {
-						job.obj.remove();
-					} else if (job.timer > 10000) { // colonist has walked to the obj.ghost_loc
-						job.obj.place();
-						job.job_done(job);
-					}
-				}
+		// for (var i = 0; i < this.jobs.length; i++) {
+		// 	var job = this.jobs[i];
+		// 	job.timer += delta;
+		// 	if (job.timer > 6000) { // colonist has walked to the job location
+		// 		if (job.type == 'remove') {
+		// 			job.obj.destroy();
+		// 			job.job_done(job);
+		// 		} else if (job.type == 'build') {
+		// 			job.obj.place();
+		// 			job.job_done(job);
+		// 		} else if (job.type == 'move') {
+		// 			if (job.obj.placed) {
+		// 				job.obj.remove();
+		// 			//} else if (job.timer > 10000) { // colonist has walked to the obj.ghost_loc
+		// 			//	job.obj.place();
+		// 			//	job.job_done(job);
+		// 			//}
+		// 		}
 				
- 			}
-		}
+ 	// 		}
+		// }
 	}
 }
 

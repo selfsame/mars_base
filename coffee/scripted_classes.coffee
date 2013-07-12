@@ -542,29 +542,7 @@ $(window).ready ->
       return false
 
 
-    _place: (e)->
 
-      if @job and @job.place_proxy
-        console.log 'place called', e
-        if e? and typeof e is 'object' and e.type is 'e'
-          r = window.Entities.objects_hash.get_within([@pos[0], @pos[1]], 64)
-          console.log r
-          if r is 0
-            return false
-          for obj in r
-            if obj.EID is e.e
-              console.log 'found place object ', obj.tile_pos
-              obj.pos = [@job.place_proxy[1][0]*32, @job.place_proxy[1][1]*32]
-              obj.tile_pos = [@job.place_proxy[1][0], @job.place_proxy[1][1]]
-              console.log 'moved to ', obj.tile_pos
-              if window.Placer.job_done( @job.place_proxy )
-
-                @job.approved = true
-                
-                if obj.place?
-                  obj.place()
-                  return true
-      return false
 
 
 

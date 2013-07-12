@@ -2,6 +2,7 @@
 
 
 
+
 class Job
   constructor: (@type='default')->
     @instructions = []
@@ -51,7 +52,7 @@ window.Jobs =
     job = @open_jobs.pop()
     if job
       entity.job = job
-      job.assigned = true
+      job.assigned = entity
       @assigned_jobs.push job
       return job
 
@@ -70,19 +71,18 @@ window.Jobs =
       @open_jobs.push job
     window.Tiles.under_construction = []
 
-    for thing in window.Placer.jobs
-      #[@type, pos]
+    for thing in window.Objects.jobs
       job = new Job('place')
-      job.place_proxy = thing
-      job.instructions.push new window.SlowDataTypes.Vect2D(thing[1][0], thing[1][1])
-      job.instructions.push thing[0]
+      job.place_job = thing
+      console.log thing.location
+      job.instructions.push new window.SlowDataTypes.Vect2D(thing.location[0], thing.location[1])  
       @open_jobs.push job
       job.is_done = ()->
-        if @approved
-          console.log 'job.place.is_done: '
-          return true
-        return false
-    window.Placer.jobs = []
+        if @assigned.tile_pos[0] is @place_job.location[0] and @assigned.tile_pos[1] is @place_job.location[1]
+          @place_job.job_done @place_job
+        else
+          window.Jobs.fail(@)
+    window.Objects.jobs = []
 
 
 

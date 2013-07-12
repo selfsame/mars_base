@@ -203,16 +203,9 @@ do_work: (\n
 
 task_place:(\n
 
-  E0 = pickup(go_near(search(@task)));\n
+  E0 = goto(@task);\n
   get_task();\n
 
-  if go_near(@task) : (\n
-    drop(E0);\n
-    place(E0);\n
-  )\n
-
-  
-  get_task();\n
 )\n
 
 

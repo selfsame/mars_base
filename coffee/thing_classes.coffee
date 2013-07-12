@@ -95,14 +95,14 @@ $(window).ready ->
       @name = 'locker'
       @nombre = 'locker'
       @image = 'locker'
-      @layout = [[1]]
+      @layout = [[3]]
 
   class Solarpanel extends Installable
     setup: ()->
       @name = 'solarpanel'
       @nombre = 'solarpanel'
       @image = 'solarpanel'
-      @layout = [[1,1]]
+      @layout = [[3,2]]
 
 
 
@@ -111,7 +111,7 @@ $(window).ready ->
       @name = 'airtank'
       @nombre = 'airtank'
       @image = 'airtanks'
-      @layout = [[1]]
+      @layout = [[3]]
     use: (entity)->
       if not @oxygen
         @oxygen = 80000
