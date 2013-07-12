@@ -517,7 +517,7 @@ $(window).ready ->
           @job = job
           console.log 'assigned a job', @job
       if @job
-        task = @job.instructions.pop()
+        task = @job.get_instruction()
         if task
           @props['task'] = task
           return task
