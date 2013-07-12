@@ -120,7 +120,7 @@ window.Objects = {
 	},
 	// called on keypress
 	keydown: function(e){
-		//alert(e.keyCode);
+		console.log(e.keyCode);
 		if (this.selected != 0) {
 			if (e.keyCode == 77) { // M : move
 				if (this.selected.moveable) {
@@ -147,6 +147,14 @@ window.Objects = {
 			} else if (e.keyCode == 67) { // C : clear
 				if (this.selected.job != null) {
 					this.job_cancelled(this.selected.job);
+				}
+			} else if (e.keyCode == 79) { // O : open
+				if (this.selected.name == 'Wide Door') {
+					this.selected.open();
+				}
+			} else if (e.keyCode == 73) { // i : close
+				if (this.selected.name == 'Wide Door') {
+					this.selected.close();
 				}
 			}
 		}

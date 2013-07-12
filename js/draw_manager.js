@@ -447,8 +447,10 @@
       sub_image: function(imgname, x, y, w, h, clipsize, offset, rotation) {
         var sx, sy;
         if (clipsize == null) {
-          clipsize = 32;
-        }
+          clipsize = [32, 32];
+        } else if (!(clipsize instanceof Array)) {
+			clipsize = [clipsize, clipsize];
+		}
         if (offset == null) {
           offset = [0, 0];
         }
@@ -468,16 +470,16 @@
           }
         }
         if (this.images[imgname]) {
-          sx = offset[0] * clipsize;
-          sy = offset[1] * clipsize;
+          sx = offset[0] * clipsize[0];
+          sy = offset[1] * clipsize[1];
           if (rotation) {
             this.context.save();
             this.context.translate(x + (w / 2), y + (h / 2));
             this.context.rotate(rotation);
-            this.context.drawImage(this.images[imgname], sx, sy, clipsize, clipsize, -(w / 2), -(h / 2), w, h);
+            this.context.drawImage(this.images[imgname], sx, sy, clipsize[0], clipsize[1], -(w / 2), -(h / 2), w, h);
             this.context.restore();
           } else {
-            this.context.drawImage(this.images[imgname], sx, sy, clipsize, clipsize, x, y, w, h);
+            this.context.drawImage(this.images[imgname], sx, sy, clipsize[0], clipsize[1], x, y, w, h);
           }
           return true;
         } else {

@@ -1,7 +1,93 @@
 
 
-$(window).ready(function() {
+function anim(sprite, clips, size, loc, rot, type) {
+	this.sprite = sprite; // sprite image
+	this.size = size; // [width, height] of clips
+	this.clips = clips; // [clipsX, clipsY]
+	this.location = loc; // [x, y] world coords
+	this.rotation = rot; // radian rotation value
+	this.paused = false;
+	this.total_frames = clips[0] * clips[1]; // total number of frames
+	this.type = type; // 'flipper'/'loop'
+	this.flip = true; // used for flipper mode. true = play forward. false = reverse
+	this.clip = [0, 0]; // current [x, y]
+	this.speed = 100; // ticks per frame
+	this.frame = 0; // current frame
+	this.time = 0; // current ticks
+	window.Anims.register(this); // register for updates
+	
+	anim.prototype.clip_increment = function(amount) {
+		if (this.type == 'loop') {
+			this.frame = ((this.frame + amount) % this.total_frames);
+			var x = (this.frame % this.clips[0]);
+			var y = Math.floor(this.frame / this.clips[1]);
+			this.clip = [x, y];
+		
+		} else if (this.type == 'flip') {
+			if (this.flip) {
+				this.frame = this.frame + amount;
+				if (this.frame >= this.total_frames) {
+					
+					this.frame = this.total_frames - 1;
+				}
+				var x = (this.frame % this.clips[0]);
+				var y = Math.floor(this.frame / this.clips[1]);
+				this.clip = [x, y];
+			} else {
+				this.frame = this.frame - amount;
+				if (this.frame <= 0) {
+					this.frame = 0;
+				}
+				var x = (this.frame % this.clips[0]);
+				var y = Math.floor(this.frame / this.clips[1]);
+				this.clip = [x, y];
+			}
+		}
 
+		return this.frame;
+	}
+	anim.prototype.frame_update = function(delta) {
+		this.time += delta;
+		var lapse = Math.floor(this.time / this.speed);
+		if (lapse > 0) {
+			this.clip_increment(lapse);
+			this.time %= this.speed;
+		}
+	}
+	anim.prototype.draw = function() {
+
+		window.Draw.use_layer('Entities');
+		console.log('frame: ' + this.frame + " time: " + this.time);
+		return window.Draw.sub_image(this.sprite, this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1], this.size, this.clip, this.rotation);
+
+	}
+}
+
+$(window).ready(function() {
+	window.Anims = {
+		init: function() {
+			window.Events.add_listener(this);
+			this.animations = [];
+		},
+		register: function(anim) {
+			if (this.animations.indexOf(anim) == -1) {
+				this.animations.push(anim);
+			}
+		},
+		unregister: function(anim) {
+			if (this.animations.indexOf(anim) != -1) {
+				this.animations.remove(anim);
+			}
+		},
+		update: function(delta) {
+			for(var i = 0; i < this.animations.length; i++) {
+				if (!this.animations[i].paused) {
+					this.animations[i].frame_update(delta);
+				}
+			}
+		}
+		
+	}
 
 	DThing = window.Entities.add_class('DThing', 'Thing');
 
@@ -71,13 +157,7 @@ $(window).ready(function() {
 	
 	// draw this to the map
 	DThing.prototype.draw = function() {
-		if (this.ghost_loc) {
-			this.draw_ghost();
-		}
-		if (this.tagged) {
-			this.draw_tag(this.tag);
-		}
-		
+		this.ent_draw();
 		if (this.placed && this.layout != [] && !this.drawn) {
 			
 			var width = this.layout[0].length;
@@ -96,6 +176,15 @@ $(window).ready(function() {
 			
 		} else {
 			return false; // nothing to draw
+		}
+	}
+	
+	DThing.prototype.ent_draw = function() {
+		if (this.ghost_loc) {
+			this.draw_ghost();
+		}
+		if (this.tagged) {
+			this.draw_tag(this.tag);
 		}
 	}
 	
@@ -550,9 +639,11 @@ $(window).ready(function() {
 		this.buildable = true;
 		this.removable = true;
 		this.selectable = true;
+		this.open = false;
 		this.layout = [[2, 2]];
 		this.place_interior = true;
 		this.place_exterior = false;
+		this.anim = false;
 	}
 	Wide_Door.prototype.check_clear = function(loc, rot) {
 		var rot_layout;
@@ -629,6 +720,71 @@ $(window).ready(function() {
 		return true;
 	}
 	
+	// draw this to the map
+	Wide_Door.prototype.draw = function() {
+		this.ent_draw();
+		if (this.placed && this.layout != []) {
+			this.drawn = this.anim.draw();
+			return this.drawn;
+		} else {
+			return false; // nothing to draw
+		}
+	}
+	
+	Wide_Door.prototype.ent_draw = function() {
+		if (this.ghost_loc) {
+			this.draw_ghost();
+		}
+		if (this.tagged) {
+			this.draw_tag(this.tag);
+		}
+		if (this.anim) {
+			this.anim.draw()
+		}
+	}
+	Wide_Door.prototype.place = function(loc, rot) {
+		if (loc == null) {
+			loc = this.ghost_loc;
+		}
+		
+		if (rot == null) {
+			rot = this.ghost_rot;
+		}
+		
+		if (loc && this.check_clear(loc, rot)) {
+			
+			this.location = loc;
+			this.rotation = rot;
+			if (this.apply_layout(loc, rot)) {
+				this.placed = true;
+				this.attach_to_map();
+				if (this.rotation == 2 || this.rotation == 4) {
+					this.anim = new anim('door_opening', [4, 4], [64, 32], [this.location[0] + this.rot_offset[0], this.location[1] + this.rot_offset[1]], this.get_rot(this.rotation), 'flip');
+				} else {
+					this.anim = new anim('door_opening', [4, 4], [64, 32], this.location, this.get_rot(this.rotation), 'flip');
+				}
+				return true
+			} else {
+				this.location = [];
+			}
+		}
+		return false;
+	}
+	Wide_Door.prototype.open = function() {
+		if (this.placed) {
+			if (this.anim) {
+				this.anim.flip = true;
+			}
+		}
+	}
+	Wide_Door.prototype.close = function() {
+		if (this.placed) {
+			if (this.anim) {
+				this.anim.flip = false;
+			}
+		}
+	}
+	
 	Airlock = window.Entities.add_class('Airlock', 'DThing');
 	Airlock.prototype.setup = function() {
 		this.name = 'Airlock';
@@ -702,6 +858,9 @@ $(window).ready(function() {
 		return true;
 	}
 	
+	window.Anims.init(); 
+
+	
 	// object images
 	window.Draw.add_image('rock', "./textures/ground/crater_small.png");
 	window.Draw.add_image('crater_small', "./textures/ground/crater_small.png");
@@ -713,6 +872,8 @@ $(window).ready(function() {
 	window.Draw.add_image('launchpad', "./textures/objects/launchpad.png");
 	window.Draw.add_image('door_tester', "./textures/objects/door_tester.png");
 	window.Draw.add_image('airlock', "./textures/objects/airlock.png");
+	
+	window.Draw.add_image('door_opening', "./textures/objects/door_open.png");
 	
 	// tag images
 	window.Draw.add_image('tag_move', "./textures/UI/tag_move.png");
