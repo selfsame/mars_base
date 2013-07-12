@@ -158,7 +158,7 @@ $(window).ready(function() {
 		this.ghost_layout = this.get_layout(rot);
 		
 		if (apply_layout) {
-			return(this.apply_layout(loc, rot));
+			return(this.apply_layout(loc, rot, false));
 		}
 		
 		return true;
@@ -169,7 +169,7 @@ $(window).ready(function() {
 		if (this.ghost_loc) {
 			this.remove_layout(this.ghost_loc, this.ghost_rot);
 			if (this.placed) {
-				this.apply_layout(this.location, this.rotation);
+				this.apply_layout(this.location, this.rotation, true);
 			}
 			this.remove_tag();
 		}
@@ -314,10 +314,10 @@ $(window).ready(function() {
 	
 	// attach this object's layout to the correct maps
 	DThing.prototype.apply_layout = function(loc, rot, pathing) {
-		if (!loc) {
+		if (loc == null) {
 			loc = this.location;
 		}
-		if (!rot) {
+		if (rot == null) {
 			rot = this.rotation;
 		}
 		
@@ -328,7 +328,9 @@ $(window).ready(function() {
 					var coords = this.local_to_world([j, i], loc);
 					if (rot_layout[i][j] == 1) { // collision and placement
 						window.Map.push('objects', coords[0], coords[1], this);
-						window.Map.set('pathfinding', coords[0], coords[1], 1);
+						if (pathing) {
+							window.Map.set('pathfinding', coords[0], coords[1], 1);
+						}
 					} else if (rot_layout[i][j] != 0) {
 						window.Map.push('objects', coords[0], coords[1], this);
 					}
@@ -421,15 +423,16 @@ $(window).ready(function() {
 
 	// place this object at a given location
 	DThing.prototype.place = function(loc, rot) {
-		if (!loc) {
+		if (loc == null) {
 			loc = this.ghost_loc;
 		}
 		
-		if (!rot) {
+		if (rot == null) {
 			rot = this.ghost_rot;
 		}
 		
 		if (loc && this.check_clear(loc, rot)) {
+			
 			this.location = loc;
 			this.rotation = rot;
 			if (this.apply_layout(loc, rot)) {
@@ -448,7 +451,6 @@ $(window).ready(function() {
 		// to-do
 		this.remove();
 		this.detach_from_map();
-		console.log('destroying a ' + this.name);
 	}
 	
 	// removes the object from the map, doesn't destroy it
