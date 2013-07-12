@@ -726,7 +726,7 @@
           }
         }
         if (this.job) {
-          task = this.job.instructions.pop();
+          task = this.job.get_instruction();
           if (task) {
             this.props['task'] = task;
             return task;
