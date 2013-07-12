@@ -171,7 +171,8 @@
         this.name = 'airtank';
         this.nombre = 'airtank';
         this.image = 'airtanks';
-        return this.layout = [[3]];
+        this.layout = [[3]];
+        return this.moveable = true;
       };
 
       Airtank.prototype.use = function(entity) {

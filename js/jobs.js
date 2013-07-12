@@ -13,7 +13,17 @@
       this.timer = 0;
       this.assigned = false;
       this.timeout = 10000;
+      this.index = 0;
     }
+
+    Job.prototype.get_instruction = function() {
+      if (this.index > this.instructions.length) {
+        this.index = 0;
+      } else {
+        this.index += 1;
+        return this.instructions[this.index - 1];
+      }
+    };
 
     Job.prototype.to_string = function() {
       return 'job: ' + this.type;
@@ -115,13 +125,21 @@
         thing = _ref1[_j];
         job = new Job('place');
         job.place_job = thing;
-        console.log(thing.location);
+        job.type = thing.type;
+        console.log('PLACE JOB: ', thing.type);
+        console.log(thing);
+        console.log(thing.location[0], thing.location[1]);
         job.instructions.push(new window.SlowDataTypes.Vect2D(thing.location[0], thing.location[1]));
         this.open_jobs.push(job);
         job.is_done = function() {
+          var _ref2;
           if (this.assigned.tile_pos[0] === this.place_job.location[0] && this.assigned.tile_pos[1] === this.place_job.location[1]) {
+            if ((_ref2 = this.type) === 'build') {
+              this.place_job.obj['place']();
+            } else {
+              this.place_job.obj[this.type]();
+            }
             this.place_job.job_done(this.place_job);
-            this.place_job.obj.place();
             return true;
           } else {
             window.Jobs.fail(this);

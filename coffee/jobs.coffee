@@ -9,6 +9,14 @@ class Job
     @timer = 0
     @assigned = false
     @timeout = 10000
+    @index = 0
+  get_instruction: ()->
+    if @index > @instructions.length
+      @index = 0
+      return undefined
+    else
+      @index += 1
+      return @instructions[@index-1]
   to_string: ->
     return 'job: '+@type
   update: (delta)->
@@ -73,14 +81,21 @@ window.Jobs =
 
     for thing in window.Objects.jobs
       job = new Job('place')
+      
       job.place_job = thing
-      console.log thing.location
+      job.type = thing.type
+      console.log 'PLACE JOB: ', thing.type
+      console.log thing
+      console.log thing.location[0], thing.location[1]
       job.instructions.push new window.SlowDataTypes.Vect2D(thing.location[0], thing.location[1])  
       @open_jobs.push job
       job.is_done = ()->
         if @assigned.tile_pos[0] is @place_job.location[0] and @assigned.tile_pos[1] is @place_job.location[1]
+          if @type in ['build']
+            @place_job.obj['place']()
+          else
+            @place_job.obj[@type]()
           @place_job.job_done @place_job
-          @place_job.obj.place()
           return true
         else
           window.Jobs.fail(@)

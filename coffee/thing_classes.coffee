@@ -4,14 +4,14 @@ $(window).ready ->
 
   class Installable extends E.DThing
     setup_1: ()->
-      this.name = @nombre;
-      this.moveable = true;
-      this.buildable = true;
-      this.removable = true;
-      this.selectable = true;
-      this.place_interior = true;
-      this.place_exterior = true;
-      this.layout = [[1, 0, 1]];
+      this.name = @nombre
+      this.moveable = true
+      this.buildable = true
+      this.removable = true
+      this.selectable = true
+      this.place_interior = true
+      this.place_exterior = true
+      this.layout = [[1, 0, 1]]
 
   class Door extends Installable
     setup: ()->
@@ -112,6 +112,7 @@ $(window).ready ->
       @nombre = 'airtank'
       @image = 'airtanks'
       @layout = [[3]]
+      this.moveable = true
     use: (entity)->
       if not @oxygen
         @oxygen = 80000
