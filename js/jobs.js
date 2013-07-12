@@ -120,9 +120,12 @@
         this.open_jobs.push(job);
         job.is_done = function() {
           if (this.assigned.tile_pos[0] === this.place_job.location[0] && this.assigned.tile_pos[1] === this.place_job.location[1]) {
-            return this.place_job.job_done(this.place_job);
+            this.place_job.job_done(this.place_job);
+            this.place_job.obj.place();
+            return true;
           } else {
-            return window.Jobs.fail(this);
+            window.Jobs.fail(this);
+            return false;
           }
         };
       }

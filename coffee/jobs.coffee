@@ -80,8 +80,11 @@ window.Jobs =
       job.is_done = ()->
         if @assigned.tile_pos[0] is @place_job.location[0] and @assigned.tile_pos[1] is @place_job.location[1]
           @place_job.job_done @place_job
+          @place_job.obj.place()
+          return true
         else
           window.Jobs.fail(@)
+          return false
     window.Objects.jobs = []
 
 
