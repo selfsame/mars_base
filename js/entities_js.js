@@ -20,7 +20,7 @@ $(window).ready(function() {
 		this.placed = false; // if this object has been placed yet
 		this.name = 'Plain Thingy';
 		
-		this.job = null;
+		this.job = null; // job reference object associated with this object
 		
 		this.ghost_loc = false; // show object ghost
 		this.ghost_rot = 1; // represents the rotation of the ghost
