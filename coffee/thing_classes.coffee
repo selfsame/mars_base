@@ -11,13 +11,35 @@ $(window).ready ->
       this.selectable = true
       this.place_interior = true
       this.place_exterior = true
-      this.layout = [[1, 0, 1]]
+      this.layout = [[2]]
 
   class Door extends Installable
     setup: ()->
       this.name = 'door'
       this.nombre = 'door'
       this.image = 'door'
+
+
+    check_clear: (loc, rot)->
+      check_tile = (loc)->
+        t = window.Map.get("tiles", loc[0], loc[1])
+        if t
+          return t
+        return false
+      
+      l = check_tile( [loc[0] - 1, loc[1]] )
+      r = check_tile( [loc[0] + 1, loc[1]] )
+      t = check_tile( [loc[0], loc[1] - 1] )
+      b = check_tile( [loc[0], loc[1] + 1] )
+
+      if l and r and l.is_wall() and r.is_wall()
+        return true
+      else if t and b and t.is_wall() and b.is_wall()
+        return true
+
+    install: ()->
+      console.log "INSTALL CALLED"
+      window.Map.set('pathfinding', @tile_pos[0], @tile_pos[1], 0)
 
       ###
     init: ->
@@ -113,6 +135,9 @@ $(window).ready ->
       @image = 'airtanks'
       @layout = [[3]]
       this.moveable = true
+      this.removeable = true
+    install: ()->
+      console.log 'airtanks installed'
     use: (entity)->
       if not @oxygen
         @oxygen = 80000

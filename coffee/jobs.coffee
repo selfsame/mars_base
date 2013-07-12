@@ -9,6 +9,7 @@ class Job
     @timer = 0
     @assigned = false
     @timeout = 10000
+    @assigned = false
     @index = 0
   get_instruction: ()->
     if @index > @instructions.length
@@ -34,10 +35,41 @@ class Job
     #usually overwritten
     return true
 
+  #helper functions for creating instructions
+  add_instruction: (thing)->
+    if typeof thing is 'string'
+      @instructions.push thing
+      return true
+    if typeof thing is 'number'
+      @instructions.push thing
+      return true
+    if thing instanceof Array
+      if thing.length is 2
+        @instructions.push new window.SlowDataTypes.Vect2D(thing[0], thing[1])
+        return true
+    if typeof thing is 'object'
+      if thing.EID?
+        @instructions.push new window.SlowDataTypes.EntityRef( thing )
+        return true
+    return false
+
+  pos_match: (pos1, pos2)->
+    if pos1? and pos2? and pos1 instanceof Array and pos2 instanceof Array and pos1.length is 2 and pos2.length is 2
+      if pos1[0] is pos2[0] and pos1[1] is pos2[1]
+        return true
+    return false
+
+  pos_match_near: (pos1, pos2)->
+    if pos1? and pos2? and pos1 instanceof Array and pos2 instanceof Array and pos1.length is 2 and pos2.length is 2
+      if Math.abs(pos1[0] - pos2[0]) <= 1  and Math.abs(pos1[1] - pos2[1]) <= 1 
+        return true
+    return false
+
 
 window.Jobs =
   init: ->
     window.Events.add_listener(@)
+    @job_class = Job
     @open_jobs = []
     @assigned_jobs = []
   update: (delta)->
@@ -46,6 +78,8 @@ window.Jobs =
         job.update(delta)
 
   fail: (job)->
+    job.timer = 0
+    job.index = 0
     if job in @assigned_jobs
       @assigned_jobs.remove job
     if job not in @open_jobs
@@ -64,6 +98,10 @@ window.Jobs =
       @assigned_jobs.push job
       return job
 
+
+  add_job: (job)->
+    @open_jobs.push job
+
   update_listings: ()->
     window.Tiles.under_construction.reverse()
     for tile in window.Tiles.under_construction
@@ -79,28 +117,6 @@ window.Jobs =
       @open_jobs.push job
     window.Tiles.under_construction = []
 
-    for thing in window.Objects.jobs
-      job = new Job('place')
-      
-      job.place_job = thing
-      job.type = thing.type
-      console.log 'PLACE JOB: ', thing.type
-      console.log thing
-      console.log thing.location[0], thing.location[1]
-      job.instructions.push new window.SlowDataTypes.Vect2D(thing.location[0], thing.location[1])  
-      @open_jobs.push job
-      job.is_done = ()->
-        if @assigned.tile_pos[0] is @place_job.location[0] and @assigned.tile_pos[1] is @place_job.location[1]
-          if @type in ['build']
-            @place_job.obj['place']()
-          else
-            @place_job.obj[@type]()
-          @place_job.job_done @place_job
-          return true
-        else
-          window.Jobs.fail(@)
-          return false
-    window.Objects.jobs = []
 
 
 

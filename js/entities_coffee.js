@@ -34,9 +34,9 @@
       this.friction = .95;
       this.flags = {};
       this.layout = [[0]];
-      this.setup_1();
       this.init();
       this.init_2();
+      this.setup_1();
     }
 
     Entity.prototype.init = function() {};
@@ -112,7 +112,7 @@
       }
     };
 
-    Entity.prototype.destroy = function() {
+    Entity.prototype.__destroy = function() {
       var obj_in_map;
       console.log('destroying ', this);
       window.Entities.objects_hash.remove(this);
@@ -131,6 +131,10 @@
         obj_in_map.remove(this);
       }
       return delete this;
+    };
+
+    Entity.prototype.destroy = function() {
+      return this.__destroy();
     };
 
     return Entity;

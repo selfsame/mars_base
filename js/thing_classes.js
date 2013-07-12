@@ -24,7 +24,7 @@
         this.selectable = true;
         this.place_interior = true;
         this.place_exterior = true;
-        return this.layout = [[1, 0, 1]];
+        return this.layout = [[2]];
       };
 
       return Installable;
@@ -44,6 +44,32 @@
         this.name = 'door';
         this.nombre = 'door';
         return this.image = 'door';
+      };
+
+      Door.prototype.check_clear = function(loc, rot) {
+        var b, check_tile, l, r, t;
+        check_tile = function(loc) {
+          var t;
+          t = window.Map.get("tiles", loc[0], loc[1]);
+          if (t) {
+            return t;
+          }
+          return false;
+        };
+        l = check_tile([loc[0] - 1, loc[1]]);
+        r = check_tile([loc[0] + 1, loc[1]]);
+        t = check_tile([loc[0], loc[1] - 1]);
+        b = check_tile([loc[0], loc[1] + 1]);
+        if (l && r && l.is_wall() && r.is_wall()) {
+          return true;
+        } else if (t && b && t.is_wall() && b.is_wall()) {
+          return true;
+        }
+      };
+
+      Door.prototype.install = function() {
+        console.log("INSTALL CALLED");
+        return window.Map.set('pathfinding', this.tile_pos[0], this.tile_pos[1], 0);
         /*
             init: ->
               @drawn = false
@@ -172,7 +198,12 @@
         this.nombre = 'airtank';
         this.image = 'airtanks';
         this.layout = [[3]];
-        return this.moveable = true;
+        this.moveable = true;
+        return this.removeable = true;
+      };
+
+      Airtank.prototype.install = function() {
+        return console.log('airtanks installed');
       };
 
       Airtank.prototype.use = function(entity) {

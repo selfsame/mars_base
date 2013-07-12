@@ -13,6 +13,7 @@
       this.timer = 0;
       this.assigned = false;
       this.timeout = 10000;
+      this.assigned = false;
       this.index = 0;
     }
 
@@ -51,6 +52,48 @@
       return true;
     };
 
+    Job.prototype.add_instruction = function(thing) {
+      if (typeof thing === 'string') {
+        this.instructions.push(thing);
+        return true;
+      }
+      if (typeof thing === 'number') {
+        this.instructions.push(thing);
+        return true;
+      }
+      if (thing instanceof Array) {
+        if (thing.length === 2) {
+          this.instructions.push(new window.SlowDataTypes.Vect2D(thing[0], thing[1]));
+          return true;
+        }
+      }
+      if (typeof thing === 'object') {
+        if (thing.EID != null) {
+          this.instructions.push(new window.SlowDataTypes.EntityRef(thing));
+          return true;
+        }
+      }
+      return false;
+    };
+
+    Job.prototype.pos_match = function(pos1, pos2) {
+      if ((pos1 != null) && (pos2 != null) && pos1 instanceof Array && pos2 instanceof Array && pos1.length === 2 && pos2.length === 2) {
+        if (pos1[0] === pos2[0] && pos1[1] === pos2[1]) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    Job.prototype.pos_match_near = function(pos1, pos2) {
+      if ((pos1 != null) && (pos2 != null) && pos1 instanceof Array && pos2 instanceof Array && pos1.length === 2 && pos2.length === 2) {
+        if (Math.abs(pos1[0] - pos2[0]) <= 1 && Math.abs(pos1[1] - pos2[1]) <= 1) {
+          return true;
+        }
+      }
+      return false;
+    };
+
     return Job;
 
   })();
@@ -58,6 +101,7 @@
   window.Jobs = {
     init: function() {
       window.Events.add_listener(this);
+      this.job_class = Job;
       this.open_jobs = [];
       return this.assigned_jobs = [];
     },
@@ -76,6 +120,8 @@
       return _results;
     },
     fail: function(job) {
+      job.timer = 0;
+      job.index = 0;
       if (__indexOf.call(this.assigned_jobs, job) >= 0) {
         this.assigned_jobs.remove(job);
       }
@@ -101,8 +147,11 @@
         return job;
       }
     },
+    add_job: function(job) {
+      return this.open_jobs.push(job);
+    },
     update_listings: function() {
-      var job, thing, tile, _i, _j, _len, _len1, _ref, _ref1;
+      var job, tile, _i, _len, _ref;
       window.Tiles.under_construction.reverse();
       _ref = window.Tiles.under_construction;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -119,35 +168,7 @@
         };
         this.open_jobs.push(job);
       }
-      window.Tiles.under_construction = [];
-      _ref1 = window.Objects.jobs;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        thing = _ref1[_j];
-        job = new Job('place');
-        job.place_job = thing;
-        job.type = thing.type;
-        console.log('PLACE JOB: ', thing.type);
-        console.log(thing);
-        console.log(thing.location[0], thing.location[1]);
-        job.instructions.push(new window.SlowDataTypes.Vect2D(thing.location[0], thing.location[1]));
-        this.open_jobs.push(job);
-        job.is_done = function() {
-          var _ref2;
-          if (this.assigned.tile_pos[0] === this.place_job.location[0] && this.assigned.tile_pos[1] === this.place_job.location[1]) {
-            if ((_ref2 = this.type) === 'build') {
-              this.place_job.obj['place']();
-            } else {
-              this.place_job.obj[this.type]();
-            }
-            this.place_job.job_done(this.place_job);
-            return true;
-          } else {
-            window.Jobs.fail(this);
-            return false;
-          }
-        };
-      }
-      return window.Objects.jobs = [];
+      return window.Tiles.under_construction = [];
     }
   };
 

@@ -510,6 +510,18 @@ $(window).ready(function() {
 		return true;
 	}
 
+	// easy functions to hook into 
+	DThing.prototype.install = function() { }
+	DThing.prototype.uninstall = function() { }
+
+
+	DThing.prototype.build = function() {
+		// generic command that routes to place/destroy/remove if applicable
+		if (this.place_job == 'build') { this.place(); }
+		if (this.place_job == 'remove') { this.destroy(); }
+
+	}
+
 	// place this object at a given location
 	DThing.prototype.place = function(loc, rot) {
 		if (loc == null) {
@@ -527,6 +539,7 @@ $(window).ready(function() {
 			if (this.apply_layout(loc, rot)) {
 				this.placed = true;
 				this.attach_to_map();
+				this.install();
 				return true
 			} else {
 				this.location = [];
@@ -539,7 +552,8 @@ $(window).ready(function() {
 	DThing.prototype.destroy = function() {
 		// to-do
 		this.remove();
-		this.detach_from_map();
+		// super important to clean up the various references
+		this.__destroy();
 	}
 	
 	// removes the object from the map, doesn't destroy it
@@ -548,6 +562,7 @@ $(window).ready(function() {
 			this.erase();
 			this.placed = false;
 			//this.detach_from_map();
+			this.uninstall();
 			return true;
 		}
 		return false;

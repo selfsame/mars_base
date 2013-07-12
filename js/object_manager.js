@@ -11,23 +11,8 @@
 // 6 is use up
 // 7 is use right
 
-function job_ref(type, obj) {
-	// obj is a class? 
-	this.type = type;
-	this.obj = obj;
-	this.obj.job = this;
-	this.location = obj.get_usage();
 
-	this.timer = 0; // for debugging 
-	
-	// all callbacks
-	this.job_done = window.Objects.job_done;
-	this.job_fail = window.Objects.job_failed;
-	this.job_cancel = window.Objects.job_cancelled;
-	
-	// unimplemented
-	this.reqs = [];
-}
+
 window.Objects = {
 	init: function() {
 		this.selected = 0;
@@ -71,6 +56,43 @@ window.Objects = {
 		return true;
 		
 	},
+
+	make_job: function(type, obj) {
+		// legacy job object, which is used in window.Objects to manage place jobs.
+		job_ref = {type:type, obj:obj}
+		obj.job = job_ref
+
+
+		// Create a job for the AI directly:
+		// create a new job instance and set it's type
+		job = new window.Jobs.job_class('place');
+
+		// things we'll need for a place job
+		job.done_callback = window.Objects.job_done;
+		job.place_obj = obj;
+		job.loc1 = obj.get_usage();
+
+		// add_instruction will convert position arrays to Slow data type Vect2D, and entities to Slow data type EntityRef
+		// numbers and strings are added as is
+
+		job.add_instruction(job.loc1);
+
+		// this function is called on all jobs to verify if the job was completed by the AI
+		// here we use it to make sure the guy was close to the location and report success to window.Objects
+		job.is_done = function(){
+			if ( this.pos_match_near(this.loc1, this.assigned.tile_pos)  ) {
+				this.place_obj.build();
+				// hack : quick object so job_done gets what it expects
+				this.done_callback( {obj: this.place_obj});
+				return true;
+			}
+			return false;
+		}
+
+		// and finally make the job available
+		window.Jobs.add_job(job);
+	},
+
 	// carefully takes care of 'unselecting' an object
 	unselect: function() {
 		if (this.selected != 0) {
@@ -163,11 +185,12 @@ window.Objects = {
 	set_job: function(obj, type, loc, rot) {
 		this.job_cancelled(obj.job);
 		obj.draw_tag(type);
+		obj.place_job = type;
 		if (type == 'place' || type == 'move' || type == 'build') {
 			obj.show_ghost(loc, rot, true);
 		}
-		j = new job_ref(type, obj);
-		this.jobs.push(j);
+		this.make_job(type, obj);
+
 	},
 	// called on mouse click
 	mousedown: function(e){
@@ -213,11 +236,12 @@ window.Objects = {
 						this.selected.show_ghost(coords, this.rotation, true); // draw a new ghost
 						this.selected.attach_to_map();
 						this.selected.draw_tag('build');
-						j = new job_ref('build', this.selected);
-						this.jobs.push(j);
+						this.selected.place_job = 'build';
+						this.make_job('build', this.selected);
 					} 
 					
-					var ob = eval('new window.Entities.classes.' + this.buildable_obs[this.selected.name] + '()');
+					//var ob = eval('new window.Entities.classes.' + this.buildable_obs[this.selected.name] + '()');
+					var ob = new window.Entities.classes[ this.buildable_obs[this.selected.name] ]();
 					this.selected = ob;
 				}
 			}

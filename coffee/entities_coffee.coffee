@@ -22,9 +22,10 @@ class Entity
 
       @layout = [[0]];
 
-      @setup_1()
+      
       @init()
       @init_2()
+      @setup_1()
       
 
     init: ->
@@ -78,7 +79,7 @@ class Entity
       if @pos?
         @tile_pos = [parseInt((@pos[0]+@half_size)/window.Map.tilesize), parseInt((@pos[1]+@half_size)/window.Map.tilesize)]
 
-    destroy: ()->
+    __destroy: ()->
       console.log 'destroying ', @
       window.Entities.objects_hash.remove @
       window.Entities.sentient_hash.remove @
@@ -93,6 +94,9 @@ class Entity
       if obj_in_map
         obj_in_map.remove @
       delete @
+
+    destroy: ()->
+      @__destroy()
 
 class Thing extends Entity
 

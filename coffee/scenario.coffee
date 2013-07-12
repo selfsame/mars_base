@@ -186,7 +186,7 @@ main : (\n
   wait(random(50));\n
   survival();\n
   do_work();\n
-  wander(8);\n
+  
 )\n
 
 
@@ -195,6 +195,7 @@ do_work: (\n
   get_task();
   if @job == 0 : (
     drop(0);\n
+    wander(8);\n
   ) else : (\n
     if @job == 'build' : ( task_build(); )\n
     if @job == 'place' : ( task_place(); )\n
@@ -202,10 +203,8 @@ do_work: (\n
 )\n
 
 task_place:(\n
-
-  E0 = goto(@task);\n
+  if goto(@task) : () else : ( go_near(@task); )\n
   get_task();\n
-
 )\n
 
 
@@ -228,8 +227,8 @@ survival: (\n
 
   if @suit : (\n
     if @oxygen < (@max_oxygen / 3) : (\n
-      goto_object('airtanks') ;\n
-      use('airtanks');
+      goto_object('airtank') ;\n
+      use('airtank');
     )\n
 
   ) else : (\n
