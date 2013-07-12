@@ -497,7 +497,7 @@ window.Tiles = {
 		this.edit_style = 'corridor'; // current cursor type
 		
 		this.wall_set = 'chunky 2'; // the folder holding the wall images
-		this.shad_set = 'plain'; // the folder holding the shadow images
+		this.shad_set = 'slim'; // the folder holding the shadow images
 		
 		this.dragging = false; // is the mouse being clicked/dragged?
 		this.start_tile = [0,0];

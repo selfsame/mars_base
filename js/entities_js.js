@@ -313,13 +313,14 @@ $(window).ready(function() {
 	}
 	
 	// attach this object's layout to the correct maps
-	DThing.prototype.apply_layout = function(loc, rot) {
+	DThing.prototype.apply_layout = function(loc, rot, pathing) {
 		if (!loc) {
 			loc = this.location;
 		}
 		if (!rot) {
 			rot = this.rotation;
 		}
+		
 		var rot_layout = this.get_layout(rot);
 		if (rot_layout != []) {
 			for (var i = 0; i < rot_layout.length; i++) {
