@@ -172,11 +172,13 @@ window.Objects = {
 				}
 			} else if (e.keyCode == 79) { // O : open
 				if (this.selected.name == 'Wide Door') {
-					this.selected.open();
-				}
-			} else if (e.keyCode == 73) { // i : close
-				if (this.selected.name == 'Wide Door') {
-					this.selected.close();
+					if (this.selected.anim) {
+						if (this.selected.anim.flip) {
+							this.selected.close();
+						} else {
+							this.selected.open();
+						}
+					}
 				}
 			}
 		}

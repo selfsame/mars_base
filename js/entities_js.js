@@ -57,7 +57,7 @@ function anim(sprite, clips, size, loc, rot, type) {
 	anim.prototype.draw = function() {
 
 		window.Draw.use_layer('Entities');
-		console.log('frame: ' + this.frame + " time: " + this.time);
+		//console.log('frame: ' + this.frame + " time: " + this.time);
 		return window.Draw.sub_image(this.sprite, this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1], this.size, this.clip, this.rotation);
 
 	}
@@ -654,8 +654,8 @@ $(window).ready(function() {
 		this.buildable = true;
 		this.removable = true;
 		this.selectable = true;
-		this.open = false;
 		this.layout = [[2, 2]];
+		
 		this.place_interior = true;
 		this.place_exterior = false;
 		this.anim = false;
@@ -745,16 +745,15 @@ $(window).ready(function() {
 			return false; // nothing to draw
 		}
 	}
-	
 	Wide_Door.prototype.ent_draw = function() {
 		if (this.ghost_loc) {
 			this.draw_ghost();
 		}
-		if (this.tagged) {
-			this.draw_tag(this.tag);
-		}
 		if (this.anim) {
 			this.anim.draw()
+		}
+		if (this.tagged) {
+			this.draw_tag(this.tag);
 		}
 	}
 	Wide_Door.prototype.place = function(loc, rot) {
@@ -770,6 +769,9 @@ $(window).ready(function() {
 			
 			this.location = loc;
 			this.rotation = rot;
+			if (this.location == this.ghost_loc) {
+				this.hide_ghost();
+			}
 			if (this.apply_layout(loc, rot)) {
 				this.placed = true;
 				this.attach_to_map();
@@ -778,6 +780,8 @@ $(window).ready(function() {
 				} else {
 					this.anim = new anim('door_opening', [4, 4], [64, 32], this.location, this.get_rot(this.rotation), 'flip');
 				}
+				this.anim.flip = false;
+				this.anim.frame = 19;
 				return true
 			} else {
 				this.location = [];
@@ -798,6 +802,19 @@ $(window).ready(function() {
 				this.anim.flip = false;
 			}
 		}
+	}
+	// removes the object from the map, doesn't destroy it
+	Wide_Door.prototype.remove = function() {
+		if (this.placed && this.remove_layout()) {
+			//this.erase();
+			window.Anims.unregister(this.anim);
+			this.anim = false;
+			this.placed = false;
+			//this.detach_from_map();
+			this.uninstall();
+			return true;
+		}
+		return false;
 	}
 	
 	Airlock = window.Entities.add_class('Airlock', 'DThing');
