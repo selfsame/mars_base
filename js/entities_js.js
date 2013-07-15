@@ -1,11 +1,12 @@
 
 
-function anim(sprite, clips, size, loc, rot, type) {
+function anim(sprite, clips, size, loc, rot, rot_off, type, layer) {
 	this.sprite = sprite; // sprite image
 	this.size = size; // [width, height] of clips
 	this.clips = clips; // [clipsX, clipsY]
 	this.location = loc; // [x, y] world coords
-	this.rotation = rot; // radian rotation value
+	this.rotation = rot; // rotation value
+	this.rot_offset = rot_off; // sprite offset when image is rotated
 	this.paused = false;
 	this.total_frames = clips[0] * clips[1]; // total number of frames
 	this.type = type; // 'flipper'/'loop'
@@ -14,6 +15,11 @@ function anim(sprite, clips, size, loc, rot, type) {
 	this.speed = 100; // ticks per frame
 	this.frame = 0; // current frame
 	this.time = 0; // current ticks
+	this.needs_draw = true; // does this need to be drawn?
+	if (this.layer == null) {
+		this.layer = 'Entities';
+	}
+	console.log('layer: ' + this.layer);
 	window.Anims.register(this); // register for updates
 	
 	anim.prototype.clip_increment = function(amount) {
@@ -22,13 +28,14 @@ function anim(sprite, clips, size, loc, rot, type) {
 			var x = (this.frame % this.clips[0]);
 			var y = Math.floor(this.frame / this.clips[1]);
 			this.clip = [x, y];
-		
+			this.needs_draw = true;
 		} else if (this.type == 'flip') {
 			if (this.flip) {
 				this.frame = this.frame + amount;
 				if (this.frame >= this.total_frames) {
-					
 					this.frame = this.total_frames - 1;
+				} else {
+					this.needs_draw = true;
 				}
 				var x = (this.frame % this.clips[0]);
 				var y = Math.floor(this.frame / this.clips[1]);
@@ -37,6 +44,8 @@ function anim(sprite, clips, size, loc, rot, type) {
 				this.frame = this.frame - amount;
 				if (this.frame <= 0) {
 					this.frame = 0;
+				} else {
+					this.needs_draw = true;
 				}
 				var x = (this.frame % this.clips[0]);
 				var y = Math.floor(this.frame / this.clips[1]);
@@ -55,11 +64,31 @@ function anim(sprite, clips, size, loc, rot, type) {
 		}
 	}
 	anim.prototype.draw = function() {
-
-		window.Draw.use_layer('Entities');
-		//console.log('frame: ' + this.frame + " time: " + this.time);
-		return window.Draw.sub_image(this.sprite, this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1], this.size, this.clip, this.rotation);
-
+		
+		//window.Draw.use_layer('Entities');
+		window.Draw.use_layer('objects');
+		
+		if (this.needs_draw) {
+			console.log('frame: ' + this.frame + " time: " + this.time);
+			if (this.rotation == 1) {
+				window.Draw.clear_box(this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1]);
+				this.needs_draw = !window.Draw.sub_image(this.sprite, this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1], this.size, this.clip, 0);
+			} else if (this.rotation == 2) {
+				window.Draw.clear_box(this.location[0] * 32, this.location[1] * 32, this.size[1], this.size[0]);
+				this.needs_draw = !window.Draw.sub_image(this.sprite, (this.location[0] + this.rot_offset[0]) * 32, (this.location[1] + this.rot_offset[1]) * 32, this.size[0], this.size[1], this.size, this.clip, Math.PI/2);
+			} else if (this.rotation == 3) {
+				window.Draw.clear_box(this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1]);
+				this.needs_draw = !window.Draw.sub_image(this.sprite, this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1], this.size, this.clip, Math.PI);
+			} else if (this.rotation == 4) {
+				window.Draw.clear_box(this.location[0] * 32, this.location[1] * 32, this.size[1], this.size[0]);
+				this.needs_draw = !window.Draw.sub_image(this.sprite, (this.location[0] + this.rot_offset[0]) * 32, (this.location[1] + this.rot_offset[1]) * 32, this.size[0], this.size[1], this.size, this.clip, Math.PI * 1.5);
+			}
+			
+			return this.needs_draw;
+			
+		} else {
+		
+		}
 	}
 }
 
@@ -775,13 +804,12 @@ $(window).ready(function() {
 			if (this.apply_layout(loc, rot)) {
 				this.placed = true;
 				this.attach_to_map();
-				if (this.rotation == 2 || this.rotation == 4) {
-					this.anim = new anim('door_opening', [4, 4], [64, 32], [this.location[0] + this.rot_offset[0], this.location[1] + this.rot_offset[1]], this.get_rot(this.rotation), 'flip');
-				} else {
-					this.anim = new anim('door_opening', [4, 4], [64, 32], this.location, this.get_rot(this.rotation), 'flip');
-				}
+
+				this.anim = new anim('door_opening', [4, 4], [64, 32], this.location, this.rotation, this.rot_offset, 'flip', 'objects');
+				
 				this.anim.flip = false;
 				this.anim.frame = 19;
+				this.anim.speed = 75;
 				return true
 			} else {
 				this.location = [];
