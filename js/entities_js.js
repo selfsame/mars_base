@@ -9,10 +9,10 @@ function anim(sprite, clips, size, loc, rot, rot_off, type, layer) {
 	this.rot_offset = rot_off; // sprite offset when image is rotated
 	this.paused = false;
 	this.total_frames = clips[0] * clips[1]; // total number of frames
-	this.type = type; // 'flipper'/'loop'
+	this.type = type; // 'flipper'/'loop'/'property'
 	this.flip = true; // used for flipper mode. true = play forward. false = reverse
 	this.clip = [0, 0]; // current [x, y]
-	this.speed = 100; // ticks per frame
+	this.speed = 50; // ticks per frame
 	this.frame = 0; // current frame
 	this.time = 0; // current ticks
 	this.needs_draw = true; // does this need to be drawn?
@@ -38,7 +38,11 @@ function anim(sprite, clips, size, loc, rot, rot_off, type, layer) {
 					this.needs_draw = true;
 				}
 				var x = (this.frame % this.clips[0]);
-				var y = Math.floor(this.frame / this.clips[1]);
+				if (this.clips[1] != 1) {
+					var y = Math.floor(this.frame / this.clips[1]);
+				} else {
+					var y = 0;
+				}
 				this.clip = [x, y];
 			} else {
 				this.frame = this.frame - amount;
@@ -48,11 +52,33 @@ function anim(sprite, clips, size, loc, rot, rot_off, type, layer) {
 					this.needs_draw = true;
 				}
 				var x = (this.frame % this.clips[0]);
-				var y = Math.floor(this.frame / this.clips[1]);
+				if (this.clips[1] != 1) {
+					var y = Math.floor(this.frame / this.clips[1]);
+				} else {
+					var y = 0;
+				}
 				this.clip = [x, y];
 			}
+		} else if (this.type == 'property') {
+			if (this.frame != this.prop['prop']) {
+				this.frame = this.prop['prop'];
+				if (this.frame >= this.total_frames) {
+					this.frame = this.total_frames - 1;
+				} else {
+					this.needs_draw = true;
+				}
+				var x = (this.frame % this.clips[0]);
+				if (this.clips[1] != 1) {
+					var y = Math.floor(this.frame / this.clips[1]);
+				} else {
+					var y = 0;
+				}
+				this.clip = [x, y];
+			} else {
+				this.needs_draw = false;
+			}
 		}
-
+	
 		return this.frame;
 	}
 	anim.prototype.frame_update = function(delta) {
@@ -69,7 +95,7 @@ function anim(sprite, clips, size, loc, rot, rot_off, type, layer) {
 		window.Draw.use_layer('objects');
 		
 		if (this.needs_draw) {
-			console.log('frame: ' + this.frame + " time: " + this.time);
+			console.log('frame: ' + this.frame + " clip: " + this.clip);
 			if (this.rotation == 1) {
 				window.Draw.clear_box(this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1]);
 				this.needs_draw = !window.Draw.sub_image(this.sprite, this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1], this.size, this.clip, 0);
@@ -86,8 +112,6 @@ function anim(sprite, clips, size, loc, rot, rot_off, type, layer) {
 			
 			return this.needs_draw;
 			
-		} else {
-		
 		}
 	}
 }
@@ -809,7 +833,7 @@ $(window).ready(function() {
 				
 				this.anim.flip = false;
 				this.anim.frame = 19;
-				this.anim.speed = 75;
+				this.anim.speed = 35;
 				return true
 			} else {
 				this.location = [];
@@ -918,6 +942,87 @@ $(window).ready(function() {
 		return true;
 	}
 	
+	
+	Basic_Plant = window.Entities.add_class('Basic_Plant', 'DThing');
+	Basic_Plant.prototype.setup = function() {
+		this.name = 'Basic Plant';
+		this.image = 'basic_plant';
+		this.moveable = true;
+		this.buildable = true;
+		this.removable = true;
+		this.selectable = true;
+		
+		this.place_interior = true;
+		this.place_exterior = true;
+			
+		this.layout = [[1]];
+		this.anim = false;
+		
+		this.water_amt = 0;
+		this.water_frame = {prop: 1};
+		
+	}
+	Basic_Plant.prototype.place = function(loc, rot) {
+		if (loc == null) {
+			loc = this.ghost_loc;
+		}
+		
+		if (rot == null) {
+			rot = this.ghost_rot;
+		}
+		
+		if (loc && this.check_clear(loc, rot)) {
+			
+			this.location = loc;
+			this.rotation = rot;
+			if (this.location == this.ghost_loc) {
+				this.hide_ghost();
+			}
+			if (this.apply_layout(loc, rot)) {
+				this.placed = true;
+				this.attach_to_map();
+				console.log('adding new anim!!');
+				this.anim = new anim('basic_plant_life', [6, 1], [32, 32], this.location, this.rotation, this.rot_offset, 'property', 'objects');
+				
+				this.anim.prop = this.water_frame;
+				//this.anim.frame = this.water_frame['prop'];
+				//this.anim.speed = 500;
+				return true;
+			} else {
+				this.location = [];
+			}
+		}
+		return false;
+	}	
+	Basic_Plant.prototype.draw = function() {
+		this.ent_draw();
+		if (this.placed && this.layout != []) {
+			this.drawn = this.anim.draw();
+			return this.drawn;
+		} else {
+			return false; // nothing to draw
+		}
+	}
+	Basic_Plant.prototype.ent_draw = function() {
+		if (this.ghost_loc) {
+			this.draw_ghost();
+		}
+		if (this.anim) {
+			this.anim.draw()
+		}
+		if (this.tagged) {
+			this.draw_tag(this.tag);
+		}
+	}
+	Basic_Plant.prototype.water = function(amount) {
+		this.water_amt += amount;
+		if (this.water_amt > 100) {
+			this.water_amt = 100;
+		}
+		
+		this.water_frame['prop'] = Math.floor(this.water_amt/20);
+		console.log(this.water_amt);
+	}
 	window.Anims.init(); 
 
 	
@@ -932,7 +1037,8 @@ $(window).ready(function() {
 	window.Draw.add_image('launchpad', "./textures/objects/launchpad.png");
 	window.Draw.add_image('door_tester', "./textures/objects/door_tester.png");
 	window.Draw.add_image('airlock', "./textures/objects/airlock.png");
-	
+	window.Draw.add_image('basic_plant', "./textures/objects/basic_plant.png");
+	window.Draw.add_image('basic_plant_life', "./textures/objects/basic_plant_life.png");
 	window.Draw.add_image('door_opening', "./textures/objects/door_open.png");
 	
 	// tag images

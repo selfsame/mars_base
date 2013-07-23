@@ -179,6 +179,11 @@ window.Objects = {
 							this.selected.open();
 						}
 					}
+				} else if (this.selected.name == 'Basic Plant') {
+					if (this.selected.anim) {
+						console.log('watering plant');
+						this.selected.water(5);
+					}
 				}
 			}
 		}
