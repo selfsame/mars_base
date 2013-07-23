@@ -22,7 +22,7 @@ function Oxygen_Tile(x, y, type) {
 			}
 			
 			total += this.oxygen_level;
-			total = Math.floor(total/num_neighbs + this.increment);
+			total = Math.ceil(total/num_neighbs + this.increment);
 			if (total > 100) {
 				total = 100;
 			} else if (total < 0) {
@@ -135,7 +135,8 @@ window.Oxygen = {
 		
 		if (e.which == 1 && this.show_grid) {
 			var coords = window.Events.tile_under_mouse;
-			console.log('This square has ' + window.Map.get('oxygen', coords[0], coords[1]).oxygen_level + ' (out of 100) oxygen.');
+			var o = window.Map.get('oxygen', coords[0], coords[1]);
+			console.log('This square has ' + o.oxygen_level + ' (out of 100) oxygen. It is type ' + o.type);
 		}
 	}
 }
