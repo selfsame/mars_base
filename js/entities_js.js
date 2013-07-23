@@ -985,8 +985,12 @@ $(window).ready(function() {
 				this.anim = new anim('basic_plant_life', [6, 1], [32, 32], this.location, this.rotation, this.rot_offset, 'property', 'objects');
 				
 				this.anim.prop = this.water_frame;
-				//this.anim.frame = this.water_frame['prop'];
-				//this.anim.speed = 500;
+				
+				
+				var o = window.Map.get('oxygen', this.location[0], this.location[1]);
+				o.increment = 5;
+				
+				
 				return true;
 			} else {
 				this.location = [];

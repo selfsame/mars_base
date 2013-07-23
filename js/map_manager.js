@@ -18,6 +18,7 @@ window.Map = {
 		window.Draw.create_layer('blueprints', true);
 		window.Draw.create_layer('objects', true);
 		window.Draw.create_layer('entities', false);
+		window.Draw.create_layer('oxygen', true);
 
 		this.px_w = this.width*this.tilesize
 		this.px_h = this.height*this.tilesize
@@ -26,6 +27,7 @@ window.Map = {
 		this.create_layer('pathfinding', 0);
 		this.create_layer('objects', 0);
 		this.create_layer('tiles', 0);
+		this.create_layer('oxygen', 1);
 	},
 	
 	generate: function(options) {

@@ -102,9 +102,15 @@ function Tile(x, y) {
 				if (this.current_style == 'wall') { // if this is a wall, update neighbor shadows
 					var neighbors = window.Map.get_neighbors('tiles', this.x, this.y);
 					window.Map.set('pathfinding', this.x, this.y, 1);
+					var o = window.Map.get('oxygen', this.x, this.y);
+					o.increment = 0;
+					o.type = 1;
 					this.draw_neighbor_shadows();
 				} else {
 					this.draw_shadows();
+					var o = window.Map.get('oxygen', this.x, this.y);
+					o.increment = 0;
+					o.type = 0;
 					window.Map.set('pathfinding', this.x, this.y, 0);
 				}
 			}
@@ -116,11 +122,17 @@ function Tile(x, y) {
 					this.erase();
 					this.current_style = 'empty';
 					window.Map.set('pathfinding', this.x, this.y, 0);
+					var o = window.Map.get('oxygen', this.x, this.y);
+					o.increment = window.Oxygen.exterior_increm;
+					o.type = 0;
 					this.draw();
 				} else { // turning into a different tile
 					this.timer = 0;
 					this.current_style = 'empty';
 					this.state = 1;
+					var o = window.Map.get('oxygen', this.x, this.y);
+					o.increment = 0;
+					o.type = 0;
 					this.draw_shadows();
 					this.draw();
 				}
@@ -141,6 +153,9 @@ function Tile(x, y) {
 				}
 				window.Map.set('pathfinding', this.x, this.y, 0);
 				window.Tiles.under_construction.push(this);
+				var o = window.Map.get('oxygen', this.x, this.y);
+				o.increment = window.Oxygen.exterior_increm;
+				o.type = 0;
 			} else if (this.state == 1 || this.state == 2) {
 				if (this.blue_style == 'wall') {
 					this.wall_style = this.blue_wall_style;
@@ -150,6 +165,13 @@ function Tile(x, y) {
 				this.state = 2;
 				if (this.blue_style == 'wall') {
 					this.wall_style = this.blue_wall_style;
+					var o = window.Map.get('oxygen', this.x, this.y);
+					o.increment = window.Oxygen.exterior_increm;
+					o.type = 0;
+				} else {
+					var o = window.Map.get('oxygen', this.x, this.y);
+					o.increment = 0;
+					o.type = 0;
 				}
 				this.draw_neighbor_shadows();
 				this.draw_shadows();
