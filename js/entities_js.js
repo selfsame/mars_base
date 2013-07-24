@@ -831,6 +831,17 @@ $(window).ready(function() {
 
 				this.anim = new anim('door_opening', [4, 4], [64, 32], this.location, this.rotation, this.rot_offset, 'flip', 'objects');
 				
+				var o = window.Map.get('oxygen', this.location[0], this.location[1]);
+				o.type = 2;
+		
+				if (this.rotation == 2 || this.rotation == 4) {
+					var o = window.Map.get('oxygen', this.location[0], this.location[1] + 1);
+					o.type = 2;
+				} else {
+					var o = window.Map.get('oxygen', this.location[0] + 1, this.location[1]);
+					o.type = 2;
+				}
+				
 				this.anim.flip = false;
 				this.anim.frame = 19;
 				this.anim.speed = 35;
@@ -846,12 +857,32 @@ $(window).ready(function() {
 			if (this.anim) {
 				this.anim.flip = true;
 			}
+			var o = window.Map.get('oxygen', this.location[0], this.location[1]);
+			o.type = 0;
+	
+			if (this.rotation == 2 || this.rotation == 4) {
+				var o = window.Map.get('oxygen', this.location[0], this.location[1] + 1);
+				o.type = 0;
+			} else {
+				var o = window.Map.get('oxygen', this.location[0] + 1, this.location[1]);
+				o.type = 0;
+			}
 		}
 	}
 	Wide_Door.prototype.close = function() {
 		if (this.placed) {
 			if (this.anim) {
 				this.anim.flip = false;
+			}
+			var o = window.Map.get('oxygen', this.location[0], this.location[1]);
+			o.type = 2;
+	
+			if (this.rotation == 2 || this.rotation == 4) {
+				var o = window.Map.get('oxygen', this.location[0], this.location[1] + 1);
+				o.type = 2;
+			} else {
+				var o = window.Map.get('oxygen', this.location[0] + 1, this.location[1]);
+				o.type = 2;
 			}
 		}
 	}

@@ -13,7 +13,7 @@ function Oxygen_Tile(x, y, type) {
 			var num_neighbs = 1;
 			for (var i = 0; i < neighbs.length; i++) {
 				if (neighbs[i] != null) {
-					if (neighbs[i].type != 1) {
+					if (neighbs[i].type == 0) {
 						total += neighbs[i].oxygen_level;
 						total += neighbs[i].increment;
 						num_neighbs += 1;
