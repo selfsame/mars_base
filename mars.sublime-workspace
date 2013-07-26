@@ -3,607 +3,46 @@
 	{
 		"selected_items":
 		[
-			[
-				"sprite",
-				"sprite_offset"
-			],
-			[
-				"Ent",
-				"Entities"
-			],
-			[
-				"vect",
-				"vect_to_target"
-			],
-			[
-				"is",
-				"is_wall"
-			],
-			[
-				"pos_to",
-				"pos_to_tile_pos"
-			],
-			[
-				"get",
-				"get_within"
-			],
-			[
-				"tile",
-				"tile_under_mouse"
-			],
-			[
-				"convert_unit",
-				"convert_unit_for_element"
-			],
-			[
-				"htm",
-				"html_string"
-			],
-			[
-				"morph_no_dr",
-				"morph_no_dragger"
-			],
-			[
-				"_fp_s_measure",
-				"_fp_s_measure_unit"
-			],
-			[
-				"meas",
-				"measure_visible"
-			],
-			[
-				"widget",
-				"widgets_by_rule"
-			],
-			[
-				"get_",
-				"get_proper_select_target"
-			],
-			[
-				"clear",
-				"clear_box"
-			],
-			[
-				"w",
-				"w"
-			],
-			[
-				"op",
-				"op_scroll_start"
-			],
-			[
-				"up",
-				"update_menu_specials"
-			],
-			[
-				"draw",
-				"draw_text"
-			],
-			[
-				"doc",
-				"doc_zoom"
-			],
-			[
-				"y",
-				"y"
-			],
-			[
-				"global",
-				"global_mouse_callback"
-			],
-			[
-				"upd",
-				"update_dimensions"
-			],
-			[
-				"ref",
-				"refresh_selection_handles"
-			],
-			[
-				"debug",
-				"debug_anim"
-			],
-			[
-				"req",
-				"requestAnimFrame"
-			],
-			[
-				"metric",
-				"metric-area"
-			],
-			[
-				"rec",
-				"recent_files"
-			],
-			[
-				"add",
-				"add_filename_to_recent"
-			],
-			[
-				"init",
-				"initial_file_name"
-			],
-			[
-				"box",
-				"box_select"
-			],
-			[
-				"selection",
-				"selection_margin"
-			],
-			[
-				"label",
-				"label_chars"
-			],
-			[
-				"lab",
-				"label_temp"
-			],
-			[
-				"toolb",
-				"toolbox_dimensions"
-			],
-			[
-				"mousedown",
-				"mousedown_point"
-			],
-			[
-				"expande",
-				"expand_well"
-			],
-			[
-				"_fp_style",
-				"_fp_style_used"
-			],
-			[
-				"out",
-				"outliner_expansion"
-			],
-			[
-				"node",
-				"node_from_element"
-			],
-			[
-				"outliner",
-				"context_outliner_expand"
-			],
-			[
-				"page",
-				"pagelayer_tools"
-			],
-			[
-				"pagel",
-				"pagelayer_tools_right"
-			],
-			[
-				"su",
-				"sub_holder"
-			],
-			[
-				"display",
-				"display_quad_value"
-			],
-			[
-				"split",
-				"split_at"
-			],
-			[
-				"color",
-				"color_rules"
-			],
-			[
-				"resize",
-				"resize_image_view"
-			],
-			[
-				"prim",
-				"primitave_options"
-			],
-			[
-				"man",
-				"manipulating"
-			],
-			[
-				"start",
-				"startContainer"
-			],
-			[
-				"pre",
-				"preventDefault"
-			],
-			[
-				"comm",
-				"common_block_ancestor"
-			],
-			[
-				"range",
-				"range_insert"
-			],
-			[
-				"create",
-				"createContextualFragment"
-			],
-			[
-				"exten",
-				"extend_data"
-			],
-			[
-				"remo",
-				"remove_brs"
-			],
-			[
-				"border",
-				"border-radius"
-			],
-			[
-				"convert",
-				"convert_top_elements"
-			],
-			[
-				"diag",
-				"diagnose_selection"
-			],
-			[
-				"setStart",
-				"setStartAfter"
-			],
-			[
-				"set",
-				"set_cursor"
-			],
-			[
-				"dial",
-				"dialogue_active"
-			],
-			[
-				"char_",
-				"char_width_limit"
-			],
-			[
-				"before",
-				"before"
-			],
-			[
-				"select",
-				"select_dropdown"
-			],
-			[
-				"hier",
-				"hierarchy_insertion"
-			],
-			[
-				"posit",
-				"positioning_cursor"
-			],
-			[
-				"measure",
-				"measured_rules"
-			],
-			[
-				"wid",
-				"widgets"
-			],
-			[
-				"fp",
-				"fp_style_tab_area"
-			],
-			[
-				"mov",
-				"move_start"
-			],
-			[
-				"snap",
-				"snap_to_guides"
-			],
-			[
-				"_fp",
-				"_fp_tooltip_arrow"
-			],
-			[
-				"las",
-				"last_element"
-			],
-			[
-				"free",
-				"free_selection_boxes"
-			],
-			[
-				"assign",
-				"assign_selection_box"
-			],
-			[
-				"last",
-				"last_animated_mouse_pos"
-			],
-			[
-				"delay",
-				"delay_style_refresh"
-			],
-			[
-				"position",
-				"position_from_rgb"
-			],
-			[
-				"update",
-				"update_color_info"
-			],
-			[
-				"pick",
-				"picker_pos"
-			],
-			[
-				"hsl",
-				"hsl"
-			],
-			[
-				"ad",
-				"adj_rgb"
-			],
-			[
-				"check_web",
-				"check_webfonts_rules"
-			],
-			[
-				"used",
-				"used_links"
-			],
-			[
-				"snapx",
-				"snapx"
-			],
-			[
-				"_ins",
-				"_insertion_target"
-			],
-			[
-				"_in",
-				"_insertion_type"
-			],
-			[
-				"po",
-				"positioning_mode"
-			],
-			[
-				"dis",
-				"display_elements_margin"
-			],
-			[
-				"left",
-				"left"
-			],
-			[
-				"prev",
-				"preview_callback"
-			],
-			[
-				"adva",
-				"advanced_paste"
-			],
-			[
-				"edit",
-				"edit_mode"
-			],
-			[
-				"area",
-				"area_has_dirty_nodes"
-			],
-			[
-				"pasted",
-				"pastedText"
-			],
-			[
-				"place",
-				"place_cursor_after_node"
-			],
-			[
-				"to",
-				"to_shift_up"
-			],
-			[
-				"browser",
-				"browser"
-			],
-			[
-				"best",
-				"best_element"
-			],
-			[
-				"insert",
-				"insert_mode"
-			],
-			[
-				"manipulator",
-				"manipulator_handles"
-			],
-			[
-				"shelf",
-				"shelf_area"
-			],
-			[
-				"sc",
-				"resize_scroll_change"
-			],
-			[
-				"orig",
-				"original_selection_box"
-			],
-			[
-				"top",
-				"top"
-			],
-			[
-				"move",
-				"move_speed"
-			],
-			[
-				"resi",
-				"resize_scrollpoint_change"
-			],
-			[
-				"mouse",
-				"mouse_with_scroll"
-			],
-			[
-				"new_",
-				"new_offset"
-			],
-			[
-				"cache",
-				"cache_offset"
-			],
-			[
-				"bl",
-				"bl"
-			],
-			[
-				"uni",
-				"unique_hover_class"
-			],
-			[
-				"document",
-				"documentstyle"
-			],
-			[
-				"setup",
-				"setup_body_impostor"
-			],
-			[
-				"group",
-				"group_valid"
-			],
-			[
-				"refre",
-				"refresh_style_picker"
-			],
-			[
-				"right",
-				"right_of_tools"
-			],
-			[
-				"hover",
-				"hover_swap"
-			],
-			[
-				"hov",
-				"hover_mode"
-			],
-			[
-				"recurse",
-				"recurse_find_resize_font"
-			],
-			[
-				"glob",
-				"global_mouse_callback"
-			],
-			[
-				"scro",
-				"scroll_y"
-			],
-			[
-				"back",
-				"background-image"
-			],
-			[
-				"main",
-				"main_input"
-			],
-			[
-				"backgro",
-				"background-color"
-			],
-			[
-				"att",
-				"attached"
-			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "js/entities_js.js",
+			"file": "/C/Users/jplur/Desktop/mars_base_terrain/coffee/scenario.coffee",
 			"settings":
 			{
-				"buffer_size": 998,
+				"buffer_size": 4528,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "old/coffee/pathfinding.coffee",
+			"file": "coffee/scenario.coffee",
 			"settings":
 			{
-				"buffer_size": 5851,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "game.html",
-			"settings":
-			{
-				"buffer_size": 1101,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "js/map_manager.js",
-			"settings":
-			{
-				"buffer_size": 3632,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "js/events.js",
-			"settings":
-			{
-				"buffer_size": 2872,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "coffee/draw_manager.coffee",
-			"settings":
-			{
-				"buffer_size": 7798,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "coffee/entities_coffee.coffee",
-			"settings":
-			{
-				"buffer_size": 16360,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "js/utils.js",
-			"settings":
-			{
-				"buffer_size": 2396,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "js/floor_manager.js",
-			"settings":
-			{
-				"buffer_size": 23441,
+				"buffer_size": 4528,
 				"line_ending": "Windows"
 			}
 		}
 	],
-	"build_system": "Packages/coffee.sublime-build",
+	"build_system": "Packages/js_to_coffee.sublime-build",
 	"command_palette":
 	{
-		"height": 392.0,
+		"height": 380.0,
 		"selected_items":
 		[
+			[
+				"Packa",
+				"Package Control: Install Package"
+			]
 		],
-		"width": 392.0
+		"width": 400.0
 	},
 	"console":
 	{
-		"height": 389.0
+		"height": 0.0,
+		"history":
+		[
+		]
 	},
 	"distraction_free":
 	{
@@ -616,142 +55,58 @@
 	},
 	"file_history":
 	[
-		"/C/Users/jplur/Desktop/mars_base/js/entities_coffee.js",
-		"/C/Users/jplur/Desktop/mars_base/js/libs/vector.js",
-		"/C/Users/jplur/Desktop/mars_base/js/room_manager.js",
-		"/C/Users/jplur/Desktop/mars_base/coffee/entities_coffee.coffee",
-		"/C/Users/jplur/Desktop/mars_base/old/coffee/mapper.coffee",
-		"/C/Users/jplur/Desktop/mars_base/mars_base.sublime-workspace",
-		"/C/xampp/htdocs/pagelayer/coffee/rulers.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/context.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/fonts.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/tool_class.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/history.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/deferred.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/color_picker.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/widgets.coffee",
-		"/C/xampp/htdocs/pagelayer/pagelayer.sublime-workspace",
-		"/C/xampp/htdocs/pagelayer/coffee/style_editor.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/tools.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/options.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/export.coffee",
-		"/C/xampp/htdocs/pagelayer/js/globalizer.js",
+		"/C/xampp/htdocs/pagelayer/js/libs/zipjs/zip.js",
+		"/C/xampp/htdocs/pagelayer/js/libs/zipjs/zip-fs.js",
+		"/C/xampp/htdocs/pagelayer/js/libs/zipjs/zip-ext_backup.js",
+		"/C/xampp/htdocs/pagelayer/js/app_init.js",
+		"/C/xampp/htdocs/pagelayer/crossdomain.xml",
+		"/C/Users/jplur/Desktop/joe.png",
+		"/C/Users/jplur/Desktop/untitled.html",
 		"/C/xampp/htdocs/pagelayer/coffee/text.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/tools.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/tracking.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/deferred.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/export.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/filebrowser.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/fonts.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/history.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/menu.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/image.coffee",
-		"/C/xampp/htdocs/galaxy_dungeon/js/globalize.js",
-		"/C/Users/jplur/Desktop/TomeNET/lib/game/e_info.txt",
-		"/C/Users/jplur/Desktop/TomeNET/lib/game/a_info.txt",
-		"/C/Users/jplur/Desktop/TomeNET/lib/game/k_info.txt",
-		"/D/Torrents/BBC David Attenborough's First Life 720p BRRip X264-ExtraTorrentRG/BBC.David.Attenboroughs.First.Life.2of2.Conquest.mp4",
-		"/C/xampp/htdocs/pagelayer/test_elements.html",
-		"/C/xampp/htdocs/pagelayer/coffee/arrange.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/export_selection.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/newdiv.coffee",
-		"/C/Users/jplur/Desktop/TomeNET/lib/game/r_info.txt",
-		"/C/xampp/htdocs/pagelayer/js/libs/css_parser.js",
-		"/C/Users/jplur/Desktop/thing.html",
-		"/C/xampp/htdocs/pagelayer/js/libs/rangy-1.2.3/uncompressed/rangy-core.js",
-		"/C/xampp/htdocs/pagelayer/js/libs/rangy-1.2.3/rangy-core.js",
-		"/C/xampp/htdocs/pagelayer/node/js/peg_css_parser_full",
-		"/C/xampp/htdocs/pagelayer/coffee/tooltips.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/breakpoints.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/hover.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/defs.coffee",
-		"/C/xampp/htdocs/pagelayer/js/libs/require.js",
-		"/C/xampp/htdocs/pagelayer/node/js/css.js",
-		"/C/xampp/htdocs/pagelayer/js/libs/css.module.js",
-		"/C/xampp/htdocs/pagelayer/js/pegjs_defs/css.pegjs",
-		"/C/xampp/htdocs/pagelayer/js/libs/prototype.js",
-		"/C/xampp/htdocs/pagelayer/css/html5boilerplate.css",
-		"/C/xampp/htdocs/pagelayer/coffee/cedit_clean.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/bucketlist.coffee",
-		"/C/xampp/htdocs/pagelayer/list.html",
-		"/C/xampp/htdocs/pagelayer/contenteditable.html",
-		"/C/xampp/htdocs/pagelayer/coffee/amazons3.coffee",
-		"/C/xampp/htdocs/pagelayer/css/main.css",
-		"/C/xampp/htdocs/pagelayer/css/boilerplate_top.css",
-		"/C/xampp/htdocs/pagelayer/js/libs/control.js",
-		"/C/xampp/htdocs/pagelayer/js/libs/jquery-1.8.3.min.js",
-		"/C/xampp/htdocs/pagelayer/index-min.html",
-		"/C/xampp/htdocs/pagelayer/build/js/app.js",
-		"/C/xampp/htdocs/pagelayer/closure_compiler/selection_min.js",
-		"/C/xampp/htdocs/pagelayer/index.html",
-		"/C/xampp/htdocs/pagelayer/webfonts/sourcecodepro/stylesheet.css",
-		"/C/xampp/htdocs/pagelayer/test_document.html",
-		"/C/xampp/htdocs/pagelayer/js/libs/h5utils.js",
-		"/D/KSP_win/settings.cfg",
-		"/C/xampp/htdocs/pagelayer/jqselection.html",
-		"/C/xampp/htdocs/pagelayer/css/index.html",
-		"/C/Users/jplur/Desktop/darkgreen theme/css/style.css",
-		"/C/Users/jplur/Desktop/darkgreen theme/webfonts/stylesheet.css",
-		"/C/xampp/htdocs/pagelayer/js/libs/js-beautify/beautify-css.js",
-		"/C/Users/jplur/Desktop/redis-2.6.7.tar.gz",
-		"/C/xampp/htdocs/pagelayer/export/css/boilerplate_top.css",
-		"/C/xampp/htdocs/pagelayer/export/untitled.html",
-		"/C/xampp/htdocs/pagelayer/file_test.html",
-		"/C/xampp/htdocs/pagelayer/404.html",
-		"/C/xampp/htdocs/pagelayer/cat.html",
-		"/C/xampp/htdocs/pagelayer/js/libs/jquery.imagesloaded.min.js",
-		"/C/xampp/htdocs/pagelayer/catch_image.php",
-		"/C/xampp/htdocs/pagelayer/backend.html",
-		"/C/xampp/htdocs/pagelayer/js/libs/codemirror/theme/ambiance.css",
-		"/C/xampp/htdocs/pagelayer/export/index.html",
-		"/C/xampp/htdocs/pagelayer/js/selection.js",
-		"/C/xampp/htdocs/pagelayer/js/libs/js-beautify/beautify-html.js",
-		"/C/xampp/htdocs/pagelayer/js/libs/js-beautify/license.txt",
-		"/C/xampp/htdocs/pagelayer/export/breakpoint.html",
-		"/C/xampp/htdocs/pagelayer/js/libs/jquery.animate-colors-min.js",
-		"/C/xampp/htdocs/pagelayer/export/blend_orig",
-		"/C/xampp/htdocs/pagelayer/export/blend_new.html",
-		"/C/xampp/htdocs/pagelayer/webfonts/chunk/chunk.css",
+		"/C/xampp/htdocs/pagelayer/coffee/outliner.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/rulers.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/selection.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/style_editor.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/style_refactor.coffee",
 		"/C/xampp/htdocs/pagelayer/coffee/alink.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/css_defs.coffee",
-		"/C/xampp/htdocs/pagelayer/css/style.css",
-		"/C/Users/jplur/Desktop/canvas_based_color_picker/jquery.ps-color-picker.js",
-		"/C/xampp/htdocs/pagelayer/export/red.html",
-		"/C/xampp/htdocs/pagelayer/export/rule_the_web.html",
-		"/C/xampp/htdocs/pagelayer/webfonts/modernpics/stylesheet.css",
-		"/C/xampp/htdocs/pagelayer/js/libs/cleditor/jquery.cleditor.js",
-		"/C/xampp/htdocs/pagelayer/catch_export.php",
-		"/C/xampp/htdocs/pagelayer/php.ini",
-		"/C/xampp/htdocs/pagelayer/readme.md",
-		"/C/xampp/htdocs/pagelayer/js/libs/akzhan-jwysiwyg/jquery.wysiwyg.js",
-		"/C/xampp/htdocs/pagelayer/phptest.php",
+		"/C/xampp/htdocs/pagelayer/coffee/app_init.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/clipboard.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/color_picker.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/context.coffee",
+		"/C/xampp/htdocs/pagelayer/js/options.js",
 		"/C/xampp/htdocs/pagelayer/coffee/script.coffee",
-		"/C/xampp/htdocs/pagelayer/coffee/css_defs",
-		"/C/xampp/htdocs/pagelayer/export/img/test.jpg",
-		"/C/xampp/htdocs/pagelayer/test.jpg",
-		"/C/xampp/htdocs/pagelayer/gore.html",
-		"/C/xampp/htdocs/pagelayer/fonts.html",
-		"/C/xampp/htdocs/pagelayer/small.html",
-		"/C/xampp/htdocs/pagelayer/test.html",
-		"/C/xampp/htdocs/pagelayer/server_simple.php",
-		"/C/xampp/htdocs/pagelayer/js/tools.js",
-		"/C/xampp/htdocs/pagelayer/export.html",
-		"/C/xampp/htdocs/pagelayer/js/export.js",
-		"/C/xampp/htdocs/pagelayer/js/libs/cleditor/jquery.cleditor.css",
-		"/C/Users/jplur/Desktop/pagelayer_export.html",
-		"/C/Users/jplur/Desktop/stef.html",
-		"/C/Users/jplur/Desktop/nyrs backup/wp-config.php",
-		"/C/xampp/htdocs/pagelayer/coffee/tmce.coffee",
-		"/C/xampp/htdocs/pagelayer/js/image.js",
-		"/C/xampp/htdocs/pagelayer/js/style_editor.js",
-		"/C/xampp/htdocs/pagelayer/coffee/style_editor",
-		"/C/Users/jplur/Desktop/pagelayer/js/script.js",
-		"/C/Users/jplur/Desktop/selfsame/content/tinymce/index.html",
-		"/C/Users/jplur/Desktop/7190_blender-r47198-vpaint-pyconsole-mods.7z",
-		"/C/Users/jplur/Desktop/selfsame/content/draw/error_log",
-		"/C/Users/jplur/Desktop/selfsame/content/draw.html"
+		"/C/xampp/htdocs/pagelayer/coffee/export_selection.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/arrange.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/image.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/hover.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/breakpoints.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/defs.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/tool_class.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/user_prefs.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/tooltips.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/amazons3.coffee",
+		"/C/xampp/htdocs/pagelayer/coffee/widgets.coffee",
+		"/C/xampp/htdocs/pagelayer/js/globalizer.js",
+		"/C/Users/jplur/AppData/Roaming/Sublime Text 3/Packages/js_to_coffee.sublime-build",
+		"/C/Users/jplur/AppData/Roaming/Sublime Text 3/Installed Packages/CoffeeScript.sublime-package",
+		"/C/xampp/htdocs/pagelayer/finalpage.sublime-project"
 	],
 	"find":
 	{
-		"height": 67.0
+		"height": 34.0
 	},
 	"find_in_files":
 	{
-		"height": 0.0,
+		"height": 90.0,
 		"where_history":
 		[
 			""
@@ -762,134 +117,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"check_clear",
-			"@target",
-			"tile_pos",
-			"tile_under",
-			"window.Map",
-			"console",
-			"select widget change",
-			"_fp_s_options",
-			"getSe",
-			"$(",
-			"nodes_block_ancestor",
-			"transform",
-			"._fp_s_widget_input_box._fp_s_measure input",
-			"invalid_units",
-			"editable",
-			"div.editable",
-			"check_outliner_expansion",
-			"recurse_outliner",
-			"recurse",
-			"font",
-			"update_menu_specials",
-			"gauge",
-			"rulers",
-			"global_mouse_callback",
-			"tracking",
-			"mouse",
-			"delay_setup_until_mouseup",
-			"set_param_filename",
-			"gauge_selection",
-			"recalc",
-			"refresh",
-			"recalc",
-			"rgb2hex",
-			"global_mouse",
-			"evaluate_move",
-			"tracking",
-			"console",
-			"manipulator_mousedown",
-			"window.mousedownpos",
-			"get_legal_target",
-			"current_mouse_pos",
-			"offset",
-			"mouseup",
-			"#selection",
-			"#outer",
-			"tracking",
-			"scroll",
-			"doc_x",
-			"$('#document')",
-			"recalc_outliner",
-			"$('#document')",
-			"$('#document')$",
-			"$('#document')",
-			"fp_style_used",
-			"outliner",
-			"move_triggered",
-			"mousedown_element",
-			"outliner_view",
-			"> p",
-			"manage",
-			"manage_sc",
-			"resize_toolbar",
-			"end_gradual_resize",
-			"scroll",
-			"tool_view",
-			"window.mana",
-			"resize",
-			"window.undock_tool_area",
-			"moving_toolbar",
-			"global_mouse",
-			"window.resize_last_tool_area",
-			"tool_view",
-			"scroll",
-			"compact",
-			"select",
-			"mousedown",
-			"moving_parent_offset",
-			"parent_offset",
-			"manipula",
-			"update_selection_set",
-			"toggle_node_expansion",
-			"register_user_selection_change_command",
-			"display_selection",
-			"update_selection_set",
-			"recalc_outliner_selection",
-			"resolve",
-			"console",
-			"manipulators",
-			"styles",
-			"#style",
-			"manage_scroll_bar",
-			"name",
-			"current_target",
-			"preview_callback",
-			"color",
-			"alter",
-			"@widgets",
-			"new_dialogue",
-			"x_to_bai",
-			"_tool_options",
-			"power",
-			"common_block_ancestor",
-			"remove_brs",
-			"replaceSelection",
-			"clean_edit_area",
-			"recurse_fix_divs",
-			"current_action",
-			"diagnose_selection",
-			"return_split",
-			"console",
-			"breakdown",
-			"return_split",
-			"get_advanced_paste_breakdown",
-			"return_split",
-			"clean_html_clipboard",
-			"filebrowser",
-			"replaceSelection",
-			"selection_last_element_swap",
-			"text_div",
-			"button",
-			"createRange",
-			"create",
-			"widget_input_box",
-			"$(window).resize",
-			"global",
-			"color",
-			"color'",
-			"off_limits"
+			"window.prefs",
+			"image",
+			"window.ifrm).load"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -897,21 +127,6 @@
 		"regex": false,
 		"replace_history":
 		[
-			"._fp_editable",
-			"text_button",
-			"div",
-			"@rule",
-			"#console",
-			"finalx",
-			"#console.log",
-			"alink",
-			"\"",
-			"'#outliner_view'",
-			"'#outliner_view",
-			"\\'",
-			"Canvas",
-			"DOM",
-			"self"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -922,124 +137,43 @@
 	"groups":
 	[
 		{
-			"selected": 7,
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "js/entities_js.js",
+					"file": "/C/Users/jplur/Desktop/mars_base_terrain/coffee/scenario.coffee",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 998,
+						"buffer_size": 4528,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								775,
-								775
+								822,
+								822
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/CoffeeScript/CoffeeScript.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 594.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "old/coffee/pathfinding.coffee",
+					"file": "coffee/scenario.coffee",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5851,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3487,
-								3376
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/CoffeeScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 413.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "game.html",
-					"settings":
-					{
-						"buffer_size": 1101,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								494,
-								494
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/HTML/HTML.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "js/map_manager.js",
-					"settings":
-					{
-						"buffer_size": 3632,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								965,
-								965
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 546.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "js/events.js",
-					"settings":
-					{
-						"buffer_size": 2872,
+						"buffer_size": 4528,
 						"regions":
 						{
 						},
@@ -1052,136 +186,20 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 546.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "coffee/draw_manager.coffee",
-					"settings":
-					{
-						"buffer_size": 7798,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								4950,
-								4950
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/CoffeeScript.tmLanguage",
-							"translate_tabs_to_spaces": false
+							"syntax": "Packages/CoffeeScript/CoffeeScript.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "coffee/entities_coffee.coffee",
-					"settings":
-					{
-						"buffer_size": 16360,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								8325,
-								8325
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/CoffeeScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 3965.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "js/utils.js",
-					"settings":
-					{
-						"buffer_size": 2396,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "js/floor_manager.js",
-					"settings":
-					{
-						"buffer_size": 23441,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								4327,
-								4327
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 1620.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				}
 			]
-		},
-		{
-			"sheets":
-			[
-			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 0.0
+		"height": 26.0
 	},
 	"input":
 	{
@@ -1196,18 +214,11 @@
 				0,
 				1,
 				1
-			],
-			[
-				1,
-				0,
-				2,
-				1
 			]
 		],
 		"cols":
 		[
 			0.0,
-			0.928550788046,
 			1.0
 		],
 		"rows":
@@ -1219,11 +230,12 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 94.0
+		"height": 134.0
 	},
+	"project": "mars.sublime-project",
 	"replace":
 	{
-		"height": 62.0
+		"height": 48.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -1231,61 +243,35 @@
 		"height": 0.0,
 		"selected_items":
 		[
-			[
-				"",
-				"/C/xampp/htdocs/pagelayer/css/scrollbars.css"
-			],
-			[
-				"tracking",
-				"/C/xampp/htdocs/pagelayer/coffee/tracking.coffee"
-			],
-			[
-				"tools",
-				"/C/xampp/htdocs/pagelayer/coffee/tools.coffee"
-			],
-			[
-				"export",
-				"/C/xampp/htdocs/pagelayer/coffee/export.coffee"
-			],
-			[
-				"script",
-				"/C/xampp/htdocs/pagelayer/coffee/script.coffee"
-			],
-			[
-				"con",
-				"/C/xampp/htdocs/pagelayer/coffee/context.coffee"
-			],
-			[
-				"text",
-				"/C/xampp/htdocs/pagelayer/coffee/text.coffee"
-			],
-			[
-				"rulers",
-				"/C/xampp/htdocs/pagelayer/coffee/rulers.coffee"
-			],
-			[
-				"context",
-				"/C/xampp/htdocs/pagelayer/coffee/context.coffee"
-			],
-			[
-				"newdiv",
-				"/C/xampp/htdocs/pagelayer/coffee/newdiv.coffee"
-			]
 		],
 		"width": 0.0
 	},
 	"select_project":
 	{
-		"height": 500.0,
+		"height": 0.0,
 		"selected_items":
 		[
 		],
-		"width": 380.0
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
 	},
 	"show_minimap": true,
-	"show_open_files": true,
+	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 161.0,
-	"status_bar_visible": true
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
 }

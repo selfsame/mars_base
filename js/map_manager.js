@@ -80,6 +80,7 @@ window.Map = {
 				this.arrays[name][i].push(base);
 			}
 		}
+		return this.arrays[name];
 	},
 	update: function(){		
 		this.draw();
@@ -184,6 +185,8 @@ $(window).ready( function() {
 	window.Draw.add_image('terrain', "./textures/ground/terrain01.png");
 	window.Draw.add_image('terrain2', "./textures/ground/terrain02.png");
 	window.Draw.add_image('terrain3', "./textures/ground/terrain03.png");
+	window.Draw.add_image('zone01', "./textures/ground/zone01.png");
+	window.Draw.add_image('ravine', "./textures/ground/ravine.png");
 	window.Draw.add_image('sprite', "./textures/astronauts/sprite.png");
 	window.Draw.add_image('spirit', "./textures/astronauts/spirit.png");
 	window.Map.init();

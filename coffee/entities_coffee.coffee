@@ -4,23 +4,21 @@ class Entity
       @props = {name:@nombre}
       @draw_hooks = []
 
-      @tile_pos = [parseInt(@pos[0]/window.Map.tilesize), parseInt(@pos[1]/window.Map.tilesize)]
+      @tile_pos = [0,0]
       @debug = []
       @half_size = 16
       @no_path = false
       @opacity = false
       @sprite_size = 32
-      @sprite_offset = [0,0]
+      @sprite_offset = [0,0] # pixel offset for drawing
       @claimed = false
-      @state_que = []
+
       @hidden = false
       @block_build = false
       @needs_draw = true
       @persistant_draw = true
-      @friction = .95
+      
       @flags = {}
-
-      @layout = [[0]];
 
       
       @init()
@@ -38,8 +36,7 @@ class Entity
       @total_time += delta
       @frame_count += 1
       @move(@friction)
-      #if @['_'+@state]?
-      #  @['_'+@state]()
+
       if not @hidden
         @draw()
       @update(delta)
@@ -264,6 +261,8 @@ window.Entities =
     @classes.Thing = Thing
 
 
+
+
   update: (delta)->
     
     if @objects?
@@ -310,6 +309,7 @@ $(window).ready ->
   window.Draw.add_image('engineer', "./textures/astronauts/engineer.png")
   #objects
   window.Draw.add_image('rock', "./textures/objects/rock.png")
+  window.Draw.add_image('rocksheet', "./textures/ground/rocksheet.png")
   window.Draw.add_image('wrench', "./textures/objects/wrench.png")
   window.Draw.add_image('launchpad', "./textures/objects/launchpad.png")
   window.Draw.add_image('corpse', "./textures/astronauts/corpse.png")

@@ -112,6 +112,13 @@
     return r;
   };
 
+  Array.prototype.random = function() {
+    if (this.length === 0) {
+      return;
+    }
+    return this[Math.floor(Math.random() * this.length)];
+  };
+
   window.get_function_arg_strings = function(func) {
     var funStr, results;
     funStr = func.toString();

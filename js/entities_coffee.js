@@ -18,7 +18,7 @@
         name: this.nombre
       };
       this.draw_hooks = [];
-      this.tile_pos = [parseInt(this.pos[0] / window.Map.tilesize), parseInt(this.pos[1] / window.Map.tilesize)];
+      this.tile_pos = [0, 0];
       this.debug = [];
       this.half_size = 16;
       this.no_path = false;
@@ -26,14 +26,11 @@
       this.sprite_size = 32;
       this.sprite_offset = [0, 0];
       this.claimed = false;
-      this.state_que = [];
       this.hidden = false;
       this.block_build = false;
       this.needs_draw = true;
       this.persistant_draw = true;
-      this.friction = .95;
       this.flags = {};
-      this.layout = [[0]];
       this.init();
       this.init_2();
       this.setup_1();
@@ -445,6 +442,7 @@
     window.Draw.add_image('shadow', "./textures/astronauts/shadow.png");
     window.Draw.add_image('engineer', "./textures/astronauts/engineer.png");
     window.Draw.add_image('rock', "./textures/objects/rock.png");
+    window.Draw.add_image('rocksheet', "./textures/ground/rocksheet.png");
     window.Draw.add_image('wrench', "./textures/objects/wrench.png");
     window.Draw.add_image('launchpad', "./textures/objects/launchpad.png");
     window.Draw.add_image('corpse', "./textures/astronauts/corpse.png");

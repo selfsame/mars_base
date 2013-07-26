@@ -156,8 +156,40 @@ $(window).ready ->
         @image = 'emptytanks'
 
 
+  class RandRock extends E.Thing
+    init: ->
+      roll = Math.random()
+      if roll > .1
+        @specs = [[0,0,32], [1,0,32],[2,0,32],[3,0,32] ].random() 
+      else if roll < .02
+        @specs = [[0,.5,64], [1,1.5,64], [ 0, 1.666, 96]].random() 
+      else
+        @specs = [[2,1,32], [3,1,32], [2,2,32], [3,2,32], [1,3,32], [2, 1.5, 64], [4,2,32]].random() 
+
+      @dim = @specs[2]
+
+      if typeof @specs[2] is 'object'
+        @sprite_size = @specs[2][0]
+      else
+        @sprite_size = @specs[2]
+      @sx = @specs[0]
+      @sy = @specs[1]
+      
+      @block_path = true
+      @block_build = true
+      @attach_to_map()
+    draw: ->
+      if @persistant_draw is true
+        if @needs_draw
+          window.Draw.use_layer 'objects'
+          drawn = window.Draw.sub_image(@image, @pos[0]+@sprite_offset[0], @pos[1]+@sprite_offset[0], @sprite_size, @sprite_size, @dim, [@sx, @sy],  @opacity)
+          if drawn
+            @needs_draw = false
+
+
   window.Entities.classes.Installable = Installable
   window.Entities.classes.Door = Door
   window.Entities.classes.Airtank = Airtank
   window.Entities.classes.Locker = Locker
   window.Entities.classes.Solarpanel = Solarpanel
+  window.Entities.classes.RandRock = RandRock

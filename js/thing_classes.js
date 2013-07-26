@@ -4,7 +4,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   $(window).ready(function() {
-    var Airtank, Door, E, Installable, Locker, Solarpanel;
+    var Airtank, Door, E, Installable, Locker, RandRock, Solarpanel;
     E = window.Entities.classes;
     Installable = (function(_super) {
 
@@ -229,11 +229,61 @@
       return Airtank;
 
     })(Installable);
+    RandRock = (function(_super) {
+
+      __extends(RandRock, _super);
+
+      RandRock.name = 'RandRock';
+
+      function RandRock() {
+        return RandRock.__super__.constructor.apply(this, arguments);
+      }
+
+      RandRock.prototype.init = function() {
+        var roll;
+        roll = Math.random();
+        if (roll > .1) {
+          this.specs = [[0, 0, 32], [1, 0, 32], [2, 0, 32], [3, 0, 32]].random();
+        } else if (roll < .02) {
+          this.specs = [[0, .5, 64], [1, 1.5, 64], [0, 1.666, 96]].random();
+        } else {
+          this.specs = [[2, 1, 32], [3, 1, 32], [2, 2, 32], [3, 2, 32], [1, 3, 32], [2, 1.5, 64], [4, 2, 32]].random();
+        }
+        this.dim = this.specs[2];
+        if (typeof this.specs[2] === 'object') {
+          this.sprite_size = this.specs[2][0];
+        } else {
+          this.sprite_size = this.specs[2];
+        }
+        this.sx = this.specs[0];
+        this.sy = this.specs[1];
+        this.block_path = true;
+        this.block_build = true;
+        return this.attach_to_map();
+      };
+
+      RandRock.prototype.draw = function() {
+        var drawn;
+        if (this.persistant_draw === true) {
+          if (this.needs_draw) {
+            window.Draw.use_layer('objects');
+            drawn = window.Draw.sub_image(this.image, this.pos[0] + this.sprite_offset[0], this.pos[1] + this.sprite_offset[0], this.sprite_size, this.sprite_size, this.dim, [this.sx, this.sy], this.opacity);
+            if (drawn) {
+              return this.needs_draw = false;
+            }
+          }
+        }
+      };
+
+      return RandRock;
+
+    })(E.Thing);
     window.Entities.classes.Installable = Installable;
     window.Entities.classes.Door = Door;
     window.Entities.classes.Airtank = Airtank;
     window.Entities.classes.Locker = Locker;
-    return window.Entities.classes.Solarpanel = Solarpanel;
+    window.Entities.classes.Solarpanel = Solarpanel;
+    return window.Entities.classes.RandRock = RandRock;
   });
 
 }).call(this);

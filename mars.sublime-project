@@ -2,9 +2,11 @@
 	"folders":
 	[
 		{
+			"follow_symlinks": true,
 			"path": "coffee"
 		},
 		{
+			"follow_symlinks": true,
 			"path": "js"
 		}
 	]

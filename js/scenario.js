@@ -5,7 +5,7 @@
   names = ['Jack', 'Rupert', 'Iona', 'Dalton', 'Rahne', 'Jennie', 'Casie', 'Numbers', 'Naomi', 'Milissa', 'Janina', 'Lauren', 'Herman', 'Tawnya', 'Bernadine', 'Marjory', 'Jennell', 'Ricardo', 'Rita', 'Coreen', 'Tennille', 'Shondra', 'Donny', 'Florine'];
 
   $(window).ready(function() {
-    var E, advanced, cx, cy, i, j, name, slow, suit, wrench, x, y, _i, _j, _k, _l, _results;
+    var E, advanced, cx, cy, get_rand_map, i, j, name, randrock, slow, suit, wrench, x, y, _i, _j, _k, _l, _m, _results;
     E = window.Entities.classes;
     cx = (window.Map.width * 32) / 2;
     cy = (window.Map.height * 32) / 2;
@@ -13,14 +13,23 @@
     window.Objects.add_buildable('door', 'Door');
     window.Objects.add_buildable('airtank', 'Airtank');
     window.Objects.add_buildable('locker', 'Locker');
+    get_rand_map = function() {
+      var x, y;
+      x = parseInt(Math.random() * (window.Map.width * window.Map.tilesize));
+      y = parseInt(Math.random() * (window.Map.height * window.Map.tilesize));
+      return [x, y];
+    };
+    for (i = _i = 0; _i <= 300; i = ++_i) {
+      randrock = new E.RandRock('rock', 'rocksheet', get_rand_map());
+    }
     wrench = new E.Thing('wrench', 'wrench', [cx - (4 * 32), cy + (0 * 32)]);
-    for (i = _i = 0; _i <= 3; i = ++_i) {
-      for (j = _j = -3; _j <= -2; j = ++_j) {
+    for (i = _j = 0; _j <= 3; i = ++_j) {
+      for (j = _k = -3; _k <= -2; j = ++_k) {
         suit = new E.Thing('suit', 'engineer', [cx + ((i - 2) * 32), cy + ((j - 2) * 32)]);
         suit.flags['suit'] = true;
       }
     }
-    for (i = _k = 0; _k <= 4; i = ++_k) {
+    for (i = _l = 0; _l <= 4; i = ++_l) {
       x = parseInt(Math.random() * 600 + (window.Map.width * window.Map.tilesize / 2) - 300);
       y = parseInt(Math.random() * 600 + (window.Map.width * window.Map.tilesize / 2) - 300);
       name = names[parseInt(Math.random() * names.length)];
@@ -31,11 +40,12 @@
       advanced.run_script(window.scripts.colonist);
     }
     _results = [];
-    for (i = _l = 0; _l <= 0; i = ++_l) {
+    for (i = _m = 0; _m <= 0; i = ++_m) {
       slow = new E.SlowSentient('Norm', 'spirit', [500 + (Math.random() * 700 + 350), 500 + (Math.random() * 700 + 350)]);
-      slow.speed = 2;
+      slow.speed = 1;
+      slow.friction = 1.0;
       slow.footprint_img = 'tracks';
-      _results.push(slow.run_script("main: (   \n  debug(@pos*0);\n  go_near(@pos * 0 + 10x + 10y);\n  debug(search('crater'));\n  E2 = search('crater');\n  S2 = E2;\n  V2 = E2;\n  go_near(V2);\n  if I0 == null : (\n    I0 = 0;\n    V9 = @pos ;\n    V5 = V9 + (-20x + random(50) );\n    V5 = V5 + (-20y + random(50) );\n    go_near( V5  );\n  )\n  if I0 > 4 : ( I9 = -1; )\n  if F7 > 1 : (\n    hang_out();\n  )  else I9 == -1 :(\n    build_house();\n  ) else :(\n    gather_stuff();\n  )\n)\ngather_stuff: (\n  E0 = search(128); \n  V0 = E0; \n  S0 = E0; \n  \n  if E0:(\n    if claim(E0) : (\n      go_near( V0);\n      wait(10);\n      if pickup(S0) : (\n        I0 = I0 + 1; wait(10);\n      )\n          )\n  )\n  else:(\n    wander(10);\n  )\n  E0 = null; wait(10);\n  V0 = null; wait(10);\n  S0 = null; wait(10);\n)\nbuild_house: (\n  if V7 == null: (\n    V7 = V9 - 2x - 2y;\n    I7 = 0;\n  )\n  if I7 > 14 : (V7 = V7 - 1x; F7 = 2;)\n  else I7 > 12 : (V7 = V7 - 1y;)\n  else I7 > 8 : (V7 = V7 - 1x;)\n  else I7 > 4 : (V7 = V7 + 1y;)\n  else : (V7 = V7 + 1x;)\n  if goto( V7 ): () else : (\n    I7 = I7 + 1;\n  )\n  E3 = pocket(0);\n  S3 = pocket(0);\n  debug(E3 == \"rock\");\n  if pocket(0) == \"rock\" : (\n    if drop(0):(\n      I0 = I0 - 1;\n      I7 = I7 + 1;\n    ) \n  ) else : (\n    return_item();\n  )\n  if I0 <= 0 : (\n    I9 = 1;\n    go_near( V9 + 20x + 10y );\n  )\n)\nhang_out : (\n    go_near(V7);\n    wait(30);\n    wander(5);\n  )\nreturn_item : (\n  go_near( V9 + 20x + 10y );\n  if drop(0):(\n      I0 = I0 - 1;\n  ) \n  )"));
+      _results.push(slow.run_script("main: (   \n  debug(@pos*0);\n  go_near(@pos * 0 + 60x + 60y);\n  if I0 == null : (\n    I0 = 0;\n    V9 = @pos ;\n    V5 = V9 + (-20x + random(50) );\n    V5 = V5 + (-20y + random(50) );\n    go_near( V5  );\n  )\n  if I0 > 4 : ( I9 = -1; )\n  if F7 > 1 : (\n    hang_out();\n  )  else I9 == -1 :(\n    build_house();\n  ) else :(\n    gather_stuff();\n  )\n)\ngather_stuff: (\n  E0 = search(128); \n  V0 = E0; \n  S0 = E0; \n  \n  if E0:(\n    if claim(E0) : (\n      go_near( V0);\n      wait(10);\n      if pickup(S0) : (\n        I0 = I0 + 1; wait(10);\n      )\n          )\n  )\n  else:(\n    wander(10);\n  )\n  E0 = null; wait(10);\n  V0 = null; wait(10);\n  S0 = null; wait(10);\n)\nbuild_house: (\n  if V7 == null: (\n    V7 = V9 - 2x - 2y;\n    I7 = 0;\n  )\n  if I7 > 14 : (V7 = V7 - 1x; F7 = 2;)\n  else I7 > 12 : (V7 = V7 - 1y;)\n  else I7 > 8 : (V7 = V7 - 1x;)\n  else I7 > 4 : (V7 = V7 + 1y;)\n  else : (V7 = V7 + 1x;)\n  if goto( V7 ): () else : (\n    I7 = I7 + 1;\n  )\n  E3 = pocket(0);\n  S3 = pocket(0);\n  debug(E3 == \"rock\");\n  if pocket(0) == \"rock\" : (\n    if drop(0):(\n      I0 = I0 - 1;\n      I7 = I7 + 1;\n    ) \n  ) else : (\n    return_item();\n  )\n  if I0 <= 0 : (\n    I9 = 1;\n    go_near( V9 + 20x + 10y );\n  )\n)\nhang_out : (\n    go_near(V7);\n    wait(30);\n    wander(5);\n  )\nreturn_item : (\n  go_near( V9 + 20x + 10y );\n  if drop(0):(\n      I0 = I0 - 1;\n  ) \n  )"));
     }
     return _results;
   });

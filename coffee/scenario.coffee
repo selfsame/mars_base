@@ -44,6 +44,15 @@ $(window).ready ->
   #derp = new E.Airtank()
   #derp.place([10, 16])
 
+  get_rand_map = ->
+    x = parseInt(Math.random()*(window.Map.width*window.Map.tilesize) )
+    y = parseInt(Math.random()*(window.Map.height*window.Map.tilesize))
+    return [x, y]
+
+  for i in [0..300]
+    randrock = new E.RandRock('rock', 'rocksheet', get_rand_map() )
+
+
   wrench = new E.Thing('wrench', 'wrench', [cx-(4*32), cy+(0*32)])
 
   for i in [0..3]
@@ -64,17 +73,14 @@ $(window).ready ->
 
   for i in [0..0]
     slow = new E.SlowSentient('Norm', 'spirit', [500 + (Math.random()*700+350),500 + (Math.random()*700+350)])
-    slow.speed = 2
+    slow.speed = 1
+    slow.friction = 1.0
     slow.footprint_img = 'tracks';
     slow.run_script  "
+
 main: (   \n
   debug(@pos*0);\n
-  go_near(@pos * 0 + 10x + 10y);\n
-  debug(search('crater'));\n
-  E2 = search('crater');\n
-  S2 = E2;\n
-  V2 = E2;\n
-  go_near(V2);\n
+  go_near(@pos * 0 + 60x + 60y);\n
 
   if I0 == null : (\n
 

@@ -83,6 +83,11 @@ Array::clone = ->
     _i++
   r
 
+Array::random = ->
+  if @length is 0
+    return undefined
+  return @[Math.floor(Math.random()*@length)]
+    
 window.get_function_arg_strings = (func) ->
   funStr = func.toString()
 
