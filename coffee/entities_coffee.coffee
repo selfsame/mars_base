@@ -12,6 +12,7 @@ class Entity
       @sprite_size = 32
       @sprite_offset = [0,0] # pixel offset for drawing
       @claimed = false
+      @placed = false
 
       @hidden = false
       @block_build = false

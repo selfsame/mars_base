@@ -36,7 +36,8 @@ window.Objects = {
 					var ob = neighbs[i][j];
 					if (checked.indexOf(ob) == -1) {
 						if (!ob.placed) {
-							if(!ob.check_clear(ob.ghost_loc, ob.ghost_rot)) {
+							//todo check a better DThing prop
+							if(ob.check_clear && !ob.check_clear(ob.ghost_loc, ob.ghost_rot)) {
 								return false;
 							}
 						} else {
@@ -45,7 +46,7 @@ window.Objects = {
 								return false;
 								}
 							} 
-							if(!ob.check_clear(ob.location, ob.rotation)) {
+							if(!ob.check_clear(ob.tile_pos, ob.rotation)) {
 								return false;
 							}
 						}
@@ -258,7 +259,7 @@ window.Objects = {
 	update: function(delta) {
 		if (this.selected != 0) {
 			if (this.selected.useable && this.selected.placed) {
-				this.draw_useage(this.selected.location, this.selected.get_layout(this.selected.rotation));
+				this.draw_useage(this.selected.tile_pos, this.selected.get_layout(this.selected.rotation));
 			}
 			if (this.selected.job != null) {
 				if (this.selected.job.type == 'remove') {
@@ -294,7 +295,7 @@ window.Objects = {
 			color = 'yellow';
 		}
 		if (this.selected.placed) {
-			this.draw_layout(this.selected.location, this.selected.get_layout(), color);
+			this.draw_layout(this.selected.tile_pos, this.selected.get_layout(), color);
 		}
 		if (this.selected.ghost_loc) {
 			var lay = this.selected.get_layout(this.selected.ghost_rot);

@@ -5,7 +5,7 @@
   names = ['Jack', 'Rupert', 'Iona', 'Dalton', 'Rahne', 'Jennie', 'Casie', 'Numbers', 'Naomi', 'Milissa', 'Janina', 'Lauren', 'Herman', 'Tawnya', 'Bernadine', 'Marjory', 'Jennell', 'Ricardo', 'Rita', 'Coreen', 'Tennille', 'Shondra', 'Donny', 'Florine'];
 
   $(window).ready(function() {
-    var E, advanced, cx, cy, get_rand_map, i, j, name, randrock, slow, suit, wrench, x, y, _i, _j, _k, _l, _m, _results;
+    var E, advanced, cx, cy, get_rand_map, i, j, name, randrock, slow, suit, wrench, x, y, _i, _j, _k, _l, _m, _ref, _results;
     E = window.Entities.classes;
     cx = (window.Map.width * 32) / 2;
     cy = (window.Map.height * 32) / 2;
@@ -19,7 +19,7 @@
       y = parseInt(Math.random() * (window.Map.height * window.Map.tilesize));
       return [x, y];
     };
-    for (i = _i = 0; _i <= 300; i = ++_i) {
+    for (i = _i = 0, _ref = window.Map.width * 3; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
       randrock = new E.RandRock('rock', 'rocksheet', get_rand_map());
     }
     wrench = new E.Thing('wrench', 'wrench', [cx - (4 * 32), cy + (0 * 32)]);

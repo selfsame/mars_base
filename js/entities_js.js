@@ -4,7 +4,7 @@ function anim(sprite, clips, size, loc, rot, rot_off, type, layer) {
 	this.sprite = sprite; // sprite image
 	this.size = size; // [width, height] of clips
 	this.clips = clips; // [clipsX, clipsY]
-	this.location = loc; // [x, y] world coords
+	this.tile_pos = loc; // [x, y] world coords
 	this.rotation = rot; // rotation value
 	this.rot_offset = rot_off; // sprite offset when image is rotated
 	this.paused = false;
@@ -92,22 +92,22 @@ function anim(sprite, clips, size, loc, rot, rot_off, type, layer) {
 	anim.prototype.draw = function() {
 		
 		//window.Draw.use_layer('Entities');
-		window.Draw.use_layer('objects');
+		window.Draw.use_layer('entities');
 		
 		if (this.needs_draw) {
 			console.log('frame: ' + this.frame + " clip: " + this.clip);
 			if (this.rotation == 1) {
-				window.Draw.clear_box(this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1]);
-				this.needs_draw = !window.Draw.sub_image(this.sprite, this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1], this.size, this.clip, 0);
+				window.Draw.clear_box(this.tile_pos[0] * 32, this.tile_pos[1] * 32, this.size[0], this.size[1]);
+				this.needs_draw = !window.Draw.sub_image(this.sprite, this.tile_pos[0] * 32, this.tile_pos[1] * 32, this.size[0], this.size[1], this.size, this.clip, 0);
 			} else if (this.rotation == 2) {
-				window.Draw.clear_box(this.location[0] * 32, this.location[1] * 32, this.size[1], this.size[0]);
-				this.needs_draw = !window.Draw.sub_image(this.sprite, (this.location[0] + this.rot_offset[0]) * 32, (this.location[1] + this.rot_offset[1]) * 32, this.size[0], this.size[1], this.size, this.clip, Math.PI/2);
+				window.Draw.clear_box(this.tile_pos[0] * 32, this.tile_pos[1] * 32, this.size[1], this.size[0]);
+				this.needs_draw = !window.Draw.sub_image(this.sprite, (this.tile_pos[0] + this.rot_offset[0]) * 32, (this.tile_pos[1] + this.rot_offset[1]) * 32, this.size[0], this.size[1], this.size, this.clip, Math.PI/2);
 			} else if (this.rotation == 3) {
-				window.Draw.clear_box(this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1]);
-				this.needs_draw = !window.Draw.sub_image(this.sprite, this.location[0] * 32, this.location[1] * 32, this.size[0], this.size[1], this.size, this.clip, Math.PI);
+				window.Draw.clear_box(this.tile_pos[0] * 32, this.tile_pos[1] * 32, this.size[0], this.size[1]);
+				this.needs_draw = !window.Draw.sub_image(this.sprite, this.tile_pos[0] * 32, this.tile_pos[1] * 32, this.size[0], this.size[1], this.size, this.clip, Math.PI);
 			} else if (this.rotation == 4) {
-				window.Draw.clear_box(this.location[0] * 32, this.location[1] * 32, this.size[1], this.size[0]);
-				this.needs_draw = !window.Draw.sub_image(this.sprite, (this.location[0] + this.rot_offset[0]) * 32, (this.location[1] + this.rot_offset[1]) * 32, this.size[0], this.size[1], this.size, this.clip, Math.PI * 1.5);
+				window.Draw.clear_box(this.tile_pos[0] * 32, this.tile_pos[1] * 32, this.size[1], this.size[0]);
+				this.needs_draw = !window.Draw.sub_image(this.sprite, (this.tile_pos[0] + this.rot_offset[0]) * 32, (this.tile_pos[1] + this.rot_offset[1]) * 32, this.size[0], this.size[1], this.size, this.clip, Math.PI * 1.5);
 			}
 			
 			return this.needs_draw;
@@ -145,7 +145,7 @@ $(window).ready(function() {
 	DThing = window.Entities.add_class('DThing', 'Thing');
 
 	DThing.prototype.init = function() {
-		this.location = [[0, 0]]; // top left corner, in world coordinates
+		this.tile_pos = [0, 0]; // top left corner, in world coordinates
 		this.drawn = false;
 		this.rotation = 1; // represents the rotation
 		this.layout = [[1]]; // 2d layout of this object with no rotation
@@ -185,7 +185,7 @@ $(window).ready(function() {
 	// where can this object be used?
 	DThing.prototype.get_usage = function() {
 		if (this.placed) {
-			return this.location;
+			return this.tile_pos;
 		} else {
 			return this.ghost_loc;
 		}
@@ -220,9 +220,9 @@ $(window).ready(function() {
 			window.Draw.use_layer('objects');
 			var r = this.get_rot(this.rotation);
 			if (this.rotation == 2 || this.rotation == 4) {
-				this.drawn = (window.Draw.image(this.image, (this.location[0] + this.rot_offset[0]) * t_size, (this.location[1] + this.rot_offset[1]) * t_size, width * t_size, height * t_size, r, true));
+				this.drawn = (window.Draw.image(this.image, (this.tile_pos[0] + this.rot_offset[0]) * t_size, (this.tile_pos[1] + this.rot_offset[1]) * t_size, width * t_size, height * t_size, r, true));
 			} else {
-				this.drawn = (window.Draw.image(this.image, (this.location[0]) * t_size, (this.location[1]) * t_size, width * t_size, height * t_size, r, true));
+				this.drawn = (window.Draw.image(this.image, (this.tile_pos[0]) * t_size, (this.tile_pos[1]) * t_size, width * t_size, height * t_size, r, true));
 			}
 			
 			return this.drawn;
@@ -250,7 +250,7 @@ $(window).ready(function() {
 		window.Draw.use_layer('objects');
 		for (var i = 0; i <lay.length; i++) {
 			for (var j = 0; j < lay[i].length; j++) {
-				var coords = [this.location[0] + j, this.location[1] + i];
+				var coords = [this.tile_pos[0] + j, this.tile_pos[1] + i];
 				window.Draw.use_layer('objects');
 				if (lay[i][j] != 0) { // non-empty square
 					window.Draw.clear_box(coords[0] * t_size, coords[1] * t_size, t_size, t_size);
@@ -311,7 +311,7 @@ $(window).ready(function() {
 		if (this.ghost_loc) {
 			this.remove_layout(this.ghost_loc, this.ghost_rot);
 			if (this.placed) {
-				this.apply_layout(this.location, this.rotation, true);
+				this.apply_layout(this.tile_pos, this.rotation, true);
 			}
 			this.remove_tag();
 		}
@@ -330,7 +330,7 @@ $(window).ready(function() {
 			var t_size = window.Map.tilesize;
 			window.Draw.use_layer('entities');
 			if (this.placed) {
-				var loc = [(this.location[0] + this.tag_loc[0]) * t_size, (this.location[1] + this.tag_loc[1]) * t_size];
+				var loc = [(this.tile_pos[0] + this.tag_loc[0]) * t_size, (this.tile_pos[1] + this.tag_loc[1]) * t_size];
 				window.Draw.image('tag_move', loc[0], loc[1], t_size, t_size);
 			}
 			if (this.ghost_loc) {
@@ -339,7 +339,7 @@ $(window).ready(function() {
 			}
 		} else if (this.tag == 'remove') {
 			var t_size = window.Map.tilesize;
-			var loc = [(this.location[0] + this.tag_loc[0]) * t_size, (this.location[1] + this.tag_loc[1]) * t_size];
+			var loc = [(this.tile_pos[0] + this.tag_loc[0]) * t_size, (this.tile_pos[1] + this.tag_loc[1]) * t_size];
 			window.Draw.use_layer('entities');
 			window.Draw.image('tag_remove', loc[0], loc[1], t_size, t_size);
 		} else if (this.tag == 'build') {
@@ -444,20 +444,20 @@ $(window).ready(function() {
 	 // convert local coordinates to world coordinates
 	DThing.prototype.local_to_world = function(local, world) {
 		if (world == undefined) {
-			world = this.location;
+			world = this.tile_pos;
 		}
 		return [world[0] + local[0], world[1] + local[1]];
 	}
 
 	// convert world coordinates to local coordinates
 	DThing.prototype.world_to_local = function(world) {
-		return [world[0] - this.location[0], world[1] - this.location[1]];
+		return [world[0] - this.tile_pos[0], world[1] - this.tile_pos[1]];
 	}
 	
 	// attach this object's layout to the correct maps
 	DThing.prototype.apply_layout = function(loc, rot, pathing) {
 		if (loc == null) {
-			loc = this.location;
+			loc = this.tile_pos;
 		}
 		if (rot == null) {
 			rot = this.rotation;
@@ -486,7 +486,7 @@ $(window).ready(function() {
 	// detach this object's layout from the correct maps
 	DThing.prototype.remove_layout = function(loc, rot) {
 		if (loc == null) {
-			loc = this.location;
+			loc = this.tile_pos;
 		}
 		if (rot == null) {
 			rot = this.rotation;
@@ -587,7 +587,8 @@ $(window).ready(function() {
 		
 		if (loc && this.check_clear(loc, rot)) {
 			
-			this.location = loc;
+			this.tile_pos = loc;
+			this.pos = [loc[0]*window.Map.tilesize, loc[1]*window.Map.tilesize]
 			this.rotation = rot;
 			if (this.apply_layout(loc, rot)) {
 				this.placed = true;
@@ -595,7 +596,7 @@ $(window).ready(function() {
 				this.install();
 				return true
 			} else {
-				this.location = [];
+				this.tile_pos = [];
 			}
 		}
 		return false;
@@ -724,31 +725,34 @@ $(window).ready(function() {
 		if (rot_layout) {
 			var w = rot_layout[0].length;
 			var h = rot_layout.length;
-		
+			var all_clear = true;
 			for (var i = 0; i < h; i++) {
 				for (var j = 0; j < w; j++) {
 					var coords = [loc[0] + j, loc[1] + i];
 					if (rot_layout[i][j] != 0) {
 						var ob = window.Map.get('objects', coords[0], coords[1]);
 						
-						if (ob != 0) { // look for other objects here
-							if (!window.Map.contains('objects', coords[0], coords[1], this)) {
-								return false;
-							}
-						}
+						//if (ob != 0) { // look for other objects here
+						//	if (!window.Map.contains('objects', coords[0], coords[1], this)) {
+						//		return false;
+						//	}
+						//}
 						
 						var t = window.Map.get('tiles', coords[0], coords[1]);
 
 						if (t == 0) {
-							return false;
-						}
-
-						if (!t.is_floor(true)) {
-							return false;
+							all_clear = false;
+						} else if (!t.is_floor(true)) {
+							
 						}
 					}
 				}
 			}
+
+			if (!all_clear) {
+				return false;
+			}
+
 			
 			if (w > h) { // horizontal orientation
 				var coords1 = [loc[0] - 1, loc[1]];
@@ -820,25 +824,26 @@ $(window).ready(function() {
 		
 		if (loc && this.check_clear(loc, rot)) {
 			
-			this.location = loc;
+			this.tile_pos = loc;
+			this.pos = [loc[0]*window.Map.tilesize, loc[1]*window.Map.tilesize]
 			this.rotation = rot;
-			if (this.location == this.ghost_loc) {
+			if (this.tile_pos == this.ghost_loc) {
 				this.hide_ghost();
 			}
 			if (this.apply_layout(loc, rot)) {
 				this.placed = true;
 				this.attach_to_map();
 
-				this.anim = new anim('door_opening', [4, 4], [64, 32], this.location, this.rotation, this.rot_offset, 'flip', 'objects');
+				this.anim = new anim('door_opening', [4, 4], [64, 32], this.tile_pos, this.rotation, this.rot_offset, 'flip', 'objects');
 				
-				var o = window.Map.get('oxygen', this.location[0], this.location[1]);
+				var o = window.Map.get('oxygen', this.tile_pos[0], this.tile_pos[1]);
 				o.type = 2;
 		
 				if (this.rotation == 2 || this.rotation == 4) {
-					var o = window.Map.get('oxygen', this.location[0], this.location[1] + 1);
+					var o = window.Map.get('oxygen', this.tile_pos[0], this.tile_pos[1] + 1);
 					o.type = 2;
 				} else {
-					var o = window.Map.get('oxygen', this.location[0] + 1, this.location[1]);
+					var o = window.Map.get('oxygen', this.tile_pos[0] + 1, this.tile_pos[1]);
 					o.type = 2;
 				}
 				
@@ -847,7 +852,7 @@ $(window).ready(function() {
 				this.anim.speed = 35;
 				return true
 			} else {
-				this.location = [];
+				this.tile_pos = [];
 			}
 		}
 		return false;
@@ -857,14 +862,14 @@ $(window).ready(function() {
 			if (this.anim) {
 				this.anim.flip = true;
 			}
-			var o = window.Map.get('oxygen', this.location[0], this.location[1]);
+			var o = window.Map.get('oxygen', this.tile_pos[0], this.tile_pos[1]);
 			o.type = 0;
 	
 			if (this.rotation == 2 || this.rotation == 4) {
-				var o = window.Map.get('oxygen', this.location[0], this.location[1] + 1);
+				var o = window.Map.get('oxygen', this.tile_pos[0], this.tile_pos[1] + 1);
 				o.type = 0;
 			} else {
-				var o = window.Map.get('oxygen', this.location[0] + 1, this.location[1]);
+				var o = window.Map.get('oxygen', this.tile_pos[0] + 1, this.tile_pos[1]);
 				o.type = 0;
 			}
 		}
@@ -874,14 +879,14 @@ $(window).ready(function() {
 			if (this.anim) {
 				this.anim.flip = false;
 			}
-			var o = window.Map.get('oxygen', this.location[0], this.location[1]);
+			var o = window.Map.get('oxygen', this.tile_pos[0], this.tile_pos[1]);
 			o.type = 2;
 	
 			if (this.rotation == 2 || this.rotation == 4) {
-				var o = window.Map.get('oxygen', this.location[0], this.location[1] + 1);
+				var o = window.Map.get('oxygen', this.tile_pos[0], this.tile_pos[1] + 1);
 				o.type = 2;
 			} else {
-				var o = window.Map.get('oxygen', this.location[0] + 1, this.location[1]);
+				var o = window.Map.get('oxygen', this.tile_pos[0] + 1, this.tile_pos[1]);
 				o.type = 2;
 			}
 		}
@@ -1004,27 +1009,28 @@ $(window).ready(function() {
 		
 		if (loc && this.check_clear(loc, rot)) {
 			
-			this.location = loc;
+			this.tile_pos = loc;
+			this.pos = [loc[0]*window.Map.tilesize, loc[1]*window.Map.tilesize]
 			this.rotation = rot;
-			if (this.location == this.ghost_loc) {
+			if (this.tile_pos == this.ghost_loc) {
 				this.hide_ghost();
 			}
 			if (this.apply_layout(loc, rot)) {
 				this.placed = true;
 				this.attach_to_map();
 				console.log('adding new anim!!');
-				this.anim = new anim('basic_plant_life', [6, 1], [32, 32], this.location, this.rotation, this.rot_offset, 'property', 'objects');
+				this.anim = new anim('basic_plant_life', [6, 1], [32, 32], this.tile_pos, this.rotation, this.rot_offset, 'property', 'objects');
 				
 				this.anim.prop = this.water_frame;
 				
 				
-				var o = window.Map.get('oxygen', this.location[0], this.location[1]);
+				var o = window.Map.get('oxygen', this.tile_pos[0], this.tile_pos[1]);
 				o.increment = 5;
 				
 				
 				return true;
 			} else {
-				this.location = [];
+				this.tile_pos = [];
 			}
 		}
 		return false;

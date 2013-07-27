@@ -244,10 +244,13 @@
         roll = Math.random();
         if (roll > .1) {
           this.specs = [[0, 0, 32], [1, 0, 32], [2, 0, 32], [3, 0, 32]].random();
+          this.block_path = false;
         } else if (roll < .02) {
           this.specs = [[0, .5, 64], [1, 1.5, 64], [0, 1.666, 96]].random();
+          this.block_path = true;
         } else {
           this.specs = [[2, 1, 32], [3, 1, 32], [2, 2, 32], [3, 2, 32], [1, 3, 32], [2, 1.5, 64], [4, 2, 32]].random();
+          this.block_path = true;
         }
         this.dim = this.specs[2];
         if (typeof this.specs[2] === 'object') {
@@ -257,8 +260,6 @@
         }
         this.sx = this.specs[0];
         this.sy = this.specs[1];
-        this.block_path = true;
-        this.block_build = true;
         return this.attach_to_map();
       };
 

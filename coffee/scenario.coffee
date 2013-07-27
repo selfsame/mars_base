@@ -49,7 +49,7 @@ $(window).ready ->
     y = parseInt(Math.random()*(window.Map.height*window.Map.tilesize))
     return [x, y]
 
-  for i in [0..300]
+  for i in [0..window.Map.width*3]
     randrock = new E.RandRock('rock', 'rocksheet', get_rand_map() )
 
 

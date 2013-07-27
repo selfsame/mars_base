@@ -161,10 +161,13 @@ $(window).ready ->
       roll = Math.random()
       if roll > .1
         @specs = [[0,0,32], [1,0,32],[2,0,32],[3,0,32] ].random() 
+        @block_path = false
       else if roll < .02
         @specs = [[0,.5,64], [1,1.5,64], [ 0, 1.666, 96]].random() 
+        @block_path = true
       else
         @specs = [[2,1,32], [3,1,32], [2,2,32], [3,2,32], [1,3,32], [2, 1.5, 64], [4,2,32]].random() 
+        @block_path = true
 
       @dim = @specs[2]
 
@@ -175,8 +178,8 @@ $(window).ready ->
       @sx = @specs[0]
       @sy = @specs[1]
       
-      @block_path = true
-      @block_build = true
+      
+
       @attach_to_map()
     draw: ->
       if @persistant_draw is true

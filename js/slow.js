@@ -352,7 +352,7 @@
         this.filebuttons.hide();
         this.tileinfo.show();
         this.editarea.hide();
-        stats = $('<p class="tile_pos">' + x + ',' + y + '</p>');
+        stats = $('<p class="tile_pos">path:' + window.Map.get('pathfinding', x, y) + ', ' + x + ',' + y + '</p>');
         obs = window.Map.get('objects', x, y);
         obd = $('<ul id="ob_inspect"></ul>');
         if (obs) {

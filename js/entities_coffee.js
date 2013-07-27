@@ -26,6 +26,7 @@
       this.sprite_size = 32;
       this.sprite_offset = [0, 0];
       this.claimed = false;
+      this.placed = false;
       this.hidden = false;
       this.block_build = false;
       this.needs_draw = true;
